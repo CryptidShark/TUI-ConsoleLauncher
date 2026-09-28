@@ -47,7 +47,7 @@ public enum Ui implements XMLPrefsSave {
     ram_size {
         @Override
         public String defaultValue() {
-            return "13";
+            return "11";
         }
 
         @Override
@@ -63,7 +63,7 @@ public enum Ui implements XMLPrefsSave {
     battery_size {
         @Override
         public String defaultValue() {
-            return "13";
+            return "11";
         }
 
         @Override
@@ -79,7 +79,7 @@ public enum Ui implements XMLPrefsSave {
     device_size {
         @Override
         public String defaultValue() {
-            return "13";
+            return "11";
         }
 
         @Override
@@ -95,7 +95,7 @@ public enum Ui implements XMLPrefsSave {
     time_size {
         @Override
         public String defaultValue() {
-            return "13";
+            return "11";
         }
 
         @Override
@@ -111,7 +111,7 @@ public enum Ui implements XMLPrefsSave {
     storage_size {
         @Override
         public String defaultValue() {
-            return "13";
+            return "11";
         }
 
         @Override
@@ -127,7 +127,7 @@ public enum Ui implements XMLPrefsSave {
     network_size {
         @Override
         public String defaultValue() {
-            return "13";
+            return "11";
         }
 
         @Override
@@ -143,7 +143,7 @@ public enum Ui implements XMLPrefsSave {
     notes_size {
         @Override
         public String defaultValue() {
-            return "13";
+            return "11";
         }
 
         @Override

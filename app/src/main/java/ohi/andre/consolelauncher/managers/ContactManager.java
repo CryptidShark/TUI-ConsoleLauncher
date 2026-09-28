@@ -92,41 +92,50 @@ public class ContactManager {
                     String name = null, number;
                     int id, prim;
 
-                    while (phones.moveToNext()) {
-                        id = phones.getInt(phones.getColumnIndex(ContactsContract.Data.CONTACT_ID));
-                        number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    int idCol = phones.getColumnIndex(ContactsContract.Data.CONTACT_ID);
+                    int numberCol = phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                    int nameCol = phones.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME);
+                    int primCol = phones.getColumnIndex(ContactsContract.Data.IS_SUPER_PRIMARY);
 
-                        prim = phones.getInt(phones.getColumnIndex(ContactsContract.Data.IS_SUPER_PRIMARY));
-                        if(prim > 0) {
-                            defaultNumber = lastNumbers.size();
-                        }
+                    if (idCol != -1 && numberCol != -1 && nameCol != -1) {
+                        while (phones.moveToNext()) {
+                            id = phones.getInt(idCol);
+                            number = phones.getString(numberCol);
 
-                        if(number == null || number.length() == 0) continue;
+                            if (primCol != -1) {
+                                prim = phones.getInt(primCol);
+                                if (prim > 0) {
+                                    defaultNumber = lastNumbers.size();
+                                }
+                            }
 
-                        if(phones.isFirst()) {
-                            lastId = id;
-                            name = phones.getString(phones.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                        } else if(id != lastId || phones.isLast()) {
-                            lastId = id;
+                            if (number == null || number.length() == 0) continue;
 
-                            contacts.add(new Contact(name, lastNumbers, defaultNumber));
+                            if (phones.isFirst()) {
+                                lastId = id;
+                                name = phones.getString(nameCol);
+                            } else if (id != lastId || phones.isLast()) {
+                                lastId = id;
 
-                            lastNumbers = new ArrayList<>();
-                            nrml = new ArrayList<>();
-                            name = null;
-                            defaultNumber = 0;
+                                contacts.add(new Contact(name, lastNumbers, defaultNumber));
 
-                            name = phones.getString(phones.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                        }
+                                lastNumbers = new ArrayList<>();
+                                nrml = new ArrayList<>();
+                                name = null;
+                                defaultNumber = 0;
 
-                        String normalized = number.replaceAll(Tuils.SPACE, Tuils.EMPTYSTRING);
-                        if(!nrml.contains(normalized)) {
-                            nrml.add(normalized);
-                            lastNumbers.add(number);
-                        }
+                                name = phones.getString(nameCol);
+                            }
 
-                        if(name != null && phones.isLast()) {
-                            contacts.add(new Contact(name, lastNumbers, defaultNumber));
+                            String normalized = number.replaceAll(Tuils.SPACE, Tuils.EMPTYSTRING);
+                            if(!nrml.contains(normalized)) {
+                                nrml.add(normalized);
+                                lastNumbers.add(number);
+                            }
+
+                            if(name != null && phones.isLast()) {
+                                contacts.add(new Contact(name, lastNumbers, defaultNumber));
+                            }
                         }
                     }
                     phones.close();
@@ -193,37 +202,53 @@ public class ContactManager {
                 ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?", new String[] {phone},
                 null);
 
-        if(mCursor == null || mCursor.getCount() == 0) return null;
+        if(mCursor == null) return null;
+        if(mCursor.getCount() == 0) {
+            mCursor.close();
+            return null;
+        }
         String[] about = new String[SIZE];
 
         mCursor.moveToNext();
 
-        String id = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
+        int idCol = mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID);
+        String id = idCol != -1 ? mCursor.getString(idCol) : null;
         about[CONTACT_ID] = id;
 
         mCursor.close();
+        if(id == null) return null;
+
         mCursor = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 new String[] {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED, ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED,
                         ContactsContract.CommonDataKinds.Phone.NUMBER},
                 ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[] {id},
                 null);
 
-        if(mCursor == null || mCursor.getCount() == 0) return null;
+        if(mCursor == null) return null;
+        if(mCursor.getCount() == 0) {
+            mCursor.close();
+            return null;
+        }
         mCursor.moveToNext();
 
-        about[NAME] = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-        about[NUMBERS] = new String(Tuils.EMPTYSTRING);
+        int nameCol = mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+        int timesCol = mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED);
+        int lastCol = mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED);
+        int numCol = mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+
+        about[NAME] = nameCol != -1 ? mCursor.getString(nameCol) : Tuils.EMPTYSTRING;
+        about[NUMBERS] = Tuils.EMPTYSTRING;
 
         int timesContacted = -1;
         long lastContacted = Long.MAX_VALUE;
         do {
-            int tempT = mCursor.getInt(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TIMES_CONTACTED));
-            long tempL = mCursor.getLong(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.LAST_TIME_CONTACTED));
+            int tempT = timesCol != -1 ? mCursor.getInt(timesCol) : -1;
+            long tempL = lastCol != -1 ? mCursor.getLong(lastCol) : -1;
 
             timesContacted = tempT > timesContacted ? tempT : timesContacted;
             if(tempL > 0) lastContacted = tempL < lastContacted ? tempL : lastContacted;
 
-            String n = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            String n = numCol != -1 ? mCursor.getString(numCol) : Tuils.EMPTYSTRING;
             about[NUMBERS] = (about[NUMBERS].length() > 0 ? about[NUMBERS] + Tuils.NEWLINE : Tuils.EMPTYSTRING) + n;
         } while (mCursor.moveToNext());
 
@@ -252,6 +277,7 @@ public class ContactManager {
             }
         }
 
+        mCursor.close();
         return about;
     }
 
@@ -278,24 +304,39 @@ public class ContactManager {
                 ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?", new String[] {phone},
                 null);
 
-        if(mCursor == null || mCursor.getCount() == 0) return null;
+        if(mCursor == null) return null;
+        if(mCursor.getCount() == 0) {
+            mCursor.close();
+            return null;
+        }
         mCursor.moveToNext();
 
-        String name = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+        int nameCol = mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+        String name = nameCol != -1 ? mCursor.getString(nameCol) : null;
         mCursor.close();
+
+        if(name == null) return null;
 
         mCursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI,
                 new String[] {ContactsContract.Contacts.LOOKUP_KEY, ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME},
                 ContactsContract.Contacts.DISPLAY_NAME + " = ?", new String[] {name},
                 null);
 
-        if(mCursor == null || mCursor.getCount() == 0) return null;
+        if(mCursor == null) return null;
+        if(mCursor.getCount() == 0) {
+            mCursor.close();
+            return null;
+        }
         mCursor.moveToNext();
 
-        String mCurrentLookupKey = mCursor.getString(mCursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
-        long mCurrentId = mCursor.getLong(mCursor.getColumnIndex(ContactsContract.Contacts._ID));
+        int lookupCol = mCursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY);
+        int idCol = mCursor.getColumnIndex(ContactsContract.Contacts._ID);
+
+        String mCurrentLookupKey = lookupCol != -1 ? mCursor.getString(lookupCol) : null;
+        long mCurrentId = idCol != -1 ? mCursor.getLong(idCol) : -1;
 
         mCursor.close();
+        if(mCurrentLookupKey == null || mCurrentId == -1) return null;
 
         return ContactsContract.Contacts.getLookupUri(mCurrentId, mCurrentLookupKey);
     }

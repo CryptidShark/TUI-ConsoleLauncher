@@ -40,15 +40,26 @@ public class help implements CommandAbstraction {
     @Override
     public String onNotArgEnough(ExecutePack pack, int nArgs) {
         MainPack info = (MainPack) pack;
-        List<String> toPrint = new ArrayList<>(Arrays.asList(info.commandGroup.getCommandNames()));
+        StringBuilder builder = new StringBuilder();
+        builder.append("AVAILABLE COMMANDS").append(Tuils.NEWLINE).append(Tuils.NEWLINE);
 
+        String[] names = info.commandGroup.getCommandNames();
+        List<String> toPrint = new ArrayList<>(Arrays.asList(names));
         Collections.sort(toPrint, Tuils::alphabeticCompare);
 
-        Tuils.addPrefix(toPrint, Tuils.DOUBLE_SPACE);
-        Tuils.addSeparator(toPrint, Tuils.TRIBLE_SPACE);
-        Tuils.insertHeaders(toPrint, true);
+        for (String name : toPrint) {
+            try {
+                CommandAbstraction cmd = info.commandGroup.getCommandByName(name);
+                String desc = "";
+                if (cmd != null && cmd.helpRes() != 0) {
+                    desc = info.res.getString(cmd.helpRes()).split("\n")[0];
+                }
+                
+                builder.append(String.format("%-12s %s", name, desc)).append(Tuils.NEWLINE);
+            } catch (Exception e) {}
+        }
 
-        return Tuils.toPlanString(toPrint, "");
+        return builder.toString();
     }
 
     @Override

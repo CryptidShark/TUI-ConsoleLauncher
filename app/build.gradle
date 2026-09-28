@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     namespace "ohi.andre.consolelauncher"
-    compileSdk 34
+    compileSdk 37
 
     def keystorePropertiesFile = rootProject.file("local.properties")
     def keystoreProperties = new Properties()
@@ -13,18 +13,18 @@ android {
     signingConfigs {
         release {
             storeFile file("../" + (keystoreProperties["storeFile"] ?: "release.jks"))
-            storePassword = keystoreProperties["storePassword"] ?: ""
-            keyAlias = keystoreProperties["keyAlias"] ?: "tui-alias"
-            keyPassword = keystoreProperties["keyPassword"] ?: ""
+            storePassword keystoreProperties["storePassword"] ?: ""
+            keyAlias keystoreProperties["keyAlias"] ?: "tui-alias"
+            keyPassword keystoreProperties["keyPassword"] ?: ""
         }
     }
 
     defaultConfig {
         applicationId "ohi.andre.consolelauncher"
-        minSdk 21
-        targetSdk 34
-        versionCode 301
-        versionName "v6.15.1-updated-v2"
+        minSdk 24
+        targetSdk 37
+        versionCode 302
+        versionName "v6.15.1-android16-stable"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,7 +35,6 @@ android {
 
     buildTypes {
         debug {
-            signingConfig signingConfigs.release
         }
         release {
             minifyEnabled true
@@ -45,8 +44,8 @@ android {
         }
     }
 
+    flavorDimensions += "default"
     productFlavors {
-        flavorDimensions = ["default"]
         fdroid {
             dimension "default"
         }
@@ -56,8 +55,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     lint {
@@ -66,13 +65,19 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
+    // AndroidX
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.14.0'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
-    
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'androidx.activity:activity:1.13.0'
+    implementation 'androidx.core:core:1.15.0'
+
+    // Networking
+    implementation 'com.squareup.okhttp3:okhttp:5.4.0'
+
+    // Parsing
     implementation 'net.sourceforge.htmlcleaner:htmlcleaner:2.29'
-    implementation 'com.jayway.jsonpath:json-path:2.9.0'
-    implementation 'org.jsoup:jsoup:1.17.2'
+    implementation 'com.jayway.jsonpath:json-path:3.0.0'
+    implementation 'org.jsoup:jsoup:1.22.2'
     implementation 'it.andreuzzi:CompareString2:1.0.9'
 }

@@ -1,6 +1,10 @@
 package ohi.andre.consolelauncher;
 
 import android.Manifest;
+import android.app.Activity;
+import android.appwidget.AppWidgetHostView;
+import android.appwidget.AppWidgetManager;
+import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -9,13 +13,13 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.appcompat.app.AppCompatActivity;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -24,20 +28,38 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
 
+import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.raw.visual;
 import ohi.andre.consolelauncher.commands.tuixt.TuixtActivity;
 import ohi.andre.consolelauncher.managers.ContactManager;
 import ohi.andre.consolelauncher.managers.RegexManager;
 import ohi.andre.consolelauncher.managers.TerminalManager;
+import ohi.andre.consolelauncher.managers.ThemeEngine;
 import ohi.andre.consolelauncher.managers.TimeManager;
 import ohi.andre.consolelauncher.managers.TuiLocationManager;
 import ohi.andre.consolelauncher.managers.notifications.KeeperService;
@@ -45,6 +67,7 @@ import ohi.andre.consolelauncher.managers.notifications.NotificationManager;
 import ohi.andre.consolelauncher.managers.notifications.NotificationMonitorService;
 import ohi.andre.consolelauncher.managers.notifications.NotificationService;
 import ohi.andre.consolelauncher.managers.suggestions.SuggestionsManager;
+import ohi.andre.consolelauncher.managers.TuiWidgetManager;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
 import ohi.andre.consolelauncher.managers.xml.options.Behavior;
 import ohi.andre.consolelauncher.managers.xml.options.Notifications;
@@ -70,9 +93,12 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     public static final int LOCATION_REQUEST_PERMISSION = 13;
 
     public static final int TUIXT_REQUEST = 10;
+    public static final int STORAGE_MANAGER_REQUEST = 1000;
 
     private UIManager ui;
     private MainManager main;
+    private TuiWidgetManager widgetManager;
+    private ViewGroup persistentContainer;
 
     private PrivateIOReceiver privateIOReceiver;
     private PublicIOReceiver publicIOReceiver;
@@ -188,16 +214,58 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         }
 
         @Override
+        public void onOutput(View view) {
+            if(ui != null) ui.setOutput(view);
+        }
+
+        @Override
         public void dispose() {
             if(handler != null) handler.removeCallbacksAndMessages(null);
         }
     };
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        XMLPrefsManager.loadCommons(newBase);
+        String lang = XMLPrefsManager.get(Behavior.language);
+        Locale locale = new Locale(lang);
+        Locale.setDefault(locale);
+        Configuration config = new Configuration();
+        config.setLocale(locale);
+        Context context = newBase.createConfigurationContext(config);
+        super.attachBaseContext(context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
+        try {
+            XMLPrefsManager.loadCommons(this);
+        } catch (Exception e) {
+            Tuils.toFile(e);
+        }
+
+        boolean fullscreen = XMLPrefsManager.getBoolean(Ui.fullscreen);
+        if(fullscreen) {
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
+
+        boolean useSystemWP = XMLPrefsManager.getBoolean(Ui.system_wallpaper);
+        if (useSystemWP) {
+            setTheme(R.style.Custom_SystemWP);
+        } else {
+            setTheme(R.style.Custom_Solid);
+        }
+
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
 
-        overridePendingTransition(0,0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0);
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0);
+        } else {
+            overridePendingTransition(0, 0);
+        }
 
         if (isFinishing()) {
             return;
@@ -224,16 +292,16 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
         // Special check for MANAGE_EXTERNAL_STORAGE (API 30+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!android.os.Environment.isExternalStorageManager()) {
+            if (!Environment.isExternalStorageManager()) {
                 try {
-                    Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                     intent.addCategory("android.intent.category.DEFAULT");
-                    intent.setData(android.net.Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
-                    startActivityForResult(intent, 100);
+                    intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
+                    startActivityForResult(intent, STORAGE_MANAGER_REQUEST);
                 } catch (Exception e) {
                     Intent intent = new Intent();
-                    intent.setAction(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                    startActivityForResult(intent, 100);
+                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    startActivityForResult(intent, STORAGE_MANAGER_REQUEST);
                 }
                 Toast.makeText(this, "Please grant storage permissions to T-UI", Toast.LENGTH_LONG).show();
             }
@@ -243,11 +311,11 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             ActivityCompat.requestPermissions(this, permissionsToRequest.toArray(new String[0]), LauncherActivity.STARTING_PERMISSION);
         } else {
             canApplyTheme = true;
-            finishOnCreate();
+            finishOnCreate(savedInstanceState);
         }
     }
 
-    private void finishOnCreate() {
+    private void finishOnCreate(Bundle savedInstanceState) {
 
         Thread.currentThread().setUncaughtExceptionHandler(new CustomExceptionHandler());
 
@@ -303,19 +371,6 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             try {
                 stopService(keeperIntent);
             } catch (Exception e) {}
-        }
-
-        boolean fullscreen = XMLPrefsManager.getBoolean(Ui.fullscreen);
-        if(fullscreen) {
-            requestWindowFeature(Window.FEATURE_NO_TITLE);
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
-
-        boolean useSystemWP = XMLPrefsManager.getBoolean(Ui.system_wallpaper);
-        if (useSystemWP) {
-            setTheme(R.style.Custom_SystemWP);
-        } else {
-            setTheme(R.style.Custom_Solid);
         }
 
         try {
@@ -374,16 +429,24 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         main = new MainManager(this);
 
         ViewGroup mainView = (ViewGroup) findViewById(R.id.mainview);
+        persistentContainer = (ViewGroup) findViewById(R.id.persistent_container);
 
-//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !XMLPrefsManager.getBoolean(Ui.ignore_bar_color) && !XMLPrefsManager.getBoolean(Ui.statusbar_light_icons)) {
-//            mainView.setSystemUiVisibility(0);
-//        }
+        ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, Math.max(systemBars.bottom, ime.bottom));
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !XMLPrefsManager.getBoolean(Ui.ignore_bar_color) && !XMLPrefsManager.getBoolean(Ui.statusbar_light_icons)) {
-            mainView.setSystemUiVisibility(mainView.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), mainView);
+            controller.setAppearanceLightStatusBars(true);
         }
 
         ui = new UIManager(this, mainView, main.getMainPack(), canApplyTheme, main.executer());
+        widgetManager = new TuiWidgetManager(this);
+        widgetManager.restoreState(savedInstanceState);
+        main.setWidgetManager(widgetManager);
 
         main.setRedirectionListener(ui.buildRedirectionListener());
         ui.pack = main.getMainPack();
@@ -391,9 +454,52 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         in.in(Tuils.EMPTYSTRING);
         ui.focusTerminal();
 
-        if(fullscreen) Assist.assistActivity(this);
+        if(XMLPrefsManager.getBoolean(Ui.fullscreen)) Assist.assistActivity(this);
+
+        if (XMLPrefsManager.getBoolean(Behavior.persistent_system_card)) {
+            loadFixedVisual("system");
+        }
+
+        if (XMLPrefsManager.getBoolean(Behavior.persistent_battery_card)) {
+            loadFixedVisual("battery");
+        }
+
+        if (XMLPrefsManager.getBoolean(Behavior.persistent_notes_card)) {
+            loadFixedVisual("notes");
+        }
+
+        if (XMLPrefsManager.getBoolean(Behavior.persistent_shortcuts_card)) {
+            loadFixedVisual("shortcuts");
+        }
+
+        if (XMLPrefsManager.getBoolean(Behavior.persistent_music_card)) {
+            loadFixedVisual("music");
+        }
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBackPressed();
+            }
+        });
+
+        if (XMLPrefsManager.getBoolean(Ui.fullscreen)) {
+            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), mainView);
+            if (controller != null) {
+                controller.hide(WindowInsetsCompat.Type.statusBars() | WindowInsetsCompat.Type.navigationBars());
+                controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
+        }
 
         System.gc();
+    }
+
+    private void loadFixedVisual(String type) {
+        MainPack pack = main.getMainPack();
+        pack.set(new String[]{type, "-fixed"});
+        try {
+            new visual().exec(pack);
+        } catch (Exception ignore) {}
     }
 
     @Override
@@ -401,6 +507,19 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         super.onStart();
 
         if (ui != null) ui.onStart(openKeyboardOnStart);
+        if (widgetManager != null) widgetManager.startListening();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (widgetManager != null) widgetManager.stopListening();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (widgetManager != null) widgetManager.saveState(outState);
     }
 
     @Override
@@ -471,7 +590,14 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     @Override
     public void onBackPressed() {
         if (backButtonEnabled && main != null) {
-            ui.onBackPressed();
+            if (ui != null) {
+                String currentInput = ui.getInput();
+                if (currentInput != null && !currentInput.isEmpty()) {
+                    ui.setInput(Tuils.EMPTYSTRING);
+                } else {
+                    ui.onBackPressed();
+                }
+            }
         }
     }
 
@@ -551,6 +677,44 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        if (requestCode == TuiWidgetManager.REQUEST_PICK_APPWIDGET) {
+            if (resultCode == RESULT_OK) {
+                Tuils.sendOutput(this, "Widget selected, configuring...");
+                widgetManager.configureWidget(this, data);
+            } else {
+                Tuils.sendOutput(this, "Widget pick cancelled (code: " + resultCode + ")");
+                if (data != null) {
+                    int appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
+                    if (appWidgetId != -1) {
+                        widgetManager.deleteWidgetId(appWidgetId);
+                    }
+                }
+            }
+        } else if (requestCode == TuiWidgetManager.REQUEST_CREATE_APPWIDGET) {
+            if (resultCode == RESULT_OK) {
+                Tuils.sendOutput(this, "Widget configuration success.");
+                widgetManager.createWidgetFromIntent(this, data);
+            } else {
+                Tuils.sendOutput(this, "Widget configuration failed or cancelled.");
+            }
+        } else if (requestCode == TuiWidgetManager.REQUEST_BIND_APPWIDGET) {
+            if (resultCode == RESULT_OK) {
+                Tuils.sendOutput(this, "Widget bind success.");
+                widgetManager.createWidgetFromIntent(this, data);
+            } else {
+                // Final strategy for Samsung/Modern Android: 
+                // If bind fails but user says they have permission, try to create anyway
+                Tuils.sendOutput(this, "Widget bind returned " + resultCode + ". Attempting direct creation...");
+                widgetManager.createWidgetFromIntent(this, data);
+            }
+        }
+
+        if (requestCode == STORAGE_MANAGER_REQUEST) {
+            // Re-init folder and reload
+            Tuils.reinit(this);
+            reload();
+        }
+
         if(requestCode == TUIXT_REQUEST && resultCode != 0) {
             if(resultCode == TuixtActivity.BACK_PRESSED) {
                 Tuils.sendOutput(this, R.string.tuixt_back_pressed);
@@ -599,22 +763,19 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                         count++;
                     }
                     canApplyTheme = false;
-                    finishOnCreate();
+                    finishOnCreate(null);
                     break;
                 case COMMAND_SUGGESTION_REQUEST_PERMISSION:
-                    if (grantResults.length == 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                         ui.setOutput(getString(R.string.output_nopermissions), TerminalManager.CATEGORY_OUTPUT);
                     }
                     break;
                 case LOCATION_REQUEST_PERMISSION:
-//                    Intent i = new Intent(UIManager.ACTION_WEATHER_GOT_PERMISSION);
-//                    i.putExtra(XMLPrefsManager.VALUE_ATTRIBUTE, grantResults[0]);
-//                    LocalBroadcastManager.getInstance(this.getApplicationContext()).sendBroadcast(i);
-
-                    Intent i = new Intent(TuiLocationManager.ACTION_GOT_PERMISSION);
-                    i.putExtra(XMLPrefsManager.VALUE_ATTRIBUTE, grantResults[0]);
-                    LocalBroadcastManager.getInstance(this.getApplicationContext()).sendBroadcast(i);
-
+                    if (grantResults.length > 0) {
+                        Intent i = new Intent(TuiLocationManager.ACTION_GOT_PERMISSION);
+                        i.putExtra(XMLPrefsManager.VALUE_ATTRIBUTE, grantResults[0]);
+                        LocalBroadcastManager.getInstance(this.getApplicationContext()).sendBroadcast(i);
+                    }
                     break;
             }
         } catch (Exception e) {}
@@ -637,5 +798,125 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+    }
+
+    public void onOutput(View view) {
+        if (out != null) out.onOutput(view);
+    }
+
+    public UIManager getUIManager() {
+        return ui;
+    }
+
+    public void onPersistentOutput(View view) {
+        if (persistentContainer != null) {
+            String presetName = XMLPrefsManager.get(Behavior.theme_preset);
+            ThemeEngine.Preset preset;
+            try {
+                preset = ThemeEngine.Preset.valueOf(presetName);
+            } catch (Exception e) {
+                preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
+            }
+            ThemeEngine.DesignTokens theme = ThemeEngine.getPreset(preset);
+
+            if (view instanceof AppWidgetHostView) {
+                AppWidgetHostView hostView = (AppWidgetHostView) view;
+                AppWidgetProviderInfo info = hostView.getAppWidgetInfo();
+                
+                LinearLayout wrapper = new LinearLayout(this);
+                wrapper.setTag("widget_container");
+                wrapper.setOrientation(LinearLayout.VERTICAL);
+
+                LinearLayout.LayoutParams wrapperParams = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                wrapperParams.setMargins(0, Tuils.dpToPx(this, 6), 0, Tuils.dpToPx(this, 6));
+                wrapper.setLayoutParams(wrapperParams);
+
+                GradientDrawable cardBg = new GradientDrawable();
+                cardBg.setColor(theme.surface);
+                cardBg.setCornerRadius(Tuils.dpToPx(this, (int) theme.borderRadius > 0 ? (int) theme.borderRadius : 6));
+                cardBg.setStroke((int) Tuils.dpToPx(this, (int) theme.borderWidth > 0 ? (int) theme.borderWidth : 1), theme.border);
+                wrapper.setBackground(cardBg);
+
+                String titleText = "EXTERNAL_MODULE";
+                if (info != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        titleText = info.loadLabel(getPackageManager());
+                    } else {
+                        titleText = info.label;
+                    }
+                }
+
+                TextView header = new TextView(this);
+                header.setText("● [ " + (titleText != null ? titleText.toUpperCase() : "EXTERNAL_MODULE") + " ]");
+                header.setTextColor(theme.primary);
+                header.setTextSize(11);
+                header.setTypeface(Tuils.getTypeface(this));
+                header.setPadding(Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 8), Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 6));
+                wrapper.addView(header);
+
+                View line = new View(this);
+                line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Tuils.dpToPx(this, 1)));
+                line.setBackgroundColor(theme.border);
+                line.setAlpha(0.35f);
+                wrapper.addView(line);
+
+                hostView.setPadding(0, 0, 0, 0);
+                LinearLayout.LayoutParams hostParams = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                hostParams.setMargins(Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4));
+                hostView.setLayoutParams(hostParams);
+                wrapper.addView(hostView);
+                
+                TextView footer = new TextView(this);
+                footer.setText("<< MODULE_ID: " + hostView.getAppWidgetId() + " // STATUS: ONLINE");
+                footer.setTextColor(theme.textMuted);
+                footer.setTextSize(9);
+                footer.setTypeface(Tuils.getTypeface(this));
+                footer.setPadding(Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 2), Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 8));
+                wrapper.addView(footer);
+
+                persistentContainer.addView(wrapper);
+                applyThemeRecursively(wrapper);
+            } else {
+                persistentContainer.addView(view);
+                applyThemeRecursively(view);
+            }
+        }
+    }
+
+    private void applyThemeRecursively(View view) {
+        if (ui == null || ui.pack == null) return;
+        
+        String presetName = XMLPrefsManager.get(Behavior.theme_preset);
+        ThemeEngine.Preset preset;
+        try {
+            preset = ThemeEngine.Preset.valueOf(presetName);
+        } catch (Exception e) {
+            preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
+        }
+        ThemeEngine.DesignTokens theme = ThemeEngine.getPreset(preset);
+
+        if (view instanceof TextView) {
+            ((TextView) view).setTextColor(theme.text);
+            ((TextView) view).setTypeface(Tuils.getTypeface(this));
+        } else if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            
+            // Critical Fix: Also apply background style to containers
+            if (group.getId() == R.id.card_container || group.getParent() == persistentContainer) {
+                GradientDrawable gd = new GradientDrawable();
+                gd.setColor(theme.surface);
+                gd.setCornerRadius(Tuils.dpToPx(this, (int)theme.borderRadius));
+                gd.setStroke((int)Tuils.dpToPx(this, (int)theme.borderWidth), theme.border);
+                group.setBackground(gd);
+            }
+
+            for (int i = 0; i < group.getChildCount(); i++) {
+                applyThemeRecursively(group.getChildAt(i));
+            }
+        }
     }
 }

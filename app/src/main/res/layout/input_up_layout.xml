@@ -92,28 +92,11 @@
 
     </LinearLayout>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/terminal_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-            android:orientation="vertical">
-
-            <ohi.andre.consolelauncher.tuils.OutlineTextView
-                android:id="@+id/terminal_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-
-                android:gravity="bottom"
-                android:scrollHorizontally="false"
-                android:scrollbars="vertical"
-                android:textIsSelectable="true"/>
-
-        </LinearLayout>
-
-    </ScrollView>
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
 
 </LinearLayout>

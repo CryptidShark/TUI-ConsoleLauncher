@@ -6,6 +6,7 @@
     <string name="share_label">Share</string>
     <string name="output_about">Francesco Andreuzzi (Italy)\n\t-> Programmer
         \n\nThanks to Luke Winward for his original idea</string>
+    <string name="available_commands">AVAILABLE COMMANDS</string>
     <string name="output_refresh">Refresh: apps, alias, music, contacts, rss feeds</string>
     <string name="output_rate">Thank you!</string>
     <string name="start_notification">T-UI started</string>
@@ -86,6 +87,16 @@
         <item name="hint_disable">You can disable this messages with the cmd \"$ config -set show_hints false\"</item>
     </string-array>
 
+
+    <string-array name="tutorial_steps">
+        <item>WELCOME TO TERMINAL LAUNCHER\n\nThis is a terminal. You type commands to do things.</item>
+        <item>Step 1: The Basics\n\nTry running \'help\' to see all available commands.</item>
+        <item>Step 2: Interactive Widgets\n\nRun \'visual battery\' to see our interactive status cards and widgets.</item>
+        <item>Step 3: Apps &amp; Navigation\n\nType the name of any app (e.g. \'Chrome\') to launch it instantly.</item>
+        <item>Step 4: Customization &amp; Settings\n\nRun \'settings live\' for fonts/colors. Use \'visual [module] -fixed\' to pin modules like system, music, or battery to the top.</item>
+        <item>Step 5: Music &amp; Media\n\nUse \'visual music -fixed\' for a dynamic ASCII player. T-UI will detect your music if you grant Notification Access.</item>
+        <item>You\'re all set! Your terminal is now a professional dashboard.</item>
+    </string-array>
 
     <string-array name="tutorial">
         <item>Use the command \"help\" to get a list of available commands</item>
@@ -198,12 +209,12 @@
     <string name="output_flashlightnotavailable">Your device doesn\'t support flashlight</string>
 
     <!-- status -->
-    <string name="battery_label">Battery:</string>
-    <string name="mobile_data_label">Mobile data:</string>
-    <string name="wifi_label">WiFi:</string>
-    <string name="location_label">Location:</string>
-    <string name="brightness_label">Brightness:</string>
-    <string name="bluetooth_label">Bluetooth:</string>
+    <string name="battery_label">🔋 Battery:</string>
+    <string name="mobile_data_label">📶 Data:</string>
+    <string name="wifi_label">📶 WiFi:</string>
+    <string name="location_label">📍 Location:</string>
+    <string name="brightness_label">💡 Brightness:</string>
+    <string name="bluetooth_label">🎧 Bluetooth:</string>
 
     <!-- contacts -->
     <string name="sms_hint">write your SMS or nothing to cancel</string>
@@ -327,6 +338,8 @@
         \n-preset [name] -> apply a built-in preset (blue, red, green, pink, bw, cyberpunk)
         \n-old -> re-apply the theme that was replaced by the current one
         \n-standard -> apply the standard theme</string>
+    <string name="help_settings">Open the settings card to customize language and theme</string>
+    <string name="help_visual">Show interactive dashboard cards (battery, system)</string>
     <string name="help_time">Print the current time with the given format
         \n\nUsage:
         \n$ time [index] (index means the index of the desired time_format</string>

@@ -43,6 +43,14 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -61,6 +69,8 @@ import ohi.andre.consolelauncher.commands.main.MainPack;
 import ohi.andre.consolelauncher.commands.main.specific.RedirectCommand;
 import ohi.andre.consolelauncher.managers.HTMLExtractManager;
 import ohi.andre.consolelauncher.managers.NotesManager;
+import ohi.andre.consolelauncher.managers.ThemeEngine;
+import ohi.andre.consolelauncher.managers.TerminalAdapter;
 import ohi.andre.consolelauncher.managers.TerminalManager;
 import ohi.andre.consolelauncher.managers.TimeManager;
 import ohi.andre.consolelauncher.managers.TuiLocationManager;
@@ -761,7 +771,7 @@ public class UIManager implements OnTouchListener {
 
     private SuggestionsManager suggestionsManager;
 
-    private TextView terminalView;
+    private RecyclerView terminalView;
 
     private String doubleTapCmd;
     private boolean lockOnDbTap;
@@ -897,10 +907,25 @@ public class UIManager implements OnTouchListener {
 
         imm = (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
 
+        String presetName = XMLPrefsManager.get(Behavior.theme_preset);
+        ThemeEngine.Preset preset;
+        try {
+            preset = ThemeEngine.Preset.valueOf(presetName);
+        } catch (Exception e) {
+            preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
+        }
+        ThemeEngine.DesignTokens designTokens = ThemeEngine.getPreset(preset);
+
         if (!XMLPrefsManager.getBoolean(Ui.system_wallpaper) || !canApplyTheme) {
-            rootView.setBackgroundColor(XMLPrefsManager.getColor(Theme.bg_color));
+            rootView.setBackgroundColor(designTokens.background);
         } else {
-            rootView.setBackgroundColor(XMLPrefsManager.getColor(Theme.overlay_color));
+            // Apply the theme background as a semi-transparent overlay
+            int color = designTokens.background;
+            // If the user hasn't set a transparency, force one so they can see the wallpaper
+            if (Color.alpha(color) == 255) {
+                color = (color & 0x00FFFFFF) | 0xB3000000; // 70% opacity
+            }
+            rootView.setBackgroundColor(color);
         }
 
 //        scrolllllll
@@ -1135,6 +1160,9 @@ public class UIManager implements OnTouchListener {
 
                 applyBgRect(labelViews[count], bgRectColors[count], bgColors[count], margins[0], strokeWidth, cornerRadius);
                 applyShadow(labelViews[count], outlineColors[count], shadowXOffset, shadowYOffset, shadowRadius);
+                
+                // Perfect Theme Adjustment: Set default text color based on theme
+                labelViews[count].setTextColor(designTokens.text);
             } else {
                 lViewsParent.removeView(labelViews[count]);
                 labelViews[count] = null;
@@ -1288,12 +1316,12 @@ public class UIManager implements OnTouchListener {
         View inputOutputView = inflater.inflate(layoutId, null);
         rootView.addView(inputOutputView);
 
-        terminalView = (TextView) inputOutputView.findViewById(R.id.terminal_view);
+        terminalView = (RecyclerView) inputOutputView.findViewById(R.id.terminal_view);
         terminalView.setOnTouchListener(this);
-        ((View) terminalView.getParent().getParent()).setOnTouchListener(this);
+        ((View) terminalView.getParent()).setOnTouchListener(this);
 
         applyBgRect(terminalView, bgRectColors[OUTPUT_BGCOLOR_INDEX], bgColors[OUTPUT_BGCOLOR_INDEX], margins[OUTPUT_MARGINS_INDEX], strokeWidth, cornerRadius);
-        applyShadow(terminalView, outlineColors[OUTPUT_BGCOLOR_INDEX], shadowXOffset, shadowYOffset, shadowRadius);
+        // terminalView shadow is handled by adapter items now
 
         final EditText inputView = (EditText) inputOutputView.findViewById(R.id.input_view);
         TextView prefixView = (TextView) inputOutputView.findViewById(R.id.prefix_view);
@@ -1427,7 +1455,13 @@ public class UIManager implements OnTouchListener {
 
             applyMargins(v, spaces);
 
-            d.setColor(Color.parseColor(bgColor));
+            int color = Color.parseColor(bgColor);
+            // High-End Optimization: If system wallpaper is on, ensure this background is also transparent
+            if (XMLPrefsManager.getBoolean(Ui.system_wallpaper) && Color.alpha(color) == 255) {
+                color = (color & 0x00FFFFFF) | 0x33000000; // Very subtle 20% overlay for cards
+            }
+            
+            d.setColor(color);
             v.setBackgroundDrawable(d);
         } catch (Exception e) {
             Tuils.toFile(e);
@@ -1510,6 +1544,10 @@ public class UIManager implements OnTouchListener {
         mTerminalAdapter.setOutput(color, output);
     }
 
+    public void setOutput(View view) {
+        mTerminalAdapter.setOutput(view);
+    }
+
     public void disableSuggestions() {
         if(suggestionsManager != null) suggestionsManager.disable();
     }
@@ -1518,12 +1556,20 @@ public class UIManager implements OnTouchListener {
         if(suggestionsManager != null) suggestionsManager.enable();
     }
 
+    public String getInput() {
+        return mTerminalAdapter != null ? mTerminalAdapter.getInput() : "";
+    }
+
     public void onBackPressed() {
         mTerminalAdapter.onBackPressed();
     }
 
     public void focusTerminal() {
         mTerminalAdapter.requestInputFocus();
+    }
+
+    public NotesManager getNotesManager() {
+        return notesManager;
     }
 
     public void pause() {

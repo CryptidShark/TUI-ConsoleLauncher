@@ -5,6 +5,7 @@ package ohi.andre.consolelauncher.managers.notifications;
  */
 
 import android.annotation.TargetApi;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -253,7 +254,8 @@ public class NotificationService extends NotificationListenerService {
 //                        Tuils.log("text", text);
 //                        Tuils.log("--------");
 
-                            Tuils.sendOutput(NotificationService.this.getApplicationContext(), s, TerminalManager.CATEGORY_NO_COLOR, click ? notification.contentIntent : null, longClick ? n : null);
+                            String notifId = NotificationRepository.store(n);
+                            Tuils.sendOutput(NotificationService.this.getApplicationContext(), s, TerminalManager.CATEGORY_NO_COLOR, click ? notifId : null, longClick ? notifId : null);
 
                             if(replyManager != null) replyManager.onNotification(sbn, s);
                         }

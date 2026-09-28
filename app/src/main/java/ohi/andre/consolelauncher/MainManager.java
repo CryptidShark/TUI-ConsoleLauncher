@@ -32,6 +32,7 @@ import ohi.andre.consolelauncher.managers.TerminalManager;
 import ohi.andre.consolelauncher.managers.ThemeManager;
 import ohi.andre.consolelauncher.managers.TimeManager;
 import ohi.andre.consolelauncher.managers.TuiLocationManager;
+import ohi.andre.consolelauncher.managers.TuiWidgetManager;
 import ohi.andre.consolelauncher.managers.music.MusicManager2;
 import ohi.andre.consolelauncher.managers.music.MusicService;
 import ohi.andre.consolelauncher.managers.notifications.KeeperService;
@@ -129,6 +130,8 @@ public class MainManager {
     private HTMLExtractManager htmlExtractManager;
 
     private BroadcastReceiver receiver;
+
+    private TuiWidgetManager widgetManager;
 
     public static int commandCount = 0;
 
@@ -343,6 +346,11 @@ public class MainManager {
 
     public void onLongBack() {
         Tuils.sendInput(mContext, Tuils.EMPTYSTRING);
+    }
+
+    public void setWidgetManager(TuiWidgetManager widgetManager) {
+        this.widgetManager = widgetManager;
+        this.mainPack.widgetManager = widgetManager;
     }
 
     public void sendPermissionNotGrantedWarning() {

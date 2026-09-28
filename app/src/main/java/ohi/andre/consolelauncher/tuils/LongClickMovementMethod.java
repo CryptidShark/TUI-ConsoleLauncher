@@ -51,58 +51,39 @@ public class LongClickMovementMethod extends LinkMovementMethod {
             y += widget.getScrollY();
 
             Layout layout = widget.getLayout();
-            final int line = layout.getLineForVertical(y);
-            int off = layout.getOffsetForHorizontal(line, x);
+            final int line = layout != null ? layout.getLineForVertical(y) : 0;
+            int off = layout != null ? layout.getOffsetForHorizontal(line, x) : 0;
 
-            final LongClickableSpan[] link = buffer.getSpans(off, off, LongClickableSpan.class);
+            LongClickableSpan[] link = buffer.getSpans(off, off, LongClickableSpan.class);
+            if (link == null || link.length == 0) {
+                link = buffer.getSpans(0, buffer.length(), LongClickableSpan.class);
+            }
+            final LongClickableSpan[] targetSpans = link;
 
-//            Tuils.log("lastline", lastLine);
-//            Tuils.log("line", line);
             if (action == MotionEvent.ACTION_UP) {
-//                Tuils.log("action up");
-
-//                    if (System.currentTimeMillis() - lastClickTime < longClickDuration) {
-//                        link[0].onClick(widget);
-//                    }
-//                    else if (deltaX < 10 && deltaY < 10) {
-//                        link[0].onLongClick(widget);
-//                    }
-
                 if(runnable != null) {
-//                        long click, do nothing
-                    if(runnable.wasActivated) {}
-//                        single click
-                    else {
+                    if(!runnable.wasActivated) {
                         widget.removeCallbacks(runnable);
-                        if(link.length > 0) link[0].onClick(widget);
+                        if(targetSpans != null && targetSpans.length > 0) {
+                            targetSpans[0].onClick(widget);
+                        }
                     }
-
                     runnable = null;
                 }
-
             } else if (action == MotionEvent.ACTION_DOWN) {
-
-//                Tuils.log("action down");
-
-//                    Selection.setSelection(buffer,
-//                            buffer.getSpanStart(link[0]),
-//                            buffer.getSpanEnd(link[0]));
-
-//                    lastClickTime = System.currentTimeMillis();
-
-                if(link.length > 0) {
-                    final LongClickableSpan span = link[0];
+                if(targetSpans != null && targetSpans.length > 0) {
+                    final LongClickableSpan span = targetSpans[0];
                     runnable = new WasActivatedRunnable() {
-
                         @Override
                         public void run() {
                             super.run();
                             span.onLongClick(widget);
                         }
                     };
+                    if (longClickDuration > 0) {
+                        widget.postDelayed(runnable, longClickDuration);
+                    }
                 }
-
-                widget.postDelayed(runnable, longClickDuration);
             } else {
 //                Tuils.log("action move or cancel");
 

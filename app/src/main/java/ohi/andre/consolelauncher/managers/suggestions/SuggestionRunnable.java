@@ -19,6 +19,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
@@ -30,8 +31,11 @@ import java.util.List;
 import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.main.MainPack;
 import ohi.andre.consolelauncher.managers.AppsManager;
+import ohi.andre.consolelauncher.managers.ThemeEngine;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
+import ohi.andre.consolelauncher.managers.xml.options.Behavior;
 import ohi.andre.consolelauncher.managers.xml.options.Suggestions;
+import ohi.andre.consolelauncher.tuils.Tuils;
 
 public class SuggestionRunnable implements Runnable {
 
@@ -200,57 +204,31 @@ public class SuggestionRunnable implements Runnable {
     }
 
     public Drawable getSuggestionBg(Context context, int type) {
-
-        if(transparentSuggestions) {
-            return new ColorDrawable(Color.TRANSPARENT);
-        } else {
-            switch (type) {
-                case SuggestionsManager.Suggestion.TYPE_APP: case SuggestionsManager.Suggestion.TYPE_APPGP:
-                    return new ColorDrawable(suggAppBg);
-                case SuggestionsManager.Suggestion.TYPE_ALIAS:
-                    return new ColorDrawable(suggAliasBg);
-                case SuggestionsManager.Suggestion.TYPE_COMMAND:
-                    return new ColorDrawable(suggCmdBg);
-                case SuggestionsManager.Suggestion.TYPE_CONTACT:
-                    return new ColorDrawable(suggContactBg);
-                case SuggestionsManager.Suggestion.TYPE_FILE: case SuggestionsManager.Suggestion.TYPE_CONFIGFILE:
-                    return new ColorDrawable(suggFileBg);
-                case SuggestionsManager.Suggestion.TYPE_SONG:
-                    return new ColorDrawable(suggSongBg);
-                default:
-                    return new ColorDrawable(suggDefaultBg);
-            }
+        String presetName = XMLPrefsManager.get(Behavior.theme_preset);
+        ThemeEngine.Preset preset;
+        try {
+            preset = ThemeEngine.Preset.valueOf(presetName);
+        } catch (Exception e) {
+            preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
         }
+        ThemeEngine.DesignTokens tokens = ThemeEngine.getPreset(preset);
+
+        GradientDrawable gd = new GradientDrawable();
+        gd.setColor(tokens.surface);
+        gd.setCornerRadius(Tuils.dpToPx(context, (int)tokens.borderRadius));
+        gd.setStroke((int)Tuils.dpToPx(context, 1), tokens.border);
+        return gd;
     }
 
     public int getSuggestionTextColor(int type) {
-        int chosen;
-
-        switch (type) {
-            case SuggestionsManager.Suggestion.TYPE_APP: case SuggestionsManager.Suggestion.TYPE_APPGP:
-                chosen = suggAppText;
-                break;
-            case SuggestionsManager.Suggestion.TYPE_ALIAS:
-                chosen = suggAliasText;
-                break;
-            case SuggestionsManager.Suggestion.TYPE_COMMAND:
-                chosen = suggCmdText;
-                break;
-            case SuggestionsManager.Suggestion.TYPE_CONTACT:
-                chosen = suggContactText;
-                break;
-            case SuggestionsManager.Suggestion.TYPE_FILE: case SuggestionsManager.Suggestion.TYPE_CONFIGFILE:
-                chosen = suggFileText;
-                break;
-            case SuggestionsManager.Suggestion.TYPE_SONG:
-                chosen = suggSongText;
-                break;
-            default:
-                chosen = suggDefaultText;
-                break;
+        String presetName = XMLPrefsManager.get(Behavior.theme_preset);
+        ThemeEngine.Preset preset;
+        try {
+            preset = ThemeEngine.Preset.valueOf(presetName);
+        } catch (Exception e) {
+            preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
         }
-
-        if(chosen == Integer.MAX_VALUE) chosen = suggDefaultText;
-        return chosen;
+        ThemeEngine.DesignTokens tokens = ThemeEngine.getPreset(preset);
+        return tokens.text;
     }
 }

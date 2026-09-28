@@ -61,6 +61,14 @@ public class PrivateIOReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (context != null && intent != null) {
+            intent.setExtrasClassLoader(context.getClassLoader());
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                extras.setClassLoader(context.getClassLoader());
+            }
+        }
+
 //        to avoid double onReceive calls
         int cId = intent.getIntExtra(CURRENT_ID, -1);
         if(cId != -1 && cId != currentId) return;
@@ -76,13 +84,19 @@ public class PrivateIOReceiver extends BroadcastReceiver {
                 boolean infoArea = intent.getBooleanExtra(INFO_AREA, false);
                 int color = intent.getIntExtra(COLOR, Integer.MAX_VALUE);
 
-                Object singleClickExtraObject, longClickExtraObject;
+                Object singleClickExtraObject = null;
+                Object longClickExtraObject = null;
 
-                singleClickExtraObject = intent.getStringExtra(ACTION);
-                longClickExtraObject = intent.getStringExtra(LONG_ACTION);
-
-                if(singleClickExtraObject == null) singleClickExtraObject = intent.getParcelableExtra(ACTION);
-                if(longClickExtraObject == null) longClickExtraObject = intent.getParcelableExtra(LONG_ACTION);
+                try {
+                    Bundle extras = intent.getExtras();
+                    if (extras != null) {
+                        extras.setClassLoader(context.getClassLoader());
+                        singleClickExtraObject = extras.get(ACTION);
+                        longClickExtraObject = extras.get(LONG_ACTION);
+                    }
+                } catch (Exception e) {
+                    Tuils.log(e);
+                }
 
                 if(singleClickExtraObject != null || longClickExtraObject != null) {
                     text = new SpannableStringBuilder(text);

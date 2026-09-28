@@ -1,10 +1,12 @@
 package ohi.andre.consolelauncher.tuils;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Vibrator;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.text.TextPaint;
@@ -16,6 +18,7 @@ import android.widget.PopupMenu;
 import ohi.andre.consolelauncher.MainManager;
 import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.managers.notifications.NotificationManager;
+import ohi.andre.consolelauncher.managers.notifications.NotificationRepository;
 import ohi.andre.consolelauncher.managers.notifications.NotificationService;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
 import ohi.andre.consolelauncher.managers.xml.options.Notifications;
@@ -68,7 +71,102 @@ public class LongClickableSpan extends ClickableSpan {
 
     @Override
     public void onClick(View widget) {
-        execute(widget, clickO);
+        Context context = widget != null ? widget.getContext() : null;
+        if (clickO instanceof NotificationService.Notification) {
+            openNotificationApp(context, (NotificationService.Notification) clickO);
+        } else if (clickO instanceof String && ((String) clickO).startsWith("NOTIF::")) {
+            String notifId = (String) clickO;
+            NotificationService.Notification n = NotificationRepository.get(notifId);
+            if (n != null) {
+                openNotificationApp(context, n);
+            } else {
+                String pkg = NotificationRepository.extractPackageFromId(notifId);
+                if (pkg != null) {
+                    openAppByPackage(context, pkg);
+                }
+            }
+        } else if (clickO instanceof PendingIntent) {
+            openPendingIntent(context, (PendingIntent) clickO);
+        } else {
+            execute(widget, clickO);
+        }
+    }
+
+    private static void openPendingIntent(Context context, PendingIntent pi) {
+        if (pi == null || context == null) return;
+        boolean sent = false;
+        try {
+            if (context instanceof Activity) {
+                ((Activity) context).startIntentSender(pi.getIntentSender(), null, 0, 0, 0);
+                sent = true;
+            } else {
+                Intent fillInIntent = new Intent();
+                fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                pi.send(context, 0, fillInIntent);
+                sent = true;
+            }
+        } catch (Exception e) {
+            Tuils.log(e);
+        }
+        if (!sent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && pi.getCreatorPackage() != null) {
+            openAppByPackage(context, pi.getCreatorPackage());
+        }
+    }
+
+    private static void openNotificationApp(Context context, NotificationService.Notification n) {
+        if (n == null || context == null) return;
+
+        boolean opened = false;
+
+        // 1. Primary: Trigger the specific PendingIntent using Activity.startIntentSender
+        if (n.pendingIntent != null) {
+            try {
+                if (context instanceof Activity) {
+                    Activity activity = (Activity) context;
+                    activity.startIntentSender(
+                            n.pendingIntent.getIntentSender(),
+                            null,
+                            0,
+                            0,
+                            0
+                    );
+                    opened = true;
+                } else {
+                    Intent fillInIntent = new Intent();
+                    fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    n.pendingIntent.send(context, 0, fillInIntent);
+                    opened = true;
+                }
+            } catch (Exception e) {
+                Tuils.log(e);
+                try {
+                    Intent fillInIntent = new Intent();
+                    fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    n.pendingIntent.send(context, 0, fillInIntent);
+                    opened = true;
+                } catch (Exception ignore) {}
+            }
+        }
+
+        // 2. Secondary Fallback: Launch the main app Activity
+        if (!opened && n.pkg != null) {
+            openAppByPackage(context, n.pkg);
+        }
+    }
+
+    private static void openAppByPackage(Context context, String pkg) {
+        if (context == null || pkg == null) return;
+        try {
+            Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(pkg);
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                context.startActivity(launchIntent);
+            } else {
+                Tuils.sendOutput(context, "App not found for package: " + pkg);
+            }
+        } catch (Exception e) {
+            Tuils.log(e);
+        }
     }
 
     public void onLongClick(View widget) {
@@ -81,6 +179,13 @@ public class LongClickableSpan extends ClickableSpan {
 
     private static boolean execute(final View v, Object o, String intentKey) {
         if(o == null) return false;
+
+        if (o instanceof String && ((String) o).startsWith("NOTIF::")) {
+            NotificationService.Notification n = NotificationRepository.get((String) o);
+            if (n != null) {
+                o = n;
+            }
+        }
 
         if(!set) {
             set = true;
@@ -105,10 +210,23 @@ public class LongClickableSpan extends ClickableSpan {
         } else if(o instanceof PendingIntent) {
             PendingIntent pi = (PendingIntent) o;
 
+            boolean sent = false;
             try {
                 pi.send();
-            } catch (PendingIntent.CanceledException e) {
+                sent = true;
+            } catch (Exception e) {
                 Tuils.log(e);
+            }
+            if (!sent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && pi.getCreatorPackage() != null) {
+                try {
+                    Intent launchIntent = v.getContext().getPackageManager().getLaunchIntentForPackage(pi.getCreatorPackage());
+                    if (launchIntent != null) {
+                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        v.getContext().startActivity(launchIntent);
+                    }
+                } catch (Exception e) {
+                    Tuils.log(e);
+                }
             }
         } else if(o instanceof Uri) {
             Intent i = new Intent(Intent.ACTION_VIEW, (Uri) o);
@@ -122,7 +240,7 @@ public class LongClickableSpan extends ClickableSpan {
         } else if(o instanceof NotificationService.Notification) {
             final NotificationService.Notification n = (NotificationService.Notification) o;
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 if(showMenu) {
                     PopupMenu menu = new PopupMenu(v.getContext().getApplicationContext(), v);
                     menu.getMenuInflater().inflate(R.menu.notification_menu, menu.getMenu());

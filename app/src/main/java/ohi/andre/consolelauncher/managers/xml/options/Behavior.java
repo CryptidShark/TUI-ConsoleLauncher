@@ -15,6 +15,134 @@ import ohi.andre.consolelauncher.tuils.Tuils;
 
 public enum Behavior implements XMLPrefsSave {
 
+    persistent_system_card {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, the system dashboard will be pinned to the top of the terminal";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
+    persistent_battery_card {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, the battery status card will be pinned to the top";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
+    persistent_notes_card {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, the notes card will be pinned to the top";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
+    persistent_shortcuts_card {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, the shortcuts card will be pinned to the top";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
+    persistent_music_card {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, the music visualizer will be pinned to the top of the terminal";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
+    music_target_app {
+        @Override
+        public String defaultValue() {
+            return "";
+        }
+
+        @Override
+        public String info() {
+            return "The package name of the app to open when clicking the music widget (e.g. com.spotify.music)";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.TEXT;
+        }
+    },
+    language {
+        @Override
+        public String defaultValue() {
+            return "en";
+        }
+
+        @Override
+        public String info() {
+            return "Application language (en, es)";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.TEXT;
+        }
+    },
+    theme_preset {
+        @Override
+        public String defaultValue() {
+            return "CLASSIC_TERMINAL";
+        }
+
+        @Override
+        public String info() {
+            return "Visual theme preset (CLASSIC_TERMINAL, MODERN_TERMINAL)";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.TEXT;
+        }
+    },
     double_tap_lock {
         @Override
         public String defaultValue() {
@@ -306,7 +434,7 @@ public enum Behavior implements XMLPrefsSave {
     device_format {
         @Override
         public String defaultValue() {
-            return "%d: %u";
+            return "%d : %u";
         }
 
         @Override
@@ -322,7 +450,7 @@ public enum Behavior implements XMLPrefsSave {
     ram_format {
         @Override
         public String defaultValue() {
-            return "Available RAM: %avgb GB of %totgb GB (%av%%)";
+            return "💾 [%av%%] %avgb GB";
         }
 
         @Override
@@ -338,7 +466,7 @@ public enum Behavior implements XMLPrefsSave {
     battery_format {
         @Override
         public String defaultValue() {
-            return "%(Charging: /)%v%";
+            return "🔋 %v% | %(⚡/)";
         }
 
         @Override
@@ -354,7 +482,7 @@ public enum Behavior implements XMLPrefsSave {
     storage_format {
         @Override
         public String defaultValue() {
-            return "Internal Storage: %iavgb GB / %itotgb GB (%iav%%)";
+            return "📁 %iavgb GB [%iav%%]";
         }
 
         @Override
@@ -1084,13 +1212,13 @@ public enum Behavior implements XMLPrefsSave {
         }
 
         @Override
-        public String type() {
-            return XMLPrefsSave.TEXT;
+        public String info() {
+            return "The divider between the last unlock times";
         }
 
         @Override
-        public String info() {
-            return "The divider between the last unlock times";
+        public String type() {
+            return XMLPrefsSave.TEXT;
         }
     },
     unlock_time_order {

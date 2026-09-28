@@ -1,8 +1,10 @@
 package ohi.andre.consolelauncher.tuils;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
+import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -30,6 +32,8 @@ import android.os.Parcelable;
 import android.os.Process;
 import android.os.StatFs;
 import android.provider.Settings;
+
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.telephony.TelephonyManager;
@@ -79,6 +83,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,6 +96,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import dalvik.system.DexFile;
 import ohi.andre.consolelauncher.BuildConfig;
+import ohi.andre.consolelauncher.LauncherActivity;
 import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.main.MainPack;
 import ohi.andre.consolelauncher.managers.TerminalManager;
@@ -329,10 +335,10 @@ public class Tuils {
         return songs;
     }
 
-    public static String convertStreamToString(java.io.InputStream is) {
+    public static String convertStreamToString(InputStream is) {
         if (is == null) return Tuils.EMPTYSTRING;
 
-        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        Scanner s = new Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : Tuils.EMPTYSTRING;
     }
 
@@ -564,7 +570,7 @@ public class Tuils {
     }
 
     public static String inputStreamToString(InputStream is) {
-        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        Scanner s = new Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : Tuils.EMPTYSTRING;
     }
 
@@ -834,6 +840,12 @@ public class Tuils {
         intent.putExtra(PrivateIOReceiver.COLOR, color);
         intent.putExtra(PrivateIOReceiver.TYPE, type);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    public static void sendOutput(Context context, View view) {
+        if (context instanceof LauncherActivity) {
+            ((LauncherActivity) context).runOnUiThread(() -> ((LauncherActivity) context).onOutput(view));
+        }
     }
 
     public static void sendOutput(MainPack mainPack, CharSequence s, int type) {
@@ -1477,9 +1489,28 @@ public class Tuils {
 
     public static void init(Context context) {
         if (folder != null) return;
-        folder = context.getExternalFilesDir(null);
-        if (folder == null) {
-            folder = context.getFilesDir();
+        reinit(context);
+    }
+
+    public static void reinit(Context context) {
+        // On Android 11+ we prefer the public storage if MANAGE_EXTERNAL_STORAGE is granted
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
+            folder = new File(Environment.getExternalStorageDirectory(), "t-ui");
+        } else {
+            // Fallback for older versions or if permission is not yet granted
+            folder = new File(Environment.getExternalStorageDirectory(), "t-ui");
+        }
+
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        // Final safety fallback
+        if (!folder.exists() || !folder.canWrite()) {
+            folder = context.getExternalFilesDir(null);
+            if (folder == null) {
+                folder = context.getFilesDir();
+            }
         }
     }
 
@@ -1517,7 +1548,7 @@ public class Tuils {
     }
 
     public static String getNetworkType(Context context) {
-        if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_PHONE_STATE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             return "unknown";
         }
         try {
@@ -1574,8 +1605,8 @@ public class Tuils {
     }
 
     public static int pendingIntentFlags(int flags) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            return flags | android.app.PendingIntent.FLAG_IMMUTABLE;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return flags | PendingIntent.FLAG_IMMUTABLE;
         }
         return flags;
     }

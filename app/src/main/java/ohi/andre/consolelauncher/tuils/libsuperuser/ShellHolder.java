@@ -43,22 +43,19 @@ public class ShellHolder {
         if (BusyBoxInstaller.isInstalled(context)) {
             String bbPath = BusyBoxInstaller.getBusyboxPath(context);
             if (bbPath != null) {
-                // 1. Alias 'busybox' to the downloaded path
+                // On modern Android (10+), executing from filesDir is blocked by SELinux.
+                // We add the alias but we don't force standard commands to use it by default
+                // unless the user explicitly uses 'busybox' command.
                 interactive.addCommand("alias busybox='" + bbPath + "'");
 
-                // 2. Add common applet aliases so they use BusyBox instead of Toybox
-                String[] commonApplets = {
-                    "ls", "grep", "egrep", "fgrep", "sed", "awk", "find", "xargs",
-                    "vi", "vim", "less", "more", "cat", "tail", "head", "cut", "sort",
-                    "top", "ps", "kill", "pkill", "pgrep", "free", "uptime", "watch",
-                    "ping", "ping6", "traceroute", "netstat", "ip", "ifconfig", "route",
-                    "tar", "gzip", "gunzip", "bzip2", "bunzip2", "xz", "unxz", "zip", "unzip",
-                    "wget", "curl", "nc", "telnet", "ftpget", "ftpput",
-                    "ssh", "scp", "chmod", "chown", "chgrp", "cp", "mv", "rm", "mkdir", "rmdir"
+                // We only alias commands that are likely MISSING from native Android toybox/toolbox
+                String[] extraApplets = {
+                    "vi", "vim", "less", "more", "wget", "curl", "nc", "telnet", 
+                    "ftpget", "ftpput", "ssh", "scp"
                 };
 
-                for (String applet : commonApplets) {
-                    interactive.addCommand("alias " + applet + "='" + bbPath + " " + applet + "'");
+                for (String applet : extraApplets) {
+                    interactive.addCommand("alias " + applet + "='busybox " + applet + "'");
                 }
             }
         }

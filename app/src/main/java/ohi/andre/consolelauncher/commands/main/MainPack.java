@@ -16,6 +16,7 @@ import ohi.andre.consolelauncher.managers.AppsManager;
 import ohi.andre.consolelauncher.managers.ContactManager;
 import ohi.andre.consolelauncher.managers.RssManager;
 import ohi.andre.consolelauncher.managers.TerminalManager;
+import ohi.andre.consolelauncher.managers.TuiWidgetManager;
 import ohi.andre.consolelauncher.managers.flashlight.TorchManager;
 import ohi.andre.consolelauncher.managers.music.MusicManager2;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
@@ -57,6 +58,8 @@ public class MainPack extends ExecutePack {
     public CommandsPreferences cmdPrefs;
 
     public String lastCommand;
+
+    public TuiWidgetManager widgetManager;
 
     public Redirectator redirectator;
 

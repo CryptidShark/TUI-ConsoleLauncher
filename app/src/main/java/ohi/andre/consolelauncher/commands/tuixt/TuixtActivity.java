@@ -6,7 +6,14 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -41,7 +48,7 @@ import ohi.andre.consolelauncher.tuils.Tuils;
  * Created by francescoandreuzzi on 19/01/2017.
  */
 
-public class TuixtActivity extends Activity {
+public class TuixtActivity extends AppCompatActivity {
 
     private final String FIRSTACCESS_KEY = "firstAccess";
 
@@ -61,7 +68,13 @@ public class TuixtActivity extends Activity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0);
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0);
+        }
 
         final LinearLayout rootView = new LinearLayout(this);
 
@@ -85,13 +98,15 @@ public class TuixtActivity extends Activity {
         }
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !XMLPrefsManager.getBoolean(Ui.ignore_bar_color)) {
-            Window window = getWindow();
-
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.setStatusBarColor(XMLPrefsManager.getColor(Theme.statusbar_color));
-            window.setNavigationBarColor(XMLPrefsManager.getColor(Theme.navigationbar_color));
+            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+            controller.setAppearanceLightStatusBars(true);
         }
+
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         if (!XMLPrefsManager.getBoolean(Ui.system_wallpaper)) {
             rootView.setBackgroundColor(XMLPrefsManager.getColor(Theme.bg_color));
@@ -246,6 +261,7 @@ public class TuixtActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         setResult(BACK_PRESSED);
         finish();
     }
