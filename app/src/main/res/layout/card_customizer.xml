@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/customizer_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LIVE CUSTOMIZER"
+        android:textStyle="bold"
+        android:textSize="18sp" />
+
+    <!-- Font Size Tuning -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Font Size / Tamaño de Fuente"
+        android:layout_marginTop="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <Button
+            android:id="@+id/btn_font_minus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="-" />
+
+        <TextView
+            android:id="@+id/tv_font_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="13" />
+
+        <Button
+            android:id="@+id/btn_font_plus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="+" />
+    </LinearLayout>
+
+    <!-- Icon Toggling -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dashboard / Panel Superior"
+        android:layout_marginTop="16dp" />
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:layout_marginTop="8dp">
+
+        <Button
+            android:id="@+id/btn_pin_system"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:textSize="10sp"
+            android:text="Pin System" />
+
+        <Button
+            android:id="@+id/btn_pin_music"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:textSize="10sp"
+            android:text="Pin Music" />
+
+        <Button
+            android:id="@+id/btn_pin_battery"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:textSize="10sp"
+            android:text="Pin Battery" />
+
+        <Button
+            android:id="@+id/btn_pin_shortcuts"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:textSize="10sp"
+            android:text="Pin Apps" />
+
+        <Button
+            android:id="@+id/btn_toggle_wallpaper"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:textSize="10sp"
+            android:text="Wallpaper" />
+    </GridLayout>
+
+    <Button
+        android:id="@+id/btn_clear_persistent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Clear All Fixed" />
+
+    <!-- Color Tuning -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Accent Color / Color de Acento"
+        android:layout_marginTop="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <View android:id="@+id/color_cyan" android:layout_width="40dp" android:layout_height="40dp" android:background="#00FFFF" android:layout_margin="4dp"/>
+        <View android:id="@+id/color_magenta" android:layout_width="40dp" android:layout_height="40dp" android:background="#FF00FF" android:layout_margin="4dp"/>
+        <View android:id="@+id/color_yellow" android:layout_width="40dp" android:layout_height="40dp" android:background="#FFFF00" android:layout_margin="4dp"/>
+        <View android:id="@+id/color_green" android:layout_width="40dp" android:layout_height="40dp" android:background="#00FF00" android:layout_margin="4dp"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_reset_customizer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Reset to Defaults" />
+
+</LinearLayout>

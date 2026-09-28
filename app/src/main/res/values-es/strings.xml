@@ -1,0 +1,448 @@
+<resources>
+    <!-- various text -->
+    <string name="app_name">T-UI</string>
+    <string name="location_off">Activar GPS</string>
+    <string name="share_label">Compartir</string>
+    <string name="output_about">Francesco Andreuzzi (Italia)\n\t-> Programador
+        \n\nGracias a Luke Winward por su idea original</string>
+    <string name="available_commands">COMANDOS DISPONIBLES</string>
+    <string name="output_refresh">Actualizar: apps, alias, música, contactos, feeds rss</string>
+    <string name="output_rate">¡Gracias!</string>
+    <string name="start_notification">T-UI iniciado</string>
+    <string name="tui_running">T-UI se está ejecutando</string>
+    <string name="admin_permission">Bloquear pantalla con doble toque</string>
+    <string name="tui_reset">t-ui restablecido a la configuración por defecto</string>
+    <string name="copied">Copiado:</string>
+    <string name="tui_busy">t-ui está ocupado, usa \"ctrlc\" para detener el proceso</string>
+    <string name="donate">¿Te gusta mi trabajo? Puedes invitarme a un café (cmd: $ donate). ¡Gracias!</string>
+    <string name="open_file_chooser">Abrir archivo con...</string>
+
+    <!-- weather -->
+    <string name="weather_cant_update">No puedes realizar una actualización manual con la clave por defecto. Debes crear una clave personalizada en el sitio web</string>
+    <string name="weather_error">La API del clima está ocupada. Reintentando en:</string>
+    <string name="weather_disabled">El clima no está habilitado</string>
+    <string name="weather_updated">Clima actualizado a las</string>
+
+    <!-- shortcuts -->
+    <string name="shortcut_index_greater">El índice es mayor que el recuento de accesos directos</string>
+
+    <!-- reload message -->
+    <string name="theme_applied">Tema aplicado:</string>
+
+    <!-- reply -->
+    <string name="reply_id_not_found">No se encontró ninguna aplicación vinculada con el ID:</string>
+    <string name="reply_notification_not_found">0 notificaciones de esta aplicación</string>
+
+    <!-- notifications menu -->
+    <string name="exclude_notification">Excluir notificación</string>
+    <string name="exclude_app">Excluir aplicación</string>
+    <string name="reply_notification">Responder a la última notificación</string>
+    <string name="notification_service_not_running">El servicio de notificaciones no se está ejecutando</string>
+
+    <!-- regex -->
+    <string name="invalid_regex">Regex inválido:</string>
+
+    <!-- theme -->
+    <string name="theme_not_found">Tema no encontrado</string>
+    <string name="theme_invalid">Tema inválido</string>
+    <string name="theme_old_not_found">No tienes un tema antiguo</string>
+    <string name="theme_reverted">Revertido al tema anterior</string>
+    <string name="theme_unable">No se pudo aplicar este tema</string>
+
+    <!-- files -->
+    <string name="output_isdirectory">Esto es un directorio</string>
+    <string name="output_filenotfound">Archivo no encontrado</string>
+
+    <!-- notifications -->
+    <string name="notification_reader">Lector de notificaciones T-UI</string>
+    <string name="no_notification_access">Desafortunadamente, t-ui no puede redirigirte a la página de \"Acceso a notificaciones\" de la configuración de tu sistema</string>
+    <string name="notification_low_api">Las notificaciones solo son compatibles con Android 4.3+. Usa \'config -set show_notifications false\' para desactivar este mensaje</string>
+
+    <!-- helps texts -->
+    <string name="firsthelp_text">¿Primera vez con t-ui?\n\ttutorial -> ver el tutorial en GitHub\n\thelp     -> obtener una lista de comandos disponibles</string>
+    <string name="permissions_toast">Debes otorgar el permiso de Almacenamiento</string>
+    <string name="output_usedefapp">Puedes usar \"apps -default_app\" en su lugar</string>
+
+    <!-- tui folder not found -->
+    <string name="tuinotfound_app">Tus preferencias de aplicaciones no pudieron cargarse porque tu carpeta \"t-ui\" no es legible en este momento (deberías intentar usar el comando \"restart\")</string>
+    <string name="tuinotfound_rss">Tus preferencias de rss no pudieron cargarse porque tu carpeta \"t-ui\" no es legible en este momento (deberías intentar usar el comando \"restart\")</string>
+    <string name="tuinotfound_notifications">Tus preferencias de notificaciones no pudieron cargarse porque tu carpeta \"t-ui\" no es legible en este momento (deberías intentar usar el comando \"restart\")</string>
+    <string name="tuinotfound_xmlprefs">Tus preferencias xml no pudieron cargarse porque tu carpeta \"t-ui\" no es legible en este momento (deberías intentar usar el comando \"restart\")</string>
+
+    <!-- hints -->
+    <string-array name="hints">
+        <item name="hint_tutorial">¿Leíste el tutorial? (\"$ tutorial\")</item>
+        <item name="hint_theme">¿Sabías que puedes cambiar fácilmente tu tema? Echa un vistazo al cmd \"$ theme\"</item>
+        <item name="hint_theme2">¿Lo sabías? Puedes crear tu tema personalizado y compartirlo con otros usuarios. Echa un vistazo al cmd \"$ theme -create\"</item>
+        <item name="hint_help">¿Dudas sobre un comando? Usa \"$ help nombreCmd\"</item>
+        <item name="hint_music">¿Lo sabías? Puedes escuchar música usando t-ui. Echa un vistazo al cmd \"$ music\"</item>
+        <item name="hint_appgroups">¿Lo sabías? t-ui 6.4 introdujo Grupos de Aplicaciones.\nPuedes obtener más detalles con el cmd \"$ apps -tutorial\"</item>
+        <item name="hint_notifications">¿Lo sabías? Puedes ver tus notificaciones dentro de t-ui. Si te interesa, echa un vistazo al tutorial: \"$ notifications -tutorial\"</item>
+        <item name="hint_clear">¿Estás cansado de limpiar tu pantalla? Echa un vistazo a las opciones \"clear_after_cmds\", \"clear_after_seconds\" y \"maxlines\"</item>
+        <item name="hint_wallpaper">¿Quieres usar tu fondo de pantalla como fondo de t-ui? Usa el comando: \"$ config -set system_wallpaper true\"</item>
+        <item name="hint_config">¿Dudas sobre alguna opción de configuración? Usa el comando \"$ config -info [opción]\"</item>
+        <item name="hint_alias">¿Sabías que t-ui soporta alias? Para más información, usa el comando \"$ alias -tutorial\"</item>
+        <item name="hint_excludenotification">¿Lo sabías? Puedes excluir una notificación no deseada manteniendo presionado sobre ella</item>
+        <item name="hint_disable">Puedes desactivar estos mensajes con el comando \"$ config -set show_hints false\"</item>
+    </string-array>
+
+
+    <string-array name="tutorial_steps">
+        <item>BIENVENIDO A TERMINAL LAUNCHER\n\nEsto es una terminal. Escribes comandos para hacer cosas.</item>
+        <item>Paso 1: Lo Básico\n\nPrueba ejecutando \'help\' para ver todos los comandos disponibles.</item>
+        <item>Paso 2: Widgets Interactivos\n\nEjecuta \'visual battery\' para ver nuestras tarjetas de estado interactivas y widgets.</item>
+        <item>Paso 3: Apps y Navegación\n\nEscribe el nombre de cualquier app (ej. \'Chrome\') para lanzarla al instante.</item>
+        <item>Paso 4: Personalización y Ajustes\n\nEjecuta \'settings live\' para ajustar fuentes y colores. Usa \'visual [módulo] -fixed\' para anclar módulos arriba.</item>
+        <item>Paso 5: Música y Multimedia\n\nUsa \'visual music -fixed\' para un reproductor ASCII dinámico. T-UI detectará tu música si otorgas acceso a notificaciones.</item>
+        <item>¡Todo listo! Tu terminal es ahora un panel de control profesional.</item>
+    </string-array>
+
+    <string-array name="tutorial">
+        <item>Usa el comando \"help\" para obtener una lista de comandos disponibles</item>
+        <item>Si quieres obtener información sobre el comportamiento de un comando, escribe \"help nombreCmd\"</item>
+        <item>Lanza tus aplicaciones escribiendo su nombre</item>
+        <item>Puedes llamar a tus contactos con el comando \"call nombreContacto\"</item>
+        <item>t-ui es altamente personalizable. Revisa \"config -ls\" o usa el comando \"config -tutorial\" para ver qué puedes cambiar</item>
+        <item>Puedes elegir dentro de una gran base de datos de temas subidos por usuarios de t-ui. Revisa el comando \"theme -view\"</item>
+    </string-array>
+
+    <!-- apps -->
+    <string name="output_appnotfound">Aplicación no encontrada</string>
+    <string name="activity_not_found">Actividad no encontrada</string>
+    <string name="app_installed">Aplicación instalada:</string>
+    <string name="app_uninstalled">Aplicación desinstalada:</string>
+    <string name="app_shortcut_not_found">Acceso directo no encontrado</string>
+
+    <!-- pending operation -->
+    <string name="calling">Llamando:</string>
+    <string name="restarting">t-ui se cerrará en unos segundos. Haz clic en el botón de inicio para reiniciarlo</string>
+
+    <!-- various errors -->
+    <string name="output_nopermissions">No otorgaste el permiso</string>
+    <string name="output_waitingpermission">Esperando permiso</string>
+    <string name="output_problemcamera">Hubo un problema al conectar con la cámara de tu dispositivo</string>
+    <string name="output_invalidarg">Argumento inválido</string>
+    <string name="output_lessarg">Menos argumentos de los esperados</string>
+    <string name="invalid_integer">Entero inválido</string>
+    <string name="output_nothing_found">No encontrado</string>
+    <string name="output_xmlproblem1">Hubo un problema XML con tu archivo</string>
+    <string name="output_xmlproblem2">, t-ui usará los valores por defecto.\nCorrige o elimina el archivo para recuperar tus opciones</string>
+    <string name="output_errorlabel">Error:</string>
+    <string name="output_invalidcolor">Color inválido</string>
+    <string name="output_groupnotfound">Grupo no encontrado</string>
+    <string name="output_groupexists">Este grupo ya existe</string>
+    <string name="output_groupspace">No se permiten espacios dentro de los nombres de grupo</string>
+    <string name="output_notification_error">No se pudo iniciar el servicio de notificaciones:</string>
+    <string name="reply_app_not_found">No se pudo encontrar la aplicación vinculada:</string>
+    <string name="no_internet">Sin acceso a internet</string>
+    <string name="invalid_number">Número inválido</string>
+    <string name="output_error">Ocurrió un error desconocido</string>
+    <string name="internet_error">Error de internet. Código de respuesta:</string>
+    <string name="no_result">Sin resultados</string>
+    <string name="unavailable_name">Nombre no disponible</string>
+    <string name="invalid_name">Nombre inválido</string>
+    <string name="api_low">Versión de Android baja</string>
+    <string name="invalid_datastoretype">Tipo inválido</string>
+    <string name="location_error">No se pudo obtener tu ubicación</string>
+
+    <!-- note -->
+    <string name="note_not_found">Nota no encontrada</string>
+    <string name="row_used">Esta fila está ocupada</string>
+    <string name="note_max_reached">Tus notas alcanzaron el valor establecido en notes_max_lines. Puedes desplazarte para verlas todas, cambiar el valor o desactivar este mensaje (ui.xml: show_scroll_notes_message).</string>
+
+    <!-- id -->
+    <string name="id_already">ID ocupado</string>
+    <string name="id_notfound">ID inválido</string>
+
+    <!-- rss -->
+    <string name="rss_not_found">ID inválido: no se encontró ningún feed RSS</string>
+    <string name="rss_never_checked">Este feed RSS aún no ha sido revisado</string>
+    <string name="rss_invalid_timeformat">No se pudo analizar el formato de hora</string>
+    <string name="rss_invalid_date">Etiqueta de fecha de publicación inválida:</string>
+    <string name="rss_invalid_entry_tag">Etiqueta de entrada inválida:</string>
+    <string name="rss_invalid_empty">RSS inválido: el archivo está vacío:</string>
+
+    <!-- alias -->
+    <string name="output_aliasnotfound">Alias no encontrado:</string>
+    <string name="output_problemaddingalias">Hubo un problema con tu alias</string>
+    <string name="output_notaddingalias1">El nombre de tu alias:</string>
+    <string name="output_notaddingalias2">es igual a su valor. Esto puede llevar a comportamientos no deseados, por lo que ha sido excluido. Deberías editar el nombre para usarlo</string>
+    <string name="output_notaddingalias3">es igual a la parte de su valor antes del primer espacio (ej. aliasName=play ; aliasValue = play store). Esto puede llevar a bloqueos y reinicios, por lo que ha sido excluido. Deberías editar el nombre para usarlo</string>
+
+    <!-- tuixt -->
+    <string name="help_tuixt_help">Imprime la lista de comandos, o información sobre un comando
+        \n\nUso:
+        \nhelp [comando]
+        \n\nEjemplo:
+        \n$ help exit
+    </string>
+    <string name="help_tuixt_exit">Salir de tuixt</string>
+    <string name="help_tuixt_save">Guardar cambios</string>
+    <string name="tuixt_back_pressed">Presionaste la tecla atrás</string>
+    <string name="tuixt_saved">Guardado</string>
+    <string name="tuixt_reading">Leyendo</string>
+    <string name="tuixt_label">TUIXT</string>
+    <string name="tuixt_error">Este archivo es demasiado grande, considera abrirlo con otro editor de texto</string>
+
+    <!-- phone -->
+    <string name="output_wifi">WiFi activo:</string>
+    <string name="output_data">Datos móviles activos:</string>
+    <string name="output_bluetooth">Bluetooth activo:</string>
+    <string name="output_bluetooth_unavailable">Bluetooth no está disponible en este dispositivo</string>
+    <string name="output_airplane">Modo avión activo:</string>
+
+    <!-- music -->
+    <string name="output_playing">Reproduciendo:</string>
+    <string name="output_stopped">Reproductor detenido</string>
+    <string name="output_songnotfound">Canción no encontrada</string>
+    <string name="output_musicdisabled">enable_music es false</string>
+    <string name="no_songs">0 canciones encontradas</string>
+
+    <!-- command/args -->
+    <string name="output_commandnotfound">Comando no encontrado.\nIntenta usar \"$ help\" o \"$ tutorial\"</string>
+    <string name="output_invalid_param">Opción inválida:</string>
+
+    <!-- flash -->
+    <string name="output_flashon">Linterna ENCENDIDA</string>
+    <string name="output_flashoff">Linterna APAGADA</string>
+    <string name="output_flashlightnotavailable">Tu dispositivo no soporta linterna</string>
+
+    <!-- status -->
+    <string name="battery_label">🔋 Batería:</string>
+    <string name="mobile_data_label">📶 Datos:</string>
+    <string name="wifi_label">📶 WiFi:</string>
+    <string name="location_label">📍 Ubicación:</string>
+    <string name="brightness_label">💡 Brillo:</string>
+    <string name="bluetooth_label">🎧 Bluetooth:</string>
+
+    <!-- contacts -->
+    <string name="sms_hint">escribe tu SMS o nada para cancelar</string>
+    <string name="output_numbernotfound">Contacto no encontrado</string>
+    <string name="output_smsnotsent">SMS no enviado</string>
+    <string name="output_smssent">SMS enviado</string>
+
+
+    <string name="help_airplane">Alternar modo avión</string>
+    <string name="help_alias">-add [nombreAlias] [contenido alias] -> añadir un nuevo alias
+        \n-rm [nombreAlias] -> eliminar un alias existente
+        \n-ls -> listar tus alias
+        \n-file -> abrir alias.xml
+    </string>
+    <string name="help_apps">-ls -> listar tus aplicaciones
+        \n-lsh -> listar tus aplicaciones ocultas
+        \n-show [nombreApp] -> volver a mostrar una aplicación oculta
+        \n-hide [nombreApp] -> ocultar una aplicación
+        \n-l [nombreApp] -> mostrar detalles sobre una aplicación
+        \n-ps [nombreApp] -> mostrar la página de Google Play Store para una aplicación
+        \n-st [nombreApp] -> mostrar detalles de Configuración para una aplicación
+        \n-default_app [índice] [nombreApp o most_used o null] -> establecer la aplicación por defecto en el índice especificado
+        \n-frc [nombreApp] -> forzar a t-ui a lanzar una aplicación
+        \n-file -> abrir apps.xml
+        \n-reset [nombreApp] -> restablecer el valor de \"veces lanzada\" de la aplicación a 0
+        \n-mkgp [nombreGrupo] -> crear un nuevo grupo con el nombre dado
+        \n-rmgp [nombreGrupo] -> eliminar el grupo con el nombre dado
+        \n-gpcolor [nombreGrupo] [color] -> establecer el color para el grupo dado
+        \n-addtogp [nombreGrupo] [nombreApp] -> añadir la aplicación dada al grupo dado
+        \n-rmfromgp [nombreGrupo] [nombreApp] -> eliminar la aplicación dada del grupo dado
+        \n-lsgp [OPCIONAL: nombreGrupo] -> listar tus grupos, o listar el contenido del grupo dado
+    </string>
+    <string name="help_bluetooth">Alternar bluetooth</string>
+    <string name="help_brightness">Establecer el brillo de tu dispositivo
+        \n$ brightness [0-100]</string>
+    <string name="help_clear">Limpiar la pantalla</string>
+    <string name="help_calc" formatted="false">Realizar operaciones básicas (+ - * / % ^ sqrt)
+        \nEjemplo:
+        \n\n$ calc 4+2-5
+        \n1
+        \n\n$ calc 2 ^ (2*2)
+        \n16
+        \n\n$ calc sqrt25
+        \n5
+    </string>
+    <string name="help_call">Llamar a alguien
+        \n\nUso:
+        \n$ call [número] O [nombreContacto]
+    </string>
+    <string name="help_changelog">Mostrar el registro de cambios de la versión actual</string>
+    <string name="help_config">-set [opción] [valor] -> establecer el valor de una opción
+        \n-append [opción] [valor] -> añadir la cadena dada al valor de la opción seleccionada
+        \n-file [archivo] -> abrir un archivo de configuración (behavior.xml, ui.xml, theme.xml, ...)
+        \n-erase [opción] -> establecer el valor de una opción a \"\"
+        \n-setr [opción] [valor] -> igual a \"-set\", pero reinicia t-ui automáticamente
+        \n-get [opción] -> obtener el valor de una opción
+        \n-fontsize [valor] -> cambiar el tamaño de fuente global
+        \n-reset [opción] -> restablecer el valor de una opción
+        \n-info [opción] -> solicitar información sobre la opción dada
+        \n-apply [archivo] -> mover un archivo al directorio t-ui
+        \n-tutorial -> abrir la página del tutorial
+    </string>
+    <string name="help_data">Alternar datos móviles</string>
+    <string name="help_devutils">No hay nada interesante allí</string>
+    <string name="help_donate">Ofrecer un café al desarrollador (solo PayPal)</string>
+    <string name="help_flash">Alternar la linterna</string>
+    <string name="help_help">Imprimir los comandos disponibles, o información sobre un comando
+        \n\nUso:
+        \n$ help [comando]
+    </string>
+    <string name="help_htmlextract">Extraer texto de páginas HTML
+        \n-query [ID filtro] [opcional: ID formato] [URL] -> analizar la entrada XPath especificada con la URL especificada
+        \n-add [tipo] [ID] [expresión] -> añadir una nueva expresión del tipo dado (json, xpath o formato)
+        \n-rm [ID] -> eliminar una expresión existente
+        \n-edit [ID] [expresión] -> cambiar una expresión existente
+        \n-ls [tipo] -> muestra las expresiones del tipo dado
+        \n-tutorial -> mostrar el tutorial en GitHub
+        \n-file -> abrir el archivo htmlextract.xml</string>
+    <string name="help_music">-next -> reproducir la siguiente canción
+        \n-previous -> reproducir la canción anterior
+        \n-play -> reproducir/pausar el reproductor
+        \n-stop -> detener el reproductor
+        \n-ls -> listar tus canciones
+        \n-select [canción] -> reproducir la canción seleccionada
+        \n-info -> obtener información sobre la canción actual
+        \n-seekto [segundos] -> buscar la parte seleccionada de la canción actual</string>
+    <string name="help_notes">-add [opcional: lock {true/false}] [texto] -> añadir una nueva nota
+        \n-rm [fila] O [texto] -> eliminar una nota existente
+        \n-cp [fila] O [texto] -> copiar una nota existente al portapapeles
+        \n-ls -> listar todas tus notas
+        \n-clear -> eliminar todas las notas (excepto las bloqueadas)
+        \n-lock [id] O [texto] -> bloquear una nota existente
+        \n-unlock [id] O [texto] -> desbloquear una nota existente
+        \n-tutorial -> abrir la página del tutorial en GitHub</string>
+    <string name="help_rate">Dejar un comentario en la página de Play Store</string>
+    <string name="help_refresh">Actualizar aplicaciones, alias, música, contactos</string>
+    <string name="help_regex">-add [ID] [regex] -> añadir un nuevo regex con el ID dado
+        \n-rm [ID] -> eliminar el regex con el ID dado
+        \n-test [ID] [cadena] -> probar el regex correspondiente sobre la cadena dada</string>
+    <string name="help_reply">-to [ID o nombrePaquete] [qué] -> responder a la última notificación de la aplicación vinculada con el ID dado
+        \n-bind [nombreApp] -> vincular la aplicación
+        \n-unbind [nombreApp] -> desvincular la aplicación
+        \n-ls -> mostrar tus aplicaciones vinculadas
+        \n-check [ID o nombrePaquete] -> revisar la última notificación de la aplicación vinculada con el ID dado
+        \n-tutorial -> abrir la página del tutorial en GitHub</string>
+    <string name="help_restart">Reiniciar t-ui y cargar valores modificados</string>
+    <string name="help_search">-gg [buscar esto...] -> Búsqueda en Google
+        \n-ps [buscar esto...] -> Google Play Store
+        \n-u [URL] -> abrir la URL
+        \n-yt [buscar esto...] -> YouTube
+        \n-dd [buscar esto...] -> DuckDuck Go
+    </string>
+    <string name="help_share">$ share [rutaAlArchivo]
+    </string>
+    <string name="help_shortcut">-ls [nombreApp] -> mostrar los accesos directos de esta aplicación
+        \n-use [ID acceso directo O índice] [opcional: nombreApp] -> usar el acceso directo especificado
+        \n-cp [índice] [nombreApp] -> copiar al portapapeles el n-ésimo acceso directo de la aplicación seleccionada (primero: 0)</string>
+    <string name="help_status">Obtener información sobre la carga de la batería, estado de wifi y datos móviles</string>
+    <string name="help_theme">-apply [ruta] -> aplicar un tema desde un archivo local
+        \n-set [elemento] [color] -> establecer manualmente un color
+        \n-preset [nombre] -> aplicar un ajuste preestablecido integrado (blue, red, green, pink, bw, cyberpunk)
+        \n-old -> volver a aplicar el tema que fue reemplazado por el actual
+        \n-standard -> aplicar el tema estándar</string>
+    <string name="help_settings">Abrir la tarjeta de configuración para personalizar idioma y tema</string>
+    <string name="help_visual">Mostrar tarjetas interactivas del dashboard (battery, system)</string>
+    <string name="help_time">Imprimir la hora actual con el formato dado
+        \n\nUso:
+        \n$ time [índice] (índice significa el índice del time_format deseado</string>
+    <string name="help_tuixt">Abrir el editor de texto.
+        \n\nUso:
+        \n$ tuixt [archivoTexto]
+    </string>
+    <string name="help_tui">-rm -> desinstalar t-ui
+        \n-about -> mostrar información sobre el desarrollador y la versión actual
+        \n-reset -> elimina la carpeta t-ui y restablece la configuración por defecto (requiere reinicio)
+        \n-log [nombreArchivo] -> registrar el texto en pantalla al archivo
+        \n-priority [comando] [int] -> establecer la prioridad del comando seleccionado
+        \n-sourcecode -> abrir la página de GitHub
+        \n-folder -> imprimir la ruta de la carpeta t-ui</string>
+    <string name="help_tuinotes">-add [línea] [texto] -> añadir una nueva nota en la línea especificada (la nota se añadirá al final si se omite la línea)
+        \n-rm [línea] -> eliminar la nota en la línea especificada
+        \n-clear -> eliminar todas las notas</string>
+    <string name="help_tutorial">Abrir la página del tutorial en GitHub</string>
+    <string name="help_uninstall">Desinstalar una aplicación
+        \n\nUso:
+        \n$ uninstall [nombreApp]
+    </string>
+    <string name="help_wifi">Alternar wifi</string>
+    <string name="help_sms">Enviar un SMS.
+        \n\nUso:
+        \n$ sms [nombreContacto/número]
+        \n$ [texto]
+    </string>
+    <string name="help_vibrate">Hacer vibrar tu dispositivo.
+        \n\nUso:
+        \n$ vibrate [milisegundos]
+        \n$ vibrate [patrón: espera, vibración, espera, vibración, espera, ...]
+        \n\nEjemplo:
+        \n$ vibrate 300
+        \n$ vibrate 0,300,500,300</string>
+    <string name="help_volume">-set [flujo] [volumen: 0-100] -> establecer el volumen para el flujo seleccionado
+        \n-profile [modo] -> establecer el modo de perfil
+        \n-get [flujo] -> obtener información sobre el flujo seleccionado
+        \n\nflujo:
+        \n\t* llamada de voz -> 0
+        \n\t* sistema -> 1
+        \n\t* timbre -> 2
+        \n\t* multimedia -> 3
+        \n\t* alarma -> 4
+        \n\t* notificación -> 5
+        \n\nmodo:
+        \n\t* silencio -> 0
+        \n\t* vibración -> 1
+        \n\t* normal -> 2</string>
+    <string name="help_weather">- update -> realizar una actualización manual (esto no funcionará a menos que establezcas una clave de clima personalizada)
+        \n-enable -> habilitar clima
+        \n-disable -> deshabilitar clima
+        \n-tutorial -> abrir la página web del tutorial de clima
+        \n-set_key [clave] -> establecer una clave de clima personalizada</string>
+    <string name="help_beep">Emitir un \"beep\".
+        \n\nUso:
+        \n$ beep</string>
+    <string name="help_notifications">-inc [nombreApp] -> incluir una aplicación
+        \n-exc [nombreApp] -> excluir una aplicación
+        \n-color [color] [nombreApp] -> establecer el color a usar para la aplicación
+        \n-format [ID] [nombreApp] -> aplicar el formato con el ID dado a la aplicación correspondiente
+        \n-add_filter [ID] [filtro] -> crear un nuevo filtro con el ID dado
+        \n-add_format [ID] [formato] -> crear un nuevo formato con el ID dado
+        \n-rm_filter [ID] -> eliminar el filtro que tiene el ID dado
+        \n-rm_format [ID] -> eliminar el formato que tiene el ID dado
+        \n-access -> mostrar la página de configuración del sistema dedicada al Acceso a Notificaciones
+        \n-file -> abrir notifications.xml
+        \n-tutorial -> mostrar la página del tutorial</string>
+    <string name="help_location">Mostrar tu ubicación actual</string>
+    <string name="help_cntcts">-ls -> listar tus contactos
+        \n-l [nombreContacto] -> mostrar detalles sobre un contacto
+        \n-add -> crear un nuevo contacto
+        \n-edit [nombreContacto] -> editar un contacto existente
+        \n-rm [nombreContacto] -> eliminar un contacto</string>
+    <string name="help_exit">Cerrar T-UI y restablecer el lanzador por defecto</string>
+    <string name="help_rss">-add [ID] [tiempo_actualización_en_segundos] [url] -> añadir un nuevo feed RSS. t-ui intentará obtener nuevos contenidos cada [tiempo_actualización_en_segundos] segundos
+        \n-rm [ID] -> eliminar este feed RSS
+        \n-ls -> listar tus feeds RSS
+        \n-l [ID] -> mostrar todo el contenido del feed RSS correspondiente
+        \n-show [ID] [boolean] -> alternar la propiedad [show] del feed RSS guardado dado
+        \n-update_time [ID] [tiempo_actualización_en_segundos] -> establecer el tiempo de actualización del feed RSS correspondiente
+        \n-format [ID] [formato] -> establecer el formato del feed RSS correspondiente ([formato] puede ser tanto una cadena como el ID de un formato existente)
+        \n-color [ID] [color] -> establecer el color base del feed RSS correspondiente
+        \n-wifi_only [ID] [boolean] -> si [boolean] es verdadero, el feed correspondiente se actualizará solo si tu dispositivo está conectado a una red WiFi
+        \n-last_check [ID] -> mostrar la última vez que t-ui revisó este feed RSS
+        \n-entry_tag [ID] -> establecer la etiqueta base para cada entrada individual (por defecto: \"item\")
+        \n-date_tag [ID] [etiqueta] -> establecer la etiqueta que contiene información sobre la fecha de publicación (por defecto: \"pubDate\")
+        \n-add_command [ID] [IDs (separados por comas)] [regex] [cmd] -> crear un nuevo comando regex que se aplicará en los feeds RSS correspondientes a los IDs
+        \n-rm_command [ID] -> eliminar el comando regex correspondiente
+        \n-frc [ID] -> actualizar el feed RSS correspondiente
+        \n-info [ID] -> mostrar información sobre la configuración del feed RSS correspondiente
+        \n-include_if_matches [ID] [regex] -> si el regex dado coincide en un elemento de feed RSS, se mostrará ([regex] puede ser tanto una cadena como el ID de un regex guardado dentro de regex.xml)
+        \n-exclude_if_matches [ID] [regex] -> si el regex dado coincide en un elemento de feed RSS, no se mostrará ([regex] puede ser tanto una cadena como el ID de un regex guardado dentro de regex.xml)
+        \n-add_format [ID] [formato] -> crear un nuevo formato que podrás usar para más de un feed RSS
+        \n-rm_format [ID] [formato] -> eliminar un formato existente
+        \n-file -> abrir el archivo rss.xml</string>
+
+    <!-- linux -->
+    <string name="help_ctrlc">Interrumpir el proceso de shell actual y crear uno nuevo</string>
+    <string name="help_open">Abrir un archivo
+        \nUso:
+        \n$ open [rutaAlArchivo]
+    </string>
+
+    <string name="help_username">Cambiar el nombre de usuario y el nombre del dispositivo: username [nuevo_usuario] [nuevo_dispositivo]</string>
+    <string name="help_bbman">-install -> descargar y configurar BusyBox\n-remove -> desinstalar BusyBox</string>
+</resources>
