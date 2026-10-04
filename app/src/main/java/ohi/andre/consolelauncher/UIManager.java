@@ -942,76 +942,92 @@ public class UIManager implements OnTouchListener {
 
         lockOnDbTap = XMLPrefsManager.getBoolean(Behavior.double_tap_lock);
         doubleTapCmd = XMLPrefsManager.get(Behavior.double_tap_cmd);
-        if(!lockOnDbTap && doubleTapCmd == null) {
-            policy = null;
-            component = null;
-            gestureDetector = null;
-        } else {
-            gestureDetector = new GestureDetectorCompat(mContext, new GestureDetector.OnGestureListener() {
-                @Override
-                public boolean onDown(MotionEvent e) {
-                    return false;
-                }
 
-                @Override
-                public void onShowPress(MotionEvent e) {}
+        gestureDetector = new GestureDetectorCompat(mContext, new GestureDetector.OnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return false;
+            }
 
-                @Override
-                public boolean onSingleTapUp(MotionEvent e) {
-                    return false;
-                }
+            @Override
+            public void onShowPress(MotionEvent e) {}
 
-                @Override
-                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                    return false;
-                }
+            @Override
+            public boolean onSingleTapUp(MotionEvent e) {
+                return false;
+            }
 
-                @Override
-                public void onLongPress(MotionEvent e) {}
+            @Override
+            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                return false;
+            }
 
-                @Override
-                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                    return false;
-                }
-            });
+            @Override
+            public void onLongPress(MotionEvent e) {}
 
-            gestureDetector.setOnDoubleTapListener(new OnDoubleTapListener() {
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1 == null || e2 == null) return false;
+                float diffY = e2.getY() - e1.getY();
+                float diffX = e2.getX() - e1.getX();
 
-                @Override
-                public boolean onSingleTapConfirmed(MotionEvent e) {
-                    return false;
-                }
-
-                @Override
-                public boolean onDoubleTapEvent(MotionEvent e) {
-                    return true;
-                }
-
-                @Override
-                public boolean onDoubleTap(MotionEvent e) {
-
-                    if(doubleTapCmd != null && doubleTapCmd.length() > 0) {
-                        String input = mTerminalAdapter.getInput();
-                        mTerminalAdapter.setInput(doubleTapCmd);
-                        mTerminalAdapter.simulateEnter();
-                        mTerminalAdapter.setInput(input);
-                    }
-
-                    if(lockOnDbTap) {
-                        boolean admin = policy.isAdminActive(component);
-
-                        if (!admin) {
-                            Intent i = Tuils.requestAdmin(component, mContext.getString(R.string.admin_permission));
-                            mContext.startActivity(i);
-                        } else {
-                            policy.lockNow();
+                if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 100 && Math.abs(velocityY) > 100) {
+                    if (diffY < 0) {
+                        // Swipe Up
+                        String swipeUpCmd = XMLPrefsManager.get(Behavior.swipe_up_cmd);
+                        if (swipeUpCmd != null && !swipeUpCmd.isEmpty()) {
+                            executeGestureCmd(swipeUpCmd);
+                            return true;
+                        }
+                    } else {
+                        // Swipe Down
+                        String swipeDownCmd = XMLPrefsManager.get(Behavior.swipe_down_cmd);
+                        if (swipeDownCmd != null && !swipeDownCmd.isEmpty()) {
+                            executeGestureCmd(swipeDownCmd);
+                            return true;
                         }
                     }
-
-                    return true;
                 }
-            });
-        }
+                return false;
+            }
+        });
+
+        gestureDetector.setOnDoubleTapListener(new OnDoubleTapListener() {
+
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                return false;
+            }
+
+            @Override
+            public boolean onDoubleTapEvent(MotionEvent e) {
+                return true;
+            }
+
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+
+                if(doubleTapCmd != null && doubleTapCmd.length() > 0) {
+                    String input = mTerminalAdapter.getInput();
+                    mTerminalAdapter.setInput(doubleTapCmd);
+                    mTerminalAdapter.simulateEnter();
+                    mTerminalAdapter.setInput(input);
+                }
+
+                if(lockOnDbTap && policy != null && component != null) {
+                    boolean admin = policy.isAdminActive(component);
+
+                    if (!admin) {
+                        Intent i = Tuils.requestAdmin(component, mContext.getString(R.string.admin_permission));
+                        mContext.startActivity(i);
+                    } else {
+                        policy.lockNow();
+                    }
+                }
+
+                return true;
+            }
+        });
 
         int[] displayMargins = getListOfIntValues(XMLPrefsManager.get(Ui.display_margin_mm), 4, 0);
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
@@ -1576,9 +1592,19 @@ public class UIManager implements OnTouchListener {
         closeKeyboard();
     }
 
+    private void executeGestureCmd(String cmd) {
+        if (cmd == null || cmd.trim().isEmpty() || mTerminalAdapter == null) return;
+        String input = mTerminalAdapter.getInput();
+        mTerminalAdapter.setInput(cmd);
+        mTerminalAdapter.simulateEnter();
+        mTerminalAdapter.setInput(input);
+    }
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        gestureDetector.onTouchEvent(event);
+        if (gestureDetector != null) {
+            gestureDetector.onTouchEvent(event);
+        }
         return v.onTouchEvent(event);
     }
 

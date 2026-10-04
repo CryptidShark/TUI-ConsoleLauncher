@@ -193,7 +193,20 @@ public class NotificationService extends NotificationListenerService {
                                         }
 
                                         if(text == null || text.length() == 0) {
-                                            text = split.length == 1 ? NULL_LABEL : split[split.length - 1];
+                                            if (value.equals("title")) {
+                                                text = bundle.getCharSequence(NotificationCompat.EXTRA_TITLE);
+                                                if (TextUtils.isEmpty(text)) text = bundle.getCharSequence(NotificationCompat.EXTRA_CONVERSATION_TITLE);
+                                                if (TextUtils.isEmpty(text)) text = appName;
+                                            } else if (value.equals("text")) {
+                                                text = bundle.getCharSequence(NotificationCompat.EXTRA_TEXT);
+                                                if (TextUtils.isEmpty(text)) text = bundle.getCharSequence(NotificationCompat.EXTRA_BIG_TEXT);
+                                                if (TextUtils.isEmpty(text)) text = bundle.getCharSequence(NotificationCompat.EXTRA_SUMMARY_TEXT);
+                                                if (TextUtils.isEmpty(text) && notification.tickerText != null) text = notification.tickerText;
+                                            }
+                                        }
+
+                                        if(text == null) {
+                                            text = Tuils.EMPTYSTRING;
                                         }
 
                                         String stringed = text.toString().trim();
@@ -214,7 +227,8 @@ public class NotificationService extends NotificationListenerService {
                                 }
                             }
 
-                            String text = s.toString();
+                            String text = s.toString().replace("null_null", "").replace("null", "").replaceAll("_+", "_").trim();
+                            if (TextUtils.isEmpty(text)) continue;
 
                             if(notificationManager.match(text)) continue;
 

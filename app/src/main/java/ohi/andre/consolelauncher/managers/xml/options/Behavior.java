@@ -135,7 +135,7 @@ public enum Behavior implements XMLPrefsSave {
 
         @Override
         public String info() {
-            return "Visual theme preset (CLASSIC_TERMINAL, MODERN_TERMINAL)";
+            return "Visual theme preset (CLASSIC_TERMINAL, MODERN_TERMINAL, CYBER_TERMINAL, NEO_TERMINAL, AMBER_TERMINAL, NORD_TERMINAL, DRACULA_TERMINAL, AMOLED_TERMINAL)";
         }
 
         @Override
@@ -168,6 +168,38 @@ public enum Behavior implements XMLPrefsSave {
         @Override
         public String info() {
             return "The command that will run when you touch two times the screen quickly";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.TEXT;
+        }
+    },
+    swipe_up_cmd {
+        @Override
+        public String defaultValue() {
+            return "apps -ls";
+        }
+
+        @Override
+        public String info() {
+            return "Command executed when swiping up on the home screen";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.TEXT;
+        }
+    },
+    swipe_down_cmd {
+        @Override
+        public String defaultValue() {
+            return "notifications";
+        }
+
+        @Override
+        public String info() {
+            return "Command executed when swiping down on the home screen";
         }
 
         @Override

@@ -15,7 +15,9 @@ public class ThemeEngine {
         CYBER_TERMINAL,
         NEO_TERMINAL,
         AMBER_TERMINAL,
-        NORD_TERMINAL
+        NORD_TERMINAL,
+        DRACULA_TERMINAL,
+        AMOLED_TERMINAL
     }
 
     public static class DesignTokens {
@@ -168,6 +170,48 @@ public class ThemeEngine {
         nord.borderWidth = 1;
         nord.useShadows = true;
         presets.put(Preset.NORD_TERMINAL, nord);
+
+        // DRACULA TERMINAL
+        DesignTokens dracula = new DesignTokens();
+        dracula.background = Color.parseColor("#E6282A36"); // Dracula Background
+        dracula.surface = Color.parseColor("#44475A"); // Selection / Current Line
+        dracula.primary = Color.parseColor("#8BE9FD"); // Cyan
+        dracula.secondary = Color.parseColor("#BD93F9"); // Purple
+        dracula.accent = Color.parseColor("#FF79C6"); // Pink
+        dracula.text = Color.parseColor("#F8F8F2"); // Foreground
+        dracula.textMuted = Color.parseColor("#6272A4"); // Comment
+        dracula.success = Color.parseColor("#50FA7B"); // Green
+        dracula.warning = Color.parseColor("#F1FA8C"); // Yellow
+        dracula.error = Color.parseColor("#FF5555"); // Red
+        dracula.info = Color.parseColor("#BD93F9");
+        dracula.border = Color.parseColor("#6272A4");
+        dracula.cursor = Color.parseColor("#FF79C6");
+        dracula.selection = Color.parseColor("#4444475A");
+        dracula.borderRadius = 6;
+        dracula.borderWidth = 1;
+        dracula.useShadows = true;
+        presets.put(Preset.DRACULA_TERMINAL, dracula);
+
+        // AMOLED TERMINAL (Pure Black Battery Saver)
+        DesignTokens amoled = new DesignTokens();
+        amoled.background = Color.parseColor("#FF000000"); // 100% Pure Black
+        amoled.surface = Color.parseColor("#111111");
+        amoled.primary = Color.parseColor("#00FF9F"); // High Contrast Neon Green
+        amoled.secondary = Color.parseColor("#00B8D4");
+        amoled.accent = Color.parseColor("#FF4081");
+        amoled.text = Color.parseColor("#FFFFFF");
+        amoled.textMuted = Color.parseColor("#777777");
+        amoled.success = Color.parseColor("#00FF9F");
+        amoled.warning = Color.parseColor("#FFD600");
+        amoled.error = Color.parseColor("#FF1744");
+        amoled.info = Color.parseColor("#00B8D4");
+        amoled.border = Color.parseColor("#333333");
+        amoled.cursor = Color.parseColor("#00FF9F");
+        amoled.selection = Color.parseColor("#3300FF9F");
+        amoled.borderRadius = 4;
+        amoled.borderWidth = 1;
+        amoled.useShadows = false;
+        presets.put(Preset.AMOLED_TERMINAL, amoled);
     }
 
     public static DesignTokens getPreset(Preset preset) {

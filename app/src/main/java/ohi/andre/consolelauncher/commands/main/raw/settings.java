@@ -28,6 +28,10 @@ public class settings implements CommandAbstraction {
             return showLiveCustomizer(info);
         }
 
+        if (pack.args.length > 0 && pack.args[0].toString().equalsIgnoreCase("gestures")) {
+            return showGesturesCard(info);
+        }
+
         LayoutInflater inflater = LayoutInflater.from(info.context);
         View card = inflater.inflate(R.layout.card_settings, null);
 
@@ -139,6 +143,32 @@ public class settings implements CommandAbstraction {
         setupColorButton(card, R.id.color_magenta, "#FF00FF", info);
         setupColorButton(card, R.id.color_yellow, "#FFFF00", info);
         setupColorButton(card, R.id.color_green, "#00FF00", info);
+
+        Tuils.sendOutput(info.context, card);
+        return null;
+    }
+
+    private String showGesturesCard(MainPack info) {
+        LayoutInflater inflater = LayoutInflater.from(info.context);
+        View card = inflater.inflate(R.layout.card_gestures, null);
+
+        TextView title = card.findViewById(R.id.gestures_title);
+        title.setTypeface(Tuils.getTypeface(info.context));
+
+        TextView tvSwipeUp = card.findViewById(R.id.tv_swipe_up_action);
+        TextView tvSwipeDown = card.findViewById(R.id.tv_swipe_down_action);
+        TextView tvDoubleTap = card.findViewById(R.id.tv_double_tap_action);
+        TextView tvLongPress = card.findViewById(R.id.tv_long_press_action);
+
+        String swipeUp = XMLPrefsManager.get(Behavior.swipe_up_cmd);
+        String swipeDown = XMLPrefsManager.get(Behavior.swipe_down_cmd);
+        String doubleTap = XMLPrefsManager.get(Behavior.double_tap_cmd);
+        boolean doubleTapLock = XMLPrefsManager.getBoolean(Behavior.double_tap_lock);
+
+        tvSwipeUp.setText("Action: " + (swipeUp != null && !swipeUp.isEmpty() ? swipeUp : "apps -ls"));
+        tvSwipeDown.setText("Action: " + (swipeDown != null && !swipeDown.isEmpty() ? swipeDown : "notifications"));
+        tvDoubleTap.setText("Action: " + (doubleTapLock ? "Lock Device (Screen Lock)" : (doubleTap != null && !doubleTap.isEmpty() ? doubleTap : "None")));
+        tvLongPress.setText("Action: Launcher Settings / Context Options");
 
         Tuils.sendOutput(info.context, card);
         return null;

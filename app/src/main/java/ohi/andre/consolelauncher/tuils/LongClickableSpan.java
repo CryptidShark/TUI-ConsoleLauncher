@@ -3,6 +3,7 @@ package ohi.andre.consolelauncher.tuils;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -116,13 +117,23 @@ public class LongClickableSpan extends ClickableSpan {
     private static void openNotificationApp(Context context, NotificationService.Notification n) {
         if (n == null || context == null) return;
 
+        Activity activity = null;
+        Context curr = context;
+        while (curr instanceof ContextWrapper) {
+            if (curr instanceof Activity) {
+                activity = (Activity) curr;
+                break;
+            }
+            curr = ((ContextWrapper) curr).getBaseContext();
+        }
+
+        Context launchContext = activity != null ? activity : context;
         boolean opened = false;
 
-        // 1. Primary: Trigger the specific PendingIntent using Activity.startIntentSender
+        // 1. Primary: Trigger the specific PendingIntent using Activity.startIntentSender or send()
         if (n.pendingIntent != null) {
             try {
-                if (context instanceof Activity) {
-                    Activity activity = (Activity) context;
+                if (activity != null) {
                     activity.startIntentSender(
                             n.pendingIntent.getIntentSender(),
                             null,
@@ -134,7 +145,7 @@ public class LongClickableSpan extends ClickableSpan {
                 } else {
                     Intent fillInIntent = new Intent();
                     fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    n.pendingIntent.send(context, 0, fillInIntent);
+                    n.pendingIntent.send(launchContext, 0, fillInIntent);
                     opened = true;
                 }
             } catch (Exception e) {
@@ -142,15 +153,15 @@ public class LongClickableSpan extends ClickableSpan {
                 try {
                     Intent fillInIntent = new Intent();
                     fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    n.pendingIntent.send(context, 0, fillInIntent);
+                    n.pendingIntent.send(launchContext, 0, fillInIntent);
                     opened = true;
                 } catch (Exception ignore) {}
             }
         }
 
-        // 2. Secondary Fallback: Launch the main app Activity
+        // 2. Fallback: Open application by package name
         if (!opened && n.pkg != null) {
-            openAppByPackage(context, n.pkg);
+            openAppByPackage(launchContext, n.pkg);
         }
     }
 

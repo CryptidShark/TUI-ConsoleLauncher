@@ -118,16 +118,14 @@ public class TerminalAdapter extends RecyclerView.Adapter<TerminalAdapter.ViewHo
                 if (spans != null && spans.length > 0) {
                     final LongClickableSpan span = spans[0];
                     textView.setOnClickListener(v -> {
-                        v.animate().alpha(0.4f).setDuration(80).withEndAction(() -> {
-                            v.animate().alpha(1.0f).setDuration(80).start();
-                            span.onClick(v);
-                        }).start();
+                        v.setAlpha(0.5f);
+                        v.postDelayed(() -> v.setAlpha(1.0f), 100);
+                        span.onClick(v);
                     });
                     textView.setOnLongClickListener(v -> {
-                        v.animate().alpha(0.4f).setDuration(80).withEndAction(() -> {
-                            v.animate().alpha(1.0f).setDuration(80).start();
-                            span.onLongClick(v);
-                        }).start();
+                        v.setAlpha(0.5f);
+                        v.postDelayed(() -> v.setAlpha(1.0f), 100);
+                        span.onLongClick(v);
                         return true;
                     });
                 } else {
