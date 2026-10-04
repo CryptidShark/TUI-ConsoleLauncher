@@ -178,12 +178,12 @@ public enum Behavior implements XMLPrefsSave {
     swipe_up_cmd {
         @Override
         public String defaultValue() {
-            return "apps -ls";
+            return "";
         }
 
         @Override
         public String info() {
-            return "Command executed when swiping up on the home screen";
+            return "Command executed when swiping up on the home screen (leave empty to learn from documentation first)";
         }
 
         @Override
@@ -194,12 +194,12 @@ public enum Behavior implements XMLPrefsSave {
     swipe_down_cmd {
         @Override
         public String defaultValue() {
-            return "notifications";
+            return "";
         }
 
         @Override
         public String info() {
-            return "Command executed when swiping down on the home screen";
+            return "Command executed when swiping down on the home screen (leave empty to learn from documentation first)";
         }
 
         @Override

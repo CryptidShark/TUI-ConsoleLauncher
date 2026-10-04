@@ -188,6 +188,14 @@ public class visual implements CommandAbstraction {
             ((LauncherActivity) info.context).onPersistentOutput(card);
         } else {
             Tuils.sendOutput(info.context, card);
+            if (info.context instanceof LauncherActivity) {
+                ((LauncherActivity) info.context).runOnUiThread(() -> {
+                    ViewGroup pc = ((LauncherActivity) info.context).findViewById(R.id.persistent_container);
+                    if (pc != null && pc.getChildCount() == 0) {
+                        ((LauncherActivity) info.context).onPersistentOutput(card);
+                    }
+                });
+            }
         }
     }
 
@@ -342,6 +350,14 @@ public class visual implements CommandAbstraction {
             ((LauncherActivity) info.context).onPersistentOutput(card);
         } else {
             Tuils.sendOutput(info.context, card);
+            if (info.context instanceof LauncherActivity) {
+                ((LauncherActivity) info.context).runOnUiThread(() -> {
+                    ViewGroup pc = ((LauncherActivity) info.context).findViewById(R.id.persistent_container);
+                    if (pc != null && pc.getChildCount() == 0) {
+                        ((LauncherActivity) info.context).onPersistentOutput(card);
+                    }
+                });
+            }
         }
     }
 

@@ -1,6 +1,13 @@
-# T-UI Linux CLI Launcher
+# Cythernoir T-UI Linux CLI Launcher
 
 Updated for compatibility with modern Android versions (API 34+) and enhanced with security hardening.
+
+---
+
+## 📖 Manual de Usuario
+Para consultar la guía paso a paso sobre instalación, comandos, gestos, temas, widgets y copia de seguridad, consulta el manual completo en español:
+
+👉 **[📖 Manual de usuario oficial (docs/USER_GUIDE.md)](docs/USER_GUIDE.md)**
 
 ---
 

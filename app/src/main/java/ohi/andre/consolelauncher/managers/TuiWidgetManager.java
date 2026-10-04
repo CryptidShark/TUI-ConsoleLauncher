@@ -167,7 +167,10 @@ public class TuiWidgetManager {
     public void createWidget(LauncherActivity activity, int appWidgetId) {
         AppWidgetProviderInfo appWidgetInfo = mAppWidgetManager.getAppWidgetInfo(appWidgetId);
         if (appWidgetInfo == null) {
-            Tuils.sendOutput(activity, "Error: Widget info not found for ID " + appWidgetId);
+            Tuils.sendOutput(activity, "Widget provider not found or uninstalled for ID " + appWidgetId + ". Removing stale widget.");
+            mAppWidgetHost.deleteAppWidgetId(appWidgetId);
+            mActiveWidgetIds.remove(Integer.valueOf(appWidgetId));
+            saveState(null);
             return;
         }
 

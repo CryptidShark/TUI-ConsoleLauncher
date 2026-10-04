@@ -130,18 +130,25 @@ public class LongClickableSpan extends ClickableSpan {
         Context launchContext = activity != null ? activity : context;
         boolean opened = false;
 
-        // 1. Primary: Trigger the specific PendingIntent using Activity.startIntentSender or send()
+        // 1. Primary: Trigger the specific PendingIntent
         if (n.pendingIntent != null) {
             try {
                 if (activity != null) {
-                    activity.startIntentSender(
-                            n.pendingIntent.getIntentSender(),
-                            null,
-                            0,
-                            0,
-                            0
-                    );
-                    opened = true;
+                    try {
+                        activity.startIntentSender(
+                                n.pendingIntent.getIntentSender(),
+                                null,
+                                0,
+                                0,
+                                0
+                        );
+                        opened = true;
+                    } catch (Exception e1) {
+                        Intent fillInIntent = new Intent();
+                        fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        n.pendingIntent.send(launchContext, 0, fillInIntent);
+                        opened = true;
+                    }
                 } else {
                     Intent fillInIntent = new Intent();
                     fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -150,12 +157,6 @@ public class LongClickableSpan extends ClickableSpan {
                 }
             } catch (Exception e) {
                 Tuils.log(e);
-                try {
-                    Intent fillInIntent = new Intent();
-                    fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    n.pendingIntent.send(launchContext, 0, fillInIntent);
-                    opened = true;
-                } catch (Exception ignore) {}
             }
         }
 
