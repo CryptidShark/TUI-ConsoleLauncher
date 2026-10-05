@@ -165,8 +165,8 @@ public class settings implements CommandAbstraction {
         String doubleTap = XMLPrefsManager.get(Behavior.double_tap_cmd);
         boolean doubleTapLock = XMLPrefsManager.getBoolean(Behavior.double_tap_lock);
 
-        tvSwipeUp.setText("Action: " + (swipeUp != null && !swipeUp.isEmpty() ? swipeUp : "apps -ls"));
-        tvSwipeDown.setText("Action: " + (swipeDown != null && !swipeDown.isEmpty() ? swipeDown : "notifications"));
+        tvSwipeUp.setText("Action: " + (swipeUp != null && !swipeUp.trim().isEmpty() ? swipeUp : "None"));
+        tvSwipeDown.setText("Action: " + (swipeDown != null && !swipeDown.trim().isEmpty() ? swipeDown : "None"));
         tvDoubleTap.setText("Action: " + (doubleTapLock ? "Lock Device (Screen Lock)" : (doubleTap != null && !doubleTap.isEmpty() ? doubleTap : "None")));
         tvLongPress.setText("Action: Launcher Settings / Context Options");
 

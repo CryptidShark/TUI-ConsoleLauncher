@@ -946,7 +946,7 @@ public class UIManager implements OnTouchListener {
         gestureDetector = new GestureDetectorCompat(mContext, new GestureDetector.OnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) {
-                return false;
+                return true;
             }
 
             @Override
@@ -975,14 +975,14 @@ public class UIManager implements OnTouchListener {
                     if (diffY < 0) {
                         // Swipe Up
                         String swipeUpCmd = XMLPrefsManager.get(Behavior.swipe_up_cmd);
-                        if (swipeUpCmd != null && !swipeUpCmd.isEmpty()) {
+                        if (swipeUpCmd != null && !swipeUpCmd.trim().isEmpty()) {
                             executeGestureCmd(swipeUpCmd);
                             return true;
                         }
                     } else {
                         // Swipe Down
                         String swipeDownCmd = XMLPrefsManager.get(Behavior.swipe_down_cmd);
-                        if (swipeDownCmd != null && !swipeDownCmd.isEmpty()) {
+                        if (swipeDownCmd != null && !swipeDownCmd.trim().isEmpty()) {
                             executeGestureCmd(swipeDownCmd);
                             return true;
                         }
@@ -1602,10 +1602,11 @@ public class UIManager implements OnTouchListener {
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        boolean handled = false;
         if (gestureDetector != null) {
-            gestureDetector.onTouchEvent(event);
+            handled = gestureDetector.onTouchEvent(event);
         }
-        return v.onTouchEvent(event);
+        return handled || v.onTouchEvent(event);
     }
 
     public OnRedirectionListener buildRedirectionListener() {

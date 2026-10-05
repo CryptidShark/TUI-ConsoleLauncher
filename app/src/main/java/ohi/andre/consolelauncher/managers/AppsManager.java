@@ -419,12 +419,16 @@ public class AppsManager implements XMLPrefsElement {
                     Tuils.log(e);
                 }
 
-                infos.add(li);
+                if (AppUtils.findLaunchInfoWithComponent(infos, li.componentName) == null) {
+                    infos.add(li);
+                }
             }
         } else {
             for (ResolveInfo ri : main) {
                 LaunchInfo li = new LaunchInfo(ri.activityInfo.packageName, ri.activityInfo.name, ri.loadLabel(mgr).toString());
-                infos.add(li);
+                if (AppUtils.findLaunchInfoWithComponent(infos, li.componentName) == null) {
+                    infos.add(li);
+                }
             }
         }
 

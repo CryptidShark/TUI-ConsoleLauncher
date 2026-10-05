@@ -810,80 +810,82 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     public void onPersistentOutput(View view) {
         if (persistentContainer != null) {
-            String presetName = XMLPrefsManager.get(Behavior.theme_preset);
-            ThemeEngine.Preset preset;
-            try {
-                preset = ThemeEngine.Preset.valueOf(presetName);
-            } catch (Exception e) {
-                preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
-            }
-            ThemeEngine.DesignTokens theme = ThemeEngine.getPreset(preset);
-
-            if (view instanceof AppWidgetHostView) {
-                AppWidgetHostView hostView = (AppWidgetHostView) view;
-                AppWidgetProviderInfo info = hostView.getAppWidgetInfo();
-                
-                LinearLayout wrapper = new LinearLayout(this);
-                wrapper.setTag("widget_container");
-                wrapper.setOrientation(LinearLayout.VERTICAL);
-
-                LinearLayout.LayoutParams wrapperParams = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
-                wrapperParams.setMargins(0, Tuils.dpToPx(this, 6), 0, Tuils.dpToPx(this, 6));
-                wrapper.setLayoutParams(wrapperParams);
-
-                GradientDrawable cardBg = new GradientDrawable();
-                cardBg.setColor(theme.surface);
-                cardBg.setCornerRadius(Tuils.dpToPx(this, (int) theme.borderRadius > 0 ? (int) theme.borderRadius : 6));
-                cardBg.setStroke((int) Tuils.dpToPx(this, (int) theme.borderWidth > 0 ? (int) theme.borderWidth : 1), theme.border);
-                wrapper.setBackground(cardBg);
-
-                String titleText = "EXTERNAL_MODULE";
-                if (info != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        titleText = info.loadLabel(getPackageManager());
-                    } else {
-                        titleText = info.label;
-                    }
+            runOnUiThread(() -> {
+                String presetName = XMLPrefsManager.get(Behavior.theme_preset);
+                ThemeEngine.Preset preset;
+                try {
+                    preset = ThemeEngine.Preset.valueOf(presetName);
+                } catch (Exception e) {
+                    preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
                 }
+                ThemeEngine.DesignTokens theme = ThemeEngine.getPreset(preset);
 
-                TextView header = new TextView(this);
-                header.setText("● [ " + (titleText != null ? titleText.toUpperCase() : "EXTERNAL_MODULE") + " ]");
-                header.setTextColor(theme.primary);
-                header.setTextSize(11);
-                header.setTypeface(Tuils.getTypeface(this));
-                header.setPadding(Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 8), Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 6));
-                wrapper.addView(header);
+                if (view instanceof AppWidgetHostView) {
+                    AppWidgetHostView hostView = (AppWidgetHostView) view;
+                    AppWidgetProviderInfo info = hostView.getAppWidgetInfo();
+                    
+                    LinearLayout wrapper = new LinearLayout(this);
+                    wrapper.setTag("widget_container");
+                    wrapper.setOrientation(LinearLayout.VERTICAL);
 
-                View line = new View(this);
-                line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Tuils.dpToPx(this, 1)));
-                line.setBackgroundColor(theme.border);
-                line.setAlpha(0.35f);
-                wrapper.addView(line);
+                    LinearLayout.LayoutParams wrapperParams = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT);
+                    wrapperParams.setMargins(0, Tuils.dpToPx(this, 6), 0, Tuils.dpToPx(this, 6));
+                    wrapper.setLayoutParams(wrapperParams);
 
-                hostView.setPadding(0, 0, 0, 0);
-                LinearLayout.LayoutParams hostParams = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
-                hostParams.setMargins(Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4));
-                hostView.setLayoutParams(hostParams);
-                wrapper.addView(hostView);
-                
-                TextView footer = new TextView(this);
-                footer.setText("<< MODULE_ID: " + hostView.getAppWidgetId() + " // STATUS: ONLINE");
-                footer.setTextColor(theme.textMuted);
-                footer.setTextSize(9);
-                footer.setTypeface(Tuils.getTypeface(this));
-                footer.setPadding(Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 2), Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 8));
-                wrapper.addView(footer);
+                    GradientDrawable cardBg = new GradientDrawable();
+                    cardBg.setColor(theme.surface);
+                    cardBg.setCornerRadius(Tuils.dpToPx(this, (int) theme.borderRadius > 0 ? (int) theme.borderRadius : 6));
+                    cardBg.setStroke((int) Tuils.dpToPx(this, (int) theme.borderWidth > 0 ? (int) theme.borderWidth : 1), theme.border);
+                    wrapper.setBackground(cardBg);
 
-                persistentContainer.addView(wrapper);
-                applyThemeRecursively(wrapper);
-            } else {
-                persistentContainer.addView(view);
-                applyThemeRecursively(view);
-            }
+                    String titleText = "EXTERNAL_MODULE";
+                    if (info != null) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            titleText = info.loadLabel(getPackageManager());
+                        } else {
+                            titleText = info.label;
+                        }
+                    }
+
+                    TextView header = new TextView(this);
+                    header.setText("● [ " + (titleText != null ? titleText.toUpperCase() : "EXTERNAL_MODULE") + " ]");
+                    header.setTextColor(theme.primary);
+                    header.setTextSize(11);
+                    header.setTypeface(Tuils.getTypeface(this));
+                    header.setPadding(Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 8), Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 6));
+                    wrapper.addView(header);
+
+                    View line = new View(this);
+                    line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Tuils.dpToPx(this, 1)));
+                    line.setBackgroundColor(theme.border);
+                    line.setAlpha(0.35f);
+                    wrapper.addView(line);
+
+                    hostView.setPadding(0, 0, 0, 0);
+                    LinearLayout.LayoutParams hostParams = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT);
+                    hostParams.setMargins(Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4));
+                    hostView.setLayoutParams(hostParams);
+                    wrapper.addView(hostView);
+                    
+                    TextView footer = new TextView(this);
+                    footer.setText("<< MODULE_ID: " + hostView.getAppWidgetId() + " // STATUS: ONLINE");
+                    footer.setTextColor(theme.textMuted);
+                    footer.setTextSize(9);
+                    footer.setTypeface(Tuils.getTypeface(this));
+                    footer.setPadding(Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 2), Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 8));
+                    wrapper.addView(footer);
+
+                    persistentContainer.addView(wrapper);
+                    applyThemeRecursively(wrapper);
+                } else {
+                    persistentContainer.addView(view);
+                    applyThemeRecursively(view);
+                }
+            });
         }
     }
 

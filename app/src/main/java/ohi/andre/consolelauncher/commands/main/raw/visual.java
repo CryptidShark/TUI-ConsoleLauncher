@@ -242,8 +242,14 @@ public class visual implements CommandAbstraction {
             
             @Override
             public void run() {
-                if (card.getWindowToken() == null && !fixed) return;
-                if (fixed && card.getParent() == null) return;
+                if (!fixed && card.getWindowToken() == null) return;
+                if (fixed && card.getParent() == null) {
+                    if (info.context instanceof LauncherActivity) {
+                        ((LauncherActivity) info.context).onPersistentOutput(card);
+                    } else {
+                        return;
+                    }
+                }
 
                 try {
                     List<MediaController> controllers = null;
@@ -328,25 +334,14 @@ public class visual implements CommandAbstraction {
                     songName.setText("ERROR: " + e.getMessage());
                 }
 
-                String listeners = Settings.Secure.getString(info.context.getContentResolver(), "enabled_notification_listeners");
-                boolean hasAccess = listeners != null && listeners.contains(info.context.getPackageName());
-
-                if (!hasAccess) {
-                    songName.setText("GRANT_NOTIFICATION_ACCESS_REQUIRED [CLICK_TO_FIX]");
-                    songName.setOnClickListener(v -> {
-                        Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        info.context.startActivity(intent);
-                    });
-                }
-
                 handler.postDelayed(this, 150);
             }
         };
 
-        handler.post(updateTask);
-
         if (fixed && info.context instanceof LauncherActivity) {
+            if (!XMLPrefsManager.getBoolean(Behavior.persistent_music_card)) {
+                Behavior.persistent_music_card.parent().write(Behavior.persistent_music_card, "true");
+            }
             ((LauncherActivity) info.context).onPersistentOutput(card);
         } else {
             Tuils.sendOutput(info.context, card);
@@ -359,6 +354,8 @@ public class visual implements CommandAbstraction {
                 });
             }
         }
+
+        handler.post(updateTask);
     }
 
     private void showNotesCard(MainPack info, boolean fixed) {
