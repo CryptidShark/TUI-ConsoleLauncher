@@ -95,6 +95,38 @@ public enum Behavior implements XMLPrefsSave {
             return XMLPrefsSave.BOOLEAN;
         }
     },
+    persistent_weather_card {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, the weather module will be pinned to the top of the terminal";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
+    persistent_termux_card {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, the Termux integration status card will be pinned to the top";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
     music_target_app {
         @Override
         public String defaultValue() {
@@ -200,6 +232,38 @@ public enum Behavior implements XMLPrefsSave {
         @Override
         public String info() {
             return "Command executed when swiping down on the home screen (leave empty to learn from documentation first)";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.TEXT;
+        }
+    },
+    swipe_left_cmd {
+        @Override
+        public String defaultValue() {
+            return "";
+        }
+
+        @Override
+        public String info() {
+            return "Command executed when swiping left on the home screen";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.TEXT;
+        }
+    },
+    swipe_right_cmd {
+        @Override
+        public String defaultValue() {
+            return "";
+        }
+
+        @Override
+        public String info() {
+            return "Command executed when swiping right on the home screen";
         }
 
         @Override
@@ -344,6 +408,22 @@ public enum Behavior implements XMLPrefsSave {
         @Override
         public String info() {
             return "If false, t-ui won't show the apps that you launch";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
+    incognito_mode {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, t-ui won't save terminal command history or app launch stats for privacy";
         }
 
         @Override

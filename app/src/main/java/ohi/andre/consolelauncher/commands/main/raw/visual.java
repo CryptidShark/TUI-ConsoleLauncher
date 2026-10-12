@@ -26,6 +26,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import ohi.andre.consolelauncher.LauncherActivity;
@@ -39,6 +41,7 @@ import ohi.andre.consolelauncher.managers.notifications.NotificationService;
 import ohi.andre.consolelauncher.managers.ThemeEngine;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
 import ohi.andre.consolelauncher.managers.xml.options.Behavior;
+import ohi.andre.consolelauncher.managers.xml.options.Ui;
 import ohi.andre.consolelauncher.tuils.Tuils;
 
 public class visual implements CommandAbstraction {
@@ -47,13 +50,37 @@ public class visual implements CommandAbstraction {
     public String exec(ExecutePack pack) {
         MainPack info = (MainPack) pack;
 
-        if (pack.args.length > 0) {
-            String fullArg = pack.args[0].toString();
-            String[] split = fullArg.split("\\s+");
-            String arg = split[0];
-            
-            boolean fixed = (pack.args.length > 1 && pack.args[1].toString().equalsIgnoreCase("-fixed"))
-                    || (split.length > 1 && split[1].equalsIgnoreCase("-fixed"));
+        String arg = "";
+        boolean fixed = false;
+
+        if (pack.args != null && pack.args.length > 0 && pack.args[0] != null) {
+            Object obj = pack.args[0];
+            List<String> list = new ArrayList<>();
+            if (obj instanceof List) {
+                list = (List<String>) obj;
+            } else if (obj instanceof String) {
+                String[] split = ((String) obj).split("\\s+");
+                Collections.addAll(list, split);
+            }
+
+            if (pack.args.length > 1 && pack.args[1] != null) {
+                list.add(pack.args[1].toString());
+            }
+
+            if (!list.isEmpty()) {
+                arg = list.get(0).trim();
+                for (int i = 1; i < list.size(); i++) {
+                    String item = list.get(i).trim();
+                    if (item.equalsIgnoreCase("-fixed") || item.equalsIgnoreCase("fixed")) {
+                        fixed = true;
+                    }
+                }
+            }
+
+            if (arg.toLowerCase().endsWith("-fixed")) {
+                arg = arg.substring(0, arg.length() - 6);
+                fixed = true;
+            }
 
             if (arg.equalsIgnoreCase("battery")) {
                 showBatteryCard(info, fixed);
@@ -70,12 +97,23 @@ public class visual implements CommandAbstraction {
             } else if (arg.equalsIgnoreCase("shortcuts")) {
                 showShortcutsCard(info, fixed);
                 return null;
+            } else if (arg.equalsIgnoreCase("weather")) {
+                showWeatherCard(info, fixed);
+                return null;
+            } else if (arg.equalsIgnoreCase("termux")) {
+                showTermuxCard(info, fixed);
+                return null;
+            } else if (arg.equalsIgnoreCase("dashboard")) {
+                showDashboard(info);
+                return null;
             } else if (arg.equalsIgnoreCase("clear")) {
                 Behavior.persistent_system_card.parent().write(Behavior.persistent_system_card, "false");
                 Behavior.persistent_battery_card.parent().write(Behavior.persistent_battery_card, "false");
                 Behavior.persistent_notes_card.parent().write(Behavior.persistent_notes_card, "false");
                 Behavior.persistent_shortcuts_card.parent().write(Behavior.persistent_shortcuts_card, "false");
                 Behavior.persistent_music_card.parent().write(Behavior.persistent_music_card, "false");
+                Behavior.persistent_weather_card.parent().write(Behavior.persistent_weather_card, "false");
+                Behavior.persistent_termux_card.parent().write(Behavior.persistent_termux_card, "false");
 
                 if (info.context instanceof LauncherActivity) {
                     ((LauncherActivity) info.context).runOnUiThread(() -> {
@@ -87,8 +125,10 @@ public class visual implements CommandAbstraction {
             }
         }
 
-        return "Usage: visual [battery | system | notes | shortcuts] [-fixed] or visual clear";
+        return "Usage: visual [battery | system | notes | shortcuts | music | weather | termux | dashboard] [-fixed] or visual clear";
     }
+
+
 
     private void showSystemCard(MainPack info, boolean fixed) {
         LayoutInflater inflater = LayoutInflater.from(info.context);
@@ -447,6 +487,89 @@ public class visual implements CommandAbstraction {
         } else {
             Tuils.sendOutput(info.context, card);
         }
+    }
+
+    private void showWeatherCard(MainPack info, boolean fixed) {
+        if (fixed) {
+            Behavior.persistent_weather_card.parent().write(Behavior.persistent_weather_card, "true");
+        }
+        
+        LinearLayout card = new LinearLayout(info.context);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(Tuils.dpToPx(info.context, 12), Tuils.dpToPx(info.context, 10), Tuils.dpToPx(info.context, 12), Tuils.dpToPx(info.context, 10));
+
+        TextView title = new TextView(info.context);
+        title.setText("● [ WEATHER_MODULE ]");
+        title.setTypeface(Tuils.getTypeface(info.context));
+        title.setTextSize(14);
+        title.setTypeface(null, Typeface.BOLD);
+        card.addView(title);
+
+        TextView status = new TextView(info.context);
+        status.setTypeface(Tuils.getTypeface(info.context));
+        status.setPadding(0, Tuils.dpToPx(info.context, 6), 0, 0);
+
+        boolean enabled = XMLPrefsManager.getBoolean(Ui.show_weather);
+        if (enabled) {
+            status.setText("Status: ACTIVE // Location Weather Provider Connected\nUse: 'tuiweather -update' to refresh");
+        } else {
+            status.setText("Status: INACTIVE // Weather is currently disabled\nUse: 'tuiweather -enable' to activate");
+        }
+        card.addView(status);
+
+        if (fixed && info.context instanceof LauncherActivity) {
+            ((LauncherActivity) info.context).onPersistentOutput(card);
+        } else {
+            Tuils.sendOutput(info.context, card);
+        }
+    }
+
+    private void showTermuxCard(MainPack info, boolean fixed) {
+        if (fixed) {
+            Behavior.persistent_termux_card.parent().write(Behavior.persistent_termux_card, "true");
+        }
+
+        LinearLayout card = new LinearLayout(info.context);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(Tuils.dpToPx(info.context, 12), Tuils.dpToPx(info.context, 10), Tuils.dpToPx(info.context, 12), Tuils.dpToPx(info.context, 10));
+
+        TextView title = new TextView(info.context);
+        title.setText("● [ TERMUX_INTEGRATION_MODULE ]");
+        title.setTypeface(Tuils.getTypeface(info.context));
+        title.setTextSize(14);
+        title.setTypeface(null, Typeface.BOLD);
+        card.addView(title);
+
+        TextView status = new TextView(info.context);
+        status.setTypeface(Tuils.getTypeface(info.context));
+        status.setPadding(0, Tuils.dpToPx(info.context, 6), 0, Tuils.dpToPx(info.context, 6));
+
+        final String TERMUX_PKG = "com.termux";
+        Intent termuxIntent = info.context.getPackageManager().getLaunchIntentForPackage(TERMUX_PKG);
+        if (termuxIntent != null) {
+            status.setText("Status: INSTALLED // Package: " + TERMUX_PKG + "\nIntegration: READY [CLICK_TO_LAUNCH]");
+            card.setOnClickListener(v -> {
+                termuxIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                info.context.startActivity(termuxIntent);
+            });
+        } else {
+            status.setText("Status: NOT_DETECTED\nTermux is not installed on this device.");
+        }
+        card.addView(status);
+
+        if (fixed && info.context instanceof LauncherActivity) {
+            ((LauncherActivity) info.context).onPersistentOutput(card);
+        } else {
+            Tuils.sendOutput(info.context, card);
+        }
+    }
+
+    private void showDashboard(MainPack info) {
+        showSystemCard(info, false);
+        showBatteryCard(info, false);
+        showWeatherCard(info, false);
+        showTermuxCard(info, false);
+        showShortcutsCard(info, false);
     }
 
     @Override

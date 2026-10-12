@@ -108,4 +108,52 @@ public interface SearchAction {
             }
         }
     }
+
+    class ExecuteCommandAction implements SearchAction {
+        private final String commandName;
+
+        public ExecuteCommandAction(String commandName) {
+            this.commandName = commandName;
+        }
+
+        @Override
+        public void execute(Context context) {
+            if (context != null && commandName != null) {
+                Intent intent = new Intent(MainManager.ACTION_EXEC);
+                intent.putExtra(MainManager.CMD, commandName);
+                intent.putExtra(MainManager.NEED_WRITE_INPUT, true);
+                LocalBroadcastManager.getInstance(context.getApplicationContext()).sendBroadcast(intent);
+            }
+        }
+
+        public String getCommandName() {
+            return commandName;
+        }
+    }
+
+    class LaunchShortcutAction implements SearchAction {
+        private final String packageName;
+        private final String shortcutId;
+
+        public LaunchShortcutAction(String packageName, String shortcutId) {
+            this.packageName = packageName;
+            this.shortcutId = shortcutId;
+        }
+
+        @Override
+        public void execute(Context context) {
+            if (context != null && packageName != null && shortcutId != null) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N_MR1) {
+                    try {
+                        android.content.pm.LauncherApps launcherApps = (android.content.pm.LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
+                        if (launcherApps != null) {
+                            launcherApps.startShortcut(packageName, shortcutId, null, null, android.os.Process.myUserHandle());
+                        }
+                    } catch (Exception e) {
+                        Tuils.log(e);
+                    }
+                }
+            }
+        }
+    }
 }

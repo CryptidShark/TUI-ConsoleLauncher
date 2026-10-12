@@ -24,6 +24,9 @@ import ohi.andre.consolelauncher.managers.xml.options.Behavior;
 import ohi.andre.consolelauncher.managers.xml.options.Notifications;
 import ohi.andre.consolelauncher.managers.xml.options.Rss;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
+import ohi.andre.consolelauncher.managers.ProfileManager;
+import ohi.andre.consolelauncher.tuils.TermuxBridge;
+import ohi.andre.consolelauncher.tuils.ShizukuBridge;
 import ohi.andre.consolelauncher.tuils.Tuils;
 import ohi.andre.consolelauncher.tuils.interfaces.Reloadable;
 
@@ -315,6 +318,60 @@ public class config extends ParamCommand {
                 file.renameTo(dest);
 
                 return "Path: " + dest.getAbsolutePath();
+            }
+        },
+        export_profile {
+            @Override
+            public int[] args() {
+                return new int[] {CommandAbstraction.PLAIN_TEXT};
+            }
+
+            @Override
+            public String exec(ExecutePack pack) {
+                return ProfileManager.exportProfile(pack.context, pack.getString());
+            }
+
+            @Override
+            public String onNotArgEnough(ExecutePack pack, int n) {
+                return ProfileManager.exportProfile(pack.context, "default_profile.json");
+            }
+        },
+        import_profile {
+            @Override
+            public int[] args() {
+                return new int[] {CommandAbstraction.PLAIN_TEXT};
+            }
+
+            @Override
+            public String exec(ExecutePack pack) {
+                return ProfileManager.importProfile(pack.context, pack.getString());
+            }
+
+            @Override
+            public String onNotArgEnough(ExecutePack pack, int n) {
+                return "Usage: config -import_profile [filename.json]";
+            }
+        },
+        termux {
+            @Override
+            public int[] args() {
+                return new int[0];
+            }
+
+            @Override
+            public String exec(ExecutePack pack) {
+                return TermuxBridge.getTermuxStatus(pack.context);
+            }
+        },
+        shizuku {
+            @Override
+            public int[] args() {
+                return new int[0];
+            }
+
+            @Override
+            public String exec(ExecutePack pack) {
+                return ShizukuBridge.getShizukuStatus(pack.context);
             }
         },
         tutorial {

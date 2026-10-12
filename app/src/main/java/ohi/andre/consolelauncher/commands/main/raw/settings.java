@@ -157,16 +157,22 @@ public class settings implements CommandAbstraction {
 
         TextView tvSwipeUp = card.findViewById(R.id.tv_swipe_up_action);
         TextView tvSwipeDown = card.findViewById(R.id.tv_swipe_down_action);
+        TextView tvSwipeLeft = card.findViewById(R.id.tv_swipe_left_action);
+        TextView tvSwipeRight = card.findViewById(R.id.tv_swipe_right_action);
         TextView tvDoubleTap = card.findViewById(R.id.tv_double_tap_action);
         TextView tvLongPress = card.findViewById(R.id.tv_long_press_action);
 
         String swipeUp = XMLPrefsManager.get(Behavior.swipe_up_cmd);
         String swipeDown = XMLPrefsManager.get(Behavior.swipe_down_cmd);
+        String swipeLeft = XMLPrefsManager.get(Behavior.swipe_left_cmd);
+        String swipeRight = XMLPrefsManager.get(Behavior.swipe_right_cmd);
         String doubleTap = XMLPrefsManager.get(Behavior.double_tap_cmd);
         boolean doubleTapLock = XMLPrefsManager.getBoolean(Behavior.double_tap_lock);
 
         tvSwipeUp.setText("Action: " + (swipeUp != null && !swipeUp.trim().isEmpty() ? swipeUp : "None"));
         tvSwipeDown.setText("Action: " + (swipeDown != null && !swipeDown.trim().isEmpty() ? swipeDown : "None"));
+        if (tvSwipeLeft != null) tvSwipeLeft.setText("Action: " + (swipeLeft != null && !swipeLeft.trim().isEmpty() ? swipeLeft : "None"));
+        if (tvSwipeRight != null) tvSwipeRight.setText("Action: " + (swipeRight != null && !swipeRight.trim().isEmpty() ? swipeRight : "None"));
         tvDoubleTap.setText("Action: " + (doubleTapLock ? "Lock Device (Screen Lock)" : (doubleTap != null && !doubleTap.isEmpty() ? doubleTap : "None")));
         tvLongPress.setText("Action: Launcher Settings / Context Options");
 

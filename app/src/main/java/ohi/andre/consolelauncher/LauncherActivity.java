@@ -476,6 +476,14 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             loadFixedVisual("music");
         }
 
+        if (XMLPrefsManager.getBoolean(Behavior.persistent_weather_card)) {
+            loadFixedVisual("weather");
+        }
+
+        if (XMLPrefsManager.getBoolean(Behavior.persistent_termux_card)) {
+            loadFixedVisual("termux");
+        }
+
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -806,6 +814,40 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     public UIManager getUIManager() {
         return ui;
+    }
+
+    public void refreshPersistentContainer() {
+        if (persistentContainer != null) {
+            runOnUiThread(() -> {
+                persistentContainer.removeAllViews();
+                if (XMLPrefsManager.getBoolean(Behavior.persistent_system_card)) {
+                    loadFixedVisual("system");
+                }
+                if (XMLPrefsManager.getBoolean(Behavior.persistent_battery_card)) {
+                    loadFixedVisual("battery");
+                }
+                if (XMLPrefsManager.getBoolean(Behavior.persistent_notes_card)) {
+                    loadFixedVisual("notes");
+                }
+                if (XMLPrefsManager.getBoolean(Behavior.persistent_shortcuts_card)) {
+                    loadFixedVisual("shortcuts");
+                }
+                if (XMLPrefsManager.getBoolean(Behavior.persistent_music_card)) {
+                    loadFixedVisual("music");
+                }
+                if (XMLPrefsManager.getBoolean(Behavior.persistent_weather_card)) {
+                    loadFixedVisual("weather");
+                }
+                if (XMLPrefsManager.getBoolean(Behavior.persistent_termux_card)) {
+                    loadFixedVisual("termux");
+                }
+                if (widgetManager != null) {
+                    for (Integer id : widgetManager.getActiveWidgetIds()) {
+                        widgetManager.createWidget(this, id);
+                    }
+                }
+            });
+        }
     }
 
     public void onPersistentOutput(View view) {

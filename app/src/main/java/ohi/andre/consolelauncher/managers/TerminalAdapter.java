@@ -24,6 +24,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
+import ohi.andre.consolelauncher.managers.xml.options.Behavior;
+
 import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
 import ohi.andre.consolelauncher.managers.xml.options.Behavior;
@@ -66,7 +69,7 @@ public class TerminalAdapter extends RecyclerView.Adapter<TerminalAdapter.ViewHo
 
     public void add(TerminalItem item) {
         items.add(item);
-        if (item.getType() == TerminalItem.Type.TEXT) {
+        if (item.getType() == TerminalItem.Type.TEXT && !XMLPrefsManager.getBoolean(Behavior.incognito_mode)) {
             if (sHistoryCache.size() >= MAX_HISTORY_ITEMS) {
                 sHistoryCache.remove(0);
             }

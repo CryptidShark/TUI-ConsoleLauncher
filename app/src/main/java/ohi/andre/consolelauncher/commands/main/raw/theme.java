@@ -4,7 +4,14 @@ import android.content.Intent;
 import android.graphics.Color;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import ohi.andre.consolelauncher.R;
@@ -12,8 +19,10 @@ import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
 import ohi.andre.consolelauncher.commands.main.specific.ParamCommand;
+import ohi.andre.consolelauncher.managers.ThemeEngine;
 import ohi.andre.consolelauncher.managers.ThemeManager;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
+import ohi.andre.consolelauncher.managers.xml.options.Behavior;
 import ohi.andre.consolelauncher.managers.xml.options.Suggestions;
 import ohi.andre.consolelauncher.managers.xml.options.Theme;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
@@ -83,14 +92,33 @@ public class theme extends ParamCommand {
                 Map<Theme, String> colors = new HashMap<>();
                 Map<Suggestions, String> suggestionColors = new HashMap<>();
                 
-                // Check if system wallpaper is enabled
                 boolean isTransparent = XMLPrefsManager.getBoolean(Ui.system_wallpaper);
                 Theme backgroundTarget = isTransparent ? Theme.overlay_color : Theme.bg_color;
-
-                // Set to 100% transparent if wallpaper is active (#00), otherwise solid (#FF)
                 String transPrefix = isTransparent ? "#00" : "#FF";
 
                 switch(name) {
+                    case "watchdogs_cyber":
+                    case "watchdogs":
+                        colors.put(backgroundTarget, transPrefix + "080F14");
+                        colors.put(Theme.input_color, "#00E5FF");
+                        colors.put(Theme.output_color, "#F8F8F2");
+                        colors.put(Theme.device_color, "#BD93F9");
+                        colors.put(Theme.enter_color, "#00E5FF");
+                        colors.put(Theme.toolbar_color, "#00E5FF");
+                        colors.put(Theme.time_color, "#FF79C6");
+
+                        suggestionColors.put(Suggestions.apps_bg_color, "#1A1F24");
+                        suggestionColors.put(Suggestions.alias_bg_color, "#BD93F9");
+                        suggestionColors.put(Suggestions.cmd_bg_color, "#00E5FF");
+                        suggestionColors.put(Suggestions.file_bg_color, "#6272A4");
+                        suggestionColors.put(Suggestions.song_bg_color, "#FF79C6");
+                        
+                        suggestionColors.put(Suggestions.apps_text_color, "#F8F8F2");
+                        suggestionColors.put(Suggestions.alias_text_color, "#000000");
+                        suggestionColors.put(Suggestions.cmd_text_color, "#000000");
+                        
+                        Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.WATCHDOGS_CYBER.name());
+                        break;
                     case "blue":
                         colors.put(backgroundTarget, transPrefix + "001221");
                         colors.put(Theme.input_color, "#00BFFF");
@@ -190,10 +218,9 @@ public class theme extends ParamCommand {
                         suggestionColors.put(Suggestions.alias_text_color, "#000000");
                         break;
                     default:
-                        return "Unknown preset. Available: blue, red, green, pink, bw, cyberpunk";
+                        return "Unknown preset. Available: watchdogs_cyber, blue, red, green, pink, bw, cyberpunk";
                 }
 
-                // Force toolbar_bg to transparent to avoid coloring the entire bar
                 colors.put(Theme.toolbar_bg, "#00000000");
 
                 for (Map.Entry<Theme, String> entry : colors.entrySet()) {
@@ -210,6 +237,111 @@ public class theme extends ParamCommand {
                 } catch (Exception e) {}
 
                 return "Applied " + name + " preset!";
+            }
+        },
+        export {
+            @Override
+            public int[] args() {
+                return new int[] {CommandAbstraction.PLAIN_TEXT};
+            }
+
+            @Override
+            public String exec(ExecutePack pack) {
+                String filename = pack.getString();
+                if (filename == null || filename.trim().isEmpty()) {
+                    filename = "theme_export.json";
+                }
+                if (!filename.endsWith(".json")) {
+                    filename += ".json";
+                }
+
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put("version", 1);
+                    json.put("themeName", XMLPrefsManager.get(Behavior.theme_preset));
+                    json.put("input_color", XMLPrefsManager.get(Theme.input_color));
+                    json.put("output_color", XMLPrefsManager.get(Theme.output_color));
+                    json.put("bg_color", XMLPrefsManager.get(Theme.bg_color));
+                    json.put("device_color", XMLPrefsManager.get(Theme.device_color));
+                    json.put("enter_color", XMLPrefsManager.get(Theme.enter_color));
+                    json.put("toolbar_color", XMLPrefsManager.get(Theme.toolbar_color));
+                    json.put("time_color", XMLPrefsManager.get(Theme.time_color));
+
+                    File folder = Tuils.getFolder();
+                    File dest = new File(folder, filename);
+                    FileOutputStream fos = new FileOutputStream(dest);
+                    fos.write(json.toString(2).getBytes(StandardCharsets.UTF_8));
+                    fos.flush();
+                    fos.close();
+
+                    return "Theme exported to " + dest.getAbsolutePath();
+                } catch (Exception e) {
+                    return "Error exporting theme: " + e.getMessage();
+                }
+            }
+        },
+        import_theme {
+            @Override
+            public int[] args() {
+                return new int[] {CommandAbstraction.PLAIN_TEXT};
+            }
+
+            @Override
+            public String exec(ExecutePack pack) {
+                String filename = pack.getString();
+                if (filename == null || filename.trim().isEmpty()) {
+                    return "Usage: theme -import_theme [filename.json]";
+                }
+
+                File file = new File(Tuils.getFolder(), filename);
+                if (!file.exists()) {
+                    file = new File(filename);
+                }
+                if (!file.exists()) {
+                    return "Theme file not found: " + filename;
+                }
+
+                try {
+                    FileInputStream fis = new FileInputStream(file);
+                    byte[] data = new byte[(int) file.length()];
+                    fis.read(data);
+                    fis.close();
+
+                    String jsonStr = new String(data, StandardCharsets.UTF_8);
+                    JSONObject json = new JSONObject(jsonStr);
+
+                    int version = json.optInt("version", -1);
+                    if (version != 1) {
+                        return "Invalid or unsupported theme schema version: " + version;
+                    }
+
+                    Iterator<String> keys = json.keys();
+                    while (keys.hasNext()) {
+                        String key = keys.next();
+                        if (key.equals("version") || key.equals("themeName")) continue;
+
+                        String colorVal = json.getString(key);
+                        try {
+                            Color.parseColor(colorVal);
+                            for (Theme t : Theme.values()) {
+                                if (t.label().equalsIgnoreCase(key)) {
+                                    XMLPrefsManager.XMLPrefsRoot.THEME.write(t, colorVal);
+                                    break;
+                                }
+                            }
+                        } catch (Exception invalidColor) {
+                            Tuils.log("Skipping invalid color: " + key + "=" + colorVal);
+                        }
+                    }
+
+                    if (pack.context instanceof Reloadable) {
+                        ((Reloadable) pack.context).reload();
+                    }
+
+                    return "Theme successfully imported from " + file.getName();
+                } catch (Exception e) {
+                    return "Error importing theme (malformed file): " + e.getMessage();
+                }
             }
         },
         standard {

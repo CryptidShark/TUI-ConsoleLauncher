@@ -971,19 +971,39 @@ public class UIManager implements OnTouchListener {
                 float diffY = e2.getY() - e1.getY();
                 float diffX = e2.getX() - e1.getX();
 
+                DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+                int edgeMargin = Tuils.dpToPx(mContext, 24);
+
                 if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 100 && Math.abs(velocityY) > 100) {
                     if (diffY < 0) {
-                        // Swipe Up
                         String swipeUpCmd = XMLPrefsManager.get(Behavior.swipe_up_cmd);
                         if (swipeUpCmd != null && !swipeUpCmd.trim().isEmpty()) {
                             executeGestureCmd(swipeUpCmd);
                             return true;
                         }
                     } else {
-                        // Swipe Down
                         String swipeDownCmd = XMLPrefsManager.get(Behavior.swipe_down_cmd);
                         if (swipeDownCmd != null && !swipeDownCmd.trim().isEmpty()) {
                             executeGestureCmd(swipeDownCmd);
+                            return true;
+                        }
+                    }
+                } else if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 100 && Math.abs(velocityX) > 100) {
+                    // Avoid collision with system back gesture near edges (24dp)
+                    if (e1.getX() < edgeMargin || e1.getX() > (metrics.widthPixels - edgeMargin)) {
+                        return false;
+                    }
+
+                    if (diffX < 0) {
+                        String swipeLeftCmd = XMLPrefsManager.get(Behavior.swipe_left_cmd);
+                        if (swipeLeftCmd != null && !swipeLeftCmd.trim().isEmpty()) {
+                            executeGestureCmd(swipeLeftCmd);
+                            return true;
+                        }
+                    } else {
+                        String swipeRightCmd = XMLPrefsManager.get(Behavior.swipe_right_cmd);
+                        if (swipeRightCmd != null && !swipeRightCmd.trim().isEmpty()) {
+                            executeGestureCmd(swipeRightCmd);
                             return true;
                         }
                     }
@@ -1330,6 +1350,12 @@ public class UIManager implements OnTouchListener {
 
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View inputOutputView = inflater.inflate(layoutId, null);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1.0f
+        );
+        inputOutputView.setLayoutParams(params);
         rootView.addView(inputOutputView);
 
         terminalView = (RecyclerView) inputOutputView.findViewById(R.id.terminal_view);

@@ -1,18 +1,17 @@
 package ohi.andre.consolelauncher.commands.main.raw;
 
 import android.appwidget.AppWidgetHostView;
+import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.List;
 
-import android.view.View;
-import android.view.ViewGroup;
 import ohi.andre.consolelauncher.LauncherActivity;
 import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
-import ohi.andre.consolelauncher.tuils.Tuils;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.tuils.Tuils;
 
 public class widget implements CommandAbstraction {
 
@@ -20,7 +19,7 @@ public class widget implements CommandAbstraction {
     public String exec(ExecutePack pack) throws Exception {
         MainPack info = (MainPack) pack;
 
-        if (pack.args.length > 0) {
+        if (pack.args != null && pack.args.length > 0) {
             String arg = pack.args[0].toString();
             if (arg.equalsIgnoreCase("add")) {
                 if (info.context instanceof LauncherActivity) {
@@ -36,13 +35,43 @@ public class widget implements CommandAbstraction {
                 List<Integer> ids = info.widgetManager.getActiveWidgetIds();
                 if (ids.isEmpty()) return "No active widgets.";
                 StringBuilder sb = new StringBuilder("Active Widgets:\n");
-                for (int id : ids) sb.append("- ID: ").append(id).append("\n");
+                for (int id : ids) {
+                    sb.append("- ID: ").append(id).append("\n");
+                }
                 return sb.toString();
+            } else if (arg.equalsIgnoreCase("move")) {
+                if (pack.args.length > 2 && info.context instanceof LauncherActivity) {
+                    try {
+                        int id = Integer.parseInt(pack.args[1].toString());
+                        String dir = pack.args[2].toString();
+                        boolean up = dir.equalsIgnoreCase("up");
+                        boolean moved = info.widgetManager.moveWidget((LauncherActivity) info.context, id, up);
+                        return moved ? "Widget " + id + " moved " + (up ? "up" : "down") + "." : "Unable to move widget " + id;
+                    } catch (Exception e) {
+                        return "Usage: widget move [ID] [up|down]";
+                    }
+                }
+                return "Usage: widget move [ID] [up|down]";
+            } else if (arg.equalsIgnoreCase("height") || arg.equalsIgnoreCase("resize")) {
+                if (pack.args.length > 2 && info.context instanceof LauncherActivity) {
+                    try {
+                        int id = Integer.parseInt(pack.args[1].toString());
+                        int heightDp = Integer.parseInt(pack.args[2].toString());
+                        boolean resized = info.widgetManager.setWidgetHeight((LauncherActivity) info.context, id, heightDp);
+                        return resized ? "Widget " + id + " height updated to " + heightDp + "dp." : "Unable to resize widget " + id;
+                    } catch (Exception e) {
+                        return "Usage: widget height [ID] [dp]";
+                    }
+                }
+                return "Usage: widget height [ID] [dp]";
             } else if (arg.equalsIgnoreCase("remove")) {
                 if (pack.args.length > 1) {
                     try {
                         int id = Integer.parseInt(pack.args[1].toString());
                         info.widgetManager.removeWidget(id);
+                        if (info.context instanceof LauncherActivity) {
+                            ((LauncherActivity) info.context).refreshPersistentContainer();
+                        }
                         return "Widget " + id + " removed from system host.";
                     } catch (Exception e) {
                         return "Invalid ID.";
@@ -68,12 +97,12 @@ public class widget implements CommandAbstraction {
             }
         }
 
-        return "Usage: widget [add | list | remove | clear] (Use 'manual' for customization guide)";
+        return "Usage: widget [add | list | move | height | remove | clear | perm]";
     }
 
     @Override
     public int[] argType() {
-        return new int[] {CommandAbstraction.PLAIN_TEXT};
+        return new int[] {CommandAbstraction.PLAIN_TEXT, CommandAbstraction.PLAIN_TEXT, CommandAbstraction.PLAIN_TEXT};
     }
 
     @Override

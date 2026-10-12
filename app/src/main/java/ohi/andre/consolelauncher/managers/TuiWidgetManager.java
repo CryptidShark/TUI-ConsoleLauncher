@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetHost;
 import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,8 +16,10 @@ import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,17 +57,13 @@ public class TuiWidgetManager {
     }
 
     public void pickWidget(LauncherActivity activity) {
-        // Special check for Android 14+ / Samsung
         try {
             mAppWidgetHost.startListening();
         } catch (Exception ignore) {}
 
-        // Allocate ID before picking
         int appWidgetId = mAppWidgetHost.allocateAppWidgetId();
         Intent pickIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
         pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        
-        // Critical: Ensure the system knows who is hosting
         pickIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         
         try {
@@ -89,13 +86,10 @@ public class TuiWidgetManager {
             Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
             intent.setComponent(appWidgetInfo.configure);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            
-            // Critical for some devices
             intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             
             activity.startActivityForResult(intent, REQUEST_CREATE_APPWIDGET);
         } else {
-            // Check if we can bind it
             boolean bound = false;
             try {
                 bound = mAppWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetInfo.provider);
@@ -111,9 +105,6 @@ public class TuiWidgetManager {
                 Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_BIND);
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, appWidgetInfo.provider);
-                
-                // Critical Samsung/Android 14+ Fix: 
-                // Many devices require the user profile to be explicitly passed
                 intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE, Process.myUserHandle());
                 intent.putExtra("appWidgetHostId", HOST_ID);
 
@@ -177,13 +168,10 @@ public class TuiWidgetManager {
         try {
             Tuils.sendOutput(activity, "Inflating widget: " + (appWidgetInfo.label != null ? appWidgetInfo.label : "External"));
             AppWidgetHostView hostView = mAppWidgetHost.createView(activity, appWidgetId, appWidgetInfo);
-            
-            // Critical: Ensure the widget is linked to the ID
             hostView.setAppWidget(appWidgetId, appWidgetInfo);
             
             updateWidgetOptions(hostView, appWidgetId, appWidgetInfo);
 
-            // On some Samsung/Android 16 devices, we need to manually trigger a refresh
             hostView.postDelayed(() -> {
                 try {
                     updateWidgetOptions(hostView, appWidgetId, appWidgetInfo);
@@ -201,10 +189,52 @@ public class TuiWidgetManager {
                 saveState(null);
             }
         } catch (Exception e) {
-            Tuils.sendOutput(activity, "Error creating widget view: " + e.getMessage());
+            Tuils.sendOutput(activity, "Error rendering widget ID " + appWidgetId + ": " + e.getMessage());
+            // Create fallback error view instead of crashing
+            TextView errorView = new TextView(activity);
+            errorView.setText("[ WIDGET_ID: " + appWidgetId + " ] ERROR_RENDERING: " + e.getMessage());
+            errorView.setPadding(16, 16, 16, 16);
+            activity.onPersistentOutput(errorView);
         }
         
         mPendingWidgetId = -1;
+    }
+
+    public boolean moveWidget(LauncherActivity activity, int widgetId, boolean up) {
+        int index = mActiveWidgetIds.indexOf(widgetId);
+        if (index == -1) return false;
+
+        int targetIndex = up ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= mActiveWidgetIds.size()) return false;
+
+        Collections.swap(mActiveWidgetIds, index, targetIndex);
+        saveState(null);
+        if (activity != null) {
+            activity.refreshPersistentContainer();
+        }
+        return true;
+    }
+
+    public boolean setWidgetHeight(LauncherActivity activity, int widgetId, int heightDp) {
+        if (!mActiveWidgetIds.contains(widgetId)) return false;
+        try {
+            DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+            int heightPx = Tuils.dpToPx(mContext, heightDp);
+            
+            AppWidgetProviderInfo info = mAppWidgetManager.getAppWidgetInfo(widgetId);
+            if (info != null) {
+                Bundle options = new Bundle();
+                options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, heightDp);
+                options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp);
+                mAppWidgetManager.updateAppWidgetOptions(widgetId, options);
+            }
+            if (activity != null) {
+                activity.refreshPersistentContainer();
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public List<Integer> getActiveWidgetIds() {
@@ -214,7 +244,7 @@ public class TuiWidgetManager {
     public void removeWidget(int appWidgetId) {
         mAppWidgetHost.deleteAppWidgetId(appWidgetId);
         mActiveWidgetIds.remove(Integer.valueOf(appWidgetId));
-        saveState(null); // Update prefs
+        saveState(null);
     }
 
     public void clearAllWidgets() {
@@ -222,19 +252,7 @@ public class TuiWidgetManager {
             mAppWidgetHost.deleteAppWidgetId(id);
         }
         mActiveWidgetIds.clear();
-        saveState(null); // Update prefs
-    }
-
-    public AppWidgetHostView createWidgetView(int appWidgetId) {
-        AppWidgetProviderInfo appWidgetInfo = mAppWidgetManager.getAppWidgetInfo(appWidgetId);
-        if (appWidgetInfo == null) return null;
-        AppWidgetHostView hostView = mAppWidgetHost.createView(mContext, appWidgetId, appWidgetInfo);
-        hostView.setAppWidget(appWidgetId, appWidgetInfo);
-        updateWidgetOptions(hostView, appWidgetId, appWidgetInfo);
-        hostView.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-        return hostView;
+        saveState(null);
     }
 
     public boolean isDefaultLauncher() {
@@ -254,7 +272,6 @@ public class TuiWidgetManager {
             outState.putIntegerArrayList("mActiveWidgetIds", (ArrayList<Integer>) mActiveWidgetIds);
         }
         
-        // surviva reboot
         SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         Set<String> set = new HashSet<>();
         for (Integer id : mActiveWidgetIds) set.add(id.toString());
@@ -270,7 +287,6 @@ public class TuiWidgetManager {
                 mActiveWidgetIds.addAll(ids);
             }
         } else {
-            // from prefs
             SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             Set<String> set = prefs.getStringSet(WIDGET_IDS_KEY, null);
             if (set != null) {
@@ -280,7 +296,6 @@ public class TuiWidgetManager {
         }
 
         if (!mActiveWidgetIds.isEmpty()) {
-            // Re-inflate fixed widgets
             final LauncherActivity activity = (LauncherActivity) mContext;
             activity.runOnUiThread(() -> {
                 for (final Integer id : mActiveWidgetIds) {

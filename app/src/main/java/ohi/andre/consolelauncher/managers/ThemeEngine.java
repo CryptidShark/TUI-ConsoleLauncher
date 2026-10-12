@@ -17,7 +17,8 @@ public class ThemeEngine {
         AMBER_TERMINAL,
         NORD_TERMINAL,
         DRACULA_TERMINAL,
-        AMOLED_TERMINAL
+        AMOLED_TERMINAL,
+        WATCHDOGS_CYBER
     }
 
     public static class DesignTokens {
@@ -212,13 +213,33 @@ public class ThemeEngine {
         amoled.borderWidth = 1;
         amoled.useShadows = false;
         presets.put(Preset.AMOLED_TERMINAL, amoled);
+
+        // WATCHDOGS_CYBER (Cybersecurity Urban Interface)
+        DesignTokens watchdogs = new DesignTokens();
+        watchdogs.background = Color.parseColor("#E6080F14"); // Dark Petroleum / Deep Cyber
+        watchdogs.surface = Color.parseColor("#1A1F24");    // Dark Metallic Surface
+        watchdogs.primary = Color.parseColor("#00E5FF");    // Cyan Accent
+        watchdogs.secondary = Color.parseColor("#BD93F9");  // Violet Details
+        watchdogs.accent = Color.parseColor("#FF79C6");     // Magenta Highlight
+        watchdogs.text = Color.parseColor("#F8F8F2");       // Off-White Foreground
+        watchdogs.textMuted = Color.parseColor("#6272A4");  // Muted Tech Grey
+        watchdogs.success = Color.parseColor("#00E5FF");    // Cyan Success
+        watchdogs.warning = Color.parseColor("#FF79C6");    // Magenta Alert
+        watchdogs.error = Color.parseColor("#FF5555");      // Red Error
+        watchdogs.info = Color.parseColor("#BD93F9");       // Violet Info
+        watchdogs.border = Color.parseColor("#00E5FF");     // Cyan Border
+        watchdogs.cursor = Color.parseColor("#00E5FF");     // Cyan Cursor
+        watchdogs.selection = Color.parseColor("#3300E5FF");
+        watchdogs.borderRadius = 2;
+        watchdogs.borderWidth = 1;
+        watchdogs.useShadows = true;
+        presets.put(Preset.WATCHDOGS_CYBER, watchdogs);
     }
 
     public static DesignTokens getPreset(Preset preset) {
         DesignTokens tokens = presets.get(preset);
         if (tokens == null) return presets.get(Preset.CLASSIC_TERMINAL);
         
-        // Merge with XML preferences for backward compatibility
         try {
             int xmlOutputColor = XMLPrefsManager.getColor(Theme.output_color);
             if (xmlOutputColor != Color.WHITE && xmlOutputColor != 0) {
@@ -232,7 +253,6 @@ public class ThemeEngine {
             }
 
             int xmlBgColor = XMLPrefsManager.getColor(Theme.bg_color);
-            // Only overwrite if it's not the default black/zero
             if (xmlBgColor != Color.BLACK && xmlBgColor != 0) {
                 tokens.background = xmlBgColor;
             }

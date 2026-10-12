@@ -24,7 +24,7 @@
         android:id="@+id/tv_swipe_up_action"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="App Drawer (apps -ls)"
+        android:text="Action: None"
         android:textSize="14sp"
         android:layout_marginTop="2dp" />
 
@@ -39,7 +39,37 @@
         android:id="@+id/tv_swipe_down_action"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Notifications (notifications)"
+        android:text="Action: None"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Swipe Left"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp" />
+
+    <TextView
+        android:id="@+id/tv_swipe_left_action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Action: None"
+        android:textSize="14sp"
+        android:layout_marginTop="2dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Swipe Right"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp" />
+
+    <TextView
+        android:id="@+id/tv_swipe_right_action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Action: None"
         android:textSize="14sp"
         android:layout_marginTop="2dp" />
 
