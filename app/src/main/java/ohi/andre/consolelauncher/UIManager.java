@@ -918,7 +918,7 @@ public class UIManager implements OnTouchListener {
 
         View terminalChrome = rootView.findViewById(R.id.terminal_chrome);
         if (terminalChrome != null) {
-            terminalChrome.setBackgroundColor(designTokens.background);
+            terminalChrome.setBackgroundColor(designTokens.surface);
             TextView tabIcon = rootView.findViewById(R.id.terminal_tab_icon);
             TextView tabTitle = rootView.findViewById(R.id.terminal_tab_title);
             TextView tabSubtitle = rootView.findViewById(R.id.terminal_tab_subtitle);
@@ -928,12 +928,26 @@ public class UIManager implements OnTouchListener {
             if (tabTitle != null) tabTitle.setTextColor(designTokens.text);
             if (tabSubtitle != null) tabSubtitle.setTextColor(designTokens.textMuted);
             if (sessionStatus != null) sessionStatus.setTextColor(designTokens.success);
+            if (tabIcon != null) {
+                GradientDrawable iconBackground = new GradientDrawable();
+                iconBackground.setColor(designTokens.background);
+                iconBackground.setCornerRadius(Tuils.dpToPx(mContext, 8));
+                iconBackground.setStroke(Tuils.dpToPx(mContext, 1), designTokens.border);
+                tabIcon.setBackground(iconBackground);
+            }
             if (tab != null) {
                 GradientDrawable tabBackground = new GradientDrawable();
                 tabBackground.setColor(designTokens.surface);
                 tabBackground.setCornerRadius(Tuils.dpToPx(mContext, 7));
                 tabBackground.setStroke(Tuils.dpToPx(mContext, 1), designTokens.border);
                 tab.setBackground(tabBackground);
+            }
+            if (sessionStatus != null) {
+                GradientDrawable statusBackground = new GradientDrawable();
+                statusBackground.setColor(designTokens.background);
+                statusBackground.setCornerRadius(Tuils.dpToPx(mContext, 14));
+                statusBackground.setStroke(Tuils.dpToPx(mContext, 1), designTokens.border);
+                sessionStatus.setBackground(statusBackground);
             }
         }
 

@@ -14,6 +14,7 @@ import android.os.Build;
 import android.app.role.RoleManager;
 import android.util.DisplayMetrics;
 import android.view.ViewGroup;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -145,23 +146,52 @@ public class TuiWidgetManager {
     public void updateWidgetOptions(AppWidgetHostView hostView, int appWidgetId, AppWidgetProviderInfo appWidgetInfo) {
         if (hostView == null || appWidgetInfo == null) return;
         try {
-            DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-            float density = metrics.density > 0 ? metrics.density : 1.0f;
-
-            int widthDp = (int) (metrics.widthPixels / density);
+            int widthDp = getAvailableWidgetWidthDp();
             int minHeightDp = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                     .getInt("height_" + appWidgetId, appWidgetInfo.minHeight > 0 ? Math.max(40, appWidgetInfo.minHeight) : 100);
+            Bundle currentOptions = mAppWidgetManager.getAppWidgetOptions(appWidgetId);
+            if (currentOptions != null
+                    && currentOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, -1) == widthDp
+                    && currentOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, -1) == widthDp
+                    && currentOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, -1) == minHeightDp
+                    && currentOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, -1) == minHeightDp) return;
 
             Bundle options = new Bundle();
             options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp);
             options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, minHeightDp);
             options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp);
-            options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeightDp * 3);
+            options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeightDp);
 
-            hostView.updateAppWidgetSize(options, widthDp, minHeightDp, widthDp, minHeightDp * 3);
+            hostView.updateAppWidgetSize(options, widthDp, minHeightDp, widthDp, minHeightDp);
             mAppWidgetManager.updateAppWidgetOptions(appWidgetId, options);
         } catch (Exception e) {
             Tuils.log("Error updating widget options", e);
+        }
+    }
+
+    /** Refreshes provider size options after rotation or a launcher window resize. */
+    public void updateActiveWidgetSizes() {
+        if (!(mContext instanceof LauncherActivity)) return;
+        ViewGroup container = ((LauncherActivity) mContext).findViewById(ohi.andre.consolelauncher.R.id.persistent_container);
+        if (container == null || container.getWidth() <= 0) return;
+        for (int i = 0; i < container.getChildCount(); i++) {
+            updateWidgetOptionsInTree(container.getChildAt(i));
+        }
+    }
+
+    private void updateWidgetOptionsInTree(View view) {
+        if (view instanceof AppWidgetHostView) {
+            AppWidgetHostView hostView = (AppWidgetHostView) view;
+            int id = hostView.getAppWidgetId();
+            AppWidgetProviderInfo info = mAppWidgetManager.getAppWidgetInfo(id);
+            if (info != null) updateWidgetOptions(hostView, id, info);
+            return;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                updateWidgetOptionsInTree(group.getChildAt(i));
+            }
         }
     }
 
@@ -236,7 +266,7 @@ public class TuiWidgetManager {
             SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             prefs.edit().putInt("height_" + widgetId, heightDp).apply();
             Bundle options = new Bundle();
-            int widthDp = Math.round(mContext.getResources().getDisplayMetrics().widthPixels / mContext.getResources().getDisplayMetrics().density);
+            int widthDp = getAvailableWidgetWidthDp();
             options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp);
             options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp);
             options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, heightDp);
@@ -249,6 +279,22 @@ public class TuiWidgetManager {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /** Returns the actual width available to a widget inside the launcher's inset card. */
+    private int getAvailableWidgetWidthDp() {
+        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+        float density = metrics.density > 0 ? metrics.density : 1f;
+        int availableWidthPx = metrics.widthPixels;
+        if (mContext instanceof LauncherActivity) {
+            ViewGroup container = ((LauncherActivity) mContext).findViewById(ohi.andre.consolelauncher.R.id.persistent_container);
+            if (container != null && container.getWidth() > 0) {
+                availableWidthPx = container.getWidth() - container.getPaddingLeft() - container.getPaddingRight();
+            }
+        }
+        // The host view sits inside a bordered card with small horizontal insets.
+        int horizontalInsetsPx = Math.round(16f * density);
+        return Math.max(120, Math.round(Math.max(0, availableWidthPx - horizontalInsetsPx) / density));
     }
 
     public List<Integer> getActiveWidgetIds() {

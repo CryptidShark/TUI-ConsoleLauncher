@@ -296,6 +296,11 @@ public class visual implements CommandAbstraction {
         cardBackground.setCornerRadius(Tuils.dpToPx(info.context, (int) theme.borderRadius));
         cardBackground.setStroke(Tuils.dpToPx(info.context, (int) theme.borderWidth), theme.border);
         card.setBackground(cardBackground);
+        albumArt.setBackground(makeMusicPill(info.context, theme.surface, theme));
+        albumArt.setClipToOutline(true);
+        musicSource.setBackground(makeMusicPill(info.context, theme.surface, theme));
+        musicSource.setPadding(Tuils.dpToPx(info.context, 7), Tuils.dpToPx(info.context, 3),
+                Tuils.dpToPx(info.context, 7), Tuils.dpToPx(info.context, 3));
         title.setTextColor(theme.primary);
         songName.setTextColor(theme.text);
         songArtist.setTextColor(theme.textMuted);
@@ -305,10 +310,10 @@ public class visual implements CommandAbstraction {
         progress.setProgressTintList(ColorStateList.valueOf(theme.primary));
         progress.setProgressBackgroundTintList(ColorStateList.valueOf(theme.border));
         progress.setThumbTintList(ColorStateList.valueOf(theme.primary));
-        styleMusicControl(btnPrev, theme);
-        styleMusicControl(btnPlay, theme);
-        styleMusicControl(btnNext, theme);
-        styleMusicControl(btnSet, theme);
+        styleMusicControl(btnPrev, theme, false);
+        styleMusicControl(btnPlay, theme, true);
+        styleMusicControl(btnNext, theme, false);
+        styleMusicControl(btnSet, theme, false);
 
         final Handler handler = new Handler(Looper.getMainLooper());
         final MediaController[] activeController = new MediaController[1];
@@ -585,16 +590,24 @@ public class visual implements CommandAbstraction {
         return String.format(Locale.getDefault(), "%d:%02d", seconds / 60L, seconds % 60L);
     }
 
-    private static void styleMusicControl(TextView control, ThemeEngine.DesignTokens theme) {
+    private static void styleMusicControl(TextView control, ThemeEngine.DesignTokens theme, boolean primary) {
         GradientDrawable background = new GradientDrawable();
-        background.setColor(theme.surface);
-        background.setCornerRadius(Tuils.dpToPx(control.getContext(), 8));
-        background.setStroke(Tuils.dpToPx(control.getContext(), 1), theme.primary);
+        background.setColor(primary ? theme.primary : theme.surface);
+        background.setCornerRadius(Tuils.dpToPx(control.getContext(), 10));
+        background.setStroke(Tuils.dpToPx(control.getContext(), 1), primary ? theme.primary : theme.border);
         control.setBackground(background);
-        control.setTextColor(theme.primary);
-        control.setPadding(Tuils.dpToPx(control.getContext(), 12), Tuils.dpToPx(control.getContext(), 9),
-                Tuils.dpToPx(control.getContext(), 12), Tuils.dpToPx(control.getContext(), 9));
+        control.setTextColor(primary ? theme.background : theme.primary);
+        control.setPadding(Tuils.dpToPx(control.getContext(), 4), 0,
+                Tuils.dpToPx(control.getContext(), 4), 0);
         control.setTypeface(Tuils.getTypeface(control.getContext()));
+    }
+
+    private static GradientDrawable makeMusicPill(Context context, int color, ThemeEngine.DesignTokens theme) {
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(color);
+        background.setCornerRadius(Tuils.dpToPx(context, 8));
+        background.setStroke(Tuils.dpToPx(context, 1), theme.border);
+        return background;
     }
 
     private static ThemeEngine.DesignTokens currentTheme() {

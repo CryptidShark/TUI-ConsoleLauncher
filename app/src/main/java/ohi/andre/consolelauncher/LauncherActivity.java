@@ -791,6 +791,11 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        if (persistentContainer != null && widgetManager != null) {
+            // Re-send the actual available width after rotation or a window resize so
+            // responsive providers can choose the correct layout without rebuilding cards.
+            persistentContainer.post(() -> widgetManager.updateActiveWidgetSizes());
+        }
     }
 
     public void onOutput(View view) {
@@ -859,7 +864,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                     LinearLayout.LayoutParams wrapperParams = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT);
-                    wrapperParams.setMargins(0, Tuils.dpToPx(this, 6), 0, Tuils.dpToPx(this, 6));
+                    wrapperParams.setMargins(0, Tuils.dpToPx(this, 4), 0, Tuils.dpToPx(this, 4));
                     wrapper.setLayoutParams(wrapperParams);
 
                     GradientDrawable cardBg = new GradientDrawable();
@@ -878,11 +883,15 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                     }
 
                     TextView header = new TextView(this);
-                    header.setText("● [ " + (titleText != null ? titleText.toUpperCase() : "EXTERNAL_MODULE") + " ]");
+                    header.setText("●  " + (titleText != null ? titleText.toUpperCase() : "WIDGET"));
                     header.setTextColor(theme.primary);
-                    header.setTextSize(11);
+                    header.setTextSize(10);
                     header.setTypeface(Tuils.getTypeface(this));
-                    header.setPadding(Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 8), Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 6));
+                    header.setSingleLine(true);
+                    header.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                    header.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                    header.setPadding(Tuils.dpToPx(this, 12), 0, Tuils.dpToPx(this, 12), 0);
+                    header.setMinHeight(Tuils.dpToPx(this, 32));
                     wrapper.addView(header);
 
                     View line = new View(this);
@@ -895,17 +904,9 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                     LinearLayout.LayoutParams hostParams = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT);
-                    hostParams.setMargins(Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 4));
+                    hostParams.setMargins(Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 2), Tuils.dpToPx(this, 4), Tuils.dpToPx(this, 2));
                     hostView.setLayoutParams(hostParams);
                     wrapper.addView(hostView);
-                    
-                    TextView footer = new TextView(this);
-                    footer.setText("<< MODULE_ID: " + hostView.getAppWidgetId() + " // STATUS: ONLINE");
-                    footer.setTextColor(theme.textMuted);
-                    footer.setTextSize(9);
-                    footer.setTypeface(Tuils.getTypeface(this));
-                    footer.setPadding(Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 2), Tuils.dpToPx(this, 12), Tuils.dpToPx(this, 8));
-                    wrapper.addView(footer);
 
                     persistentContainer.addView(wrapper);
                     applyThemeRecursively(wrapper);

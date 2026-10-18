@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/terminal_chrome"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
+    android:layout_height="46dp"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="12dp"
@@ -13,6 +13,7 @@
         android:layout_width="28dp"
         android:layout_height="28dp"
         android:gravity="center"
+        android:fontFamily="monospace"
         android:text="›_"
         android:textSize="16sp"
         android:textStyle="bold" />
@@ -21,6 +22,7 @@
         android:id="@+id/terminal_tab"
         android:layout_width="wrap_content"
         android:layout_height="32dp"
+        android:layout_marginStart="6dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="10dp"
@@ -51,8 +53,12 @@
     <TextView
         android:id="@+id/terminal_session_status"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="28dp"
         android:drawablePadding="5dp"
+        android:gravity="center"
+        android:paddingStart="9dp"
+        android:paddingEnd="9dp"
+        android:singleLine="true"
         android:text="●  READY"
         android:textSize="9sp"
         android:textStyle="bold" />
