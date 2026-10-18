@@ -95,6 +95,22 @@ public enum Behavior implements XMLPrefsSave {
             return XMLPrefsSave.BOOLEAN;
         }
     },
+    music_widget_scale {
+        @Override
+        public String defaultValue() {
+            return "75";
+        }
+
+        @Override
+        public String info() {
+            return "Music card scale percentage, from 50 to 120";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.INTEGER;
+        }
+    },
     persistent_weather_card {
         @Override
         public String defaultValue() {

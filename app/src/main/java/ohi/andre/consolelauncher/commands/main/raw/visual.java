@@ -56,6 +56,7 @@ public class visual implements CommandAbstraction {
 
         String arg = "";
         boolean fixed = false;
+        Integer requestedMusicScale = null;
 
         if (pack.args != null && pack.args.length > 0 && pack.args[0] != null) {
             Object obj = pack.args[0];
@@ -77,6 +78,17 @@ public class visual implements CommandAbstraction {
                     String item = list.get(i).trim();
                     if (item.equalsIgnoreCase("-fixed") || item.equalsIgnoreCase("fixed")) {
                         fixed = true;
+                    } else if (item.equalsIgnoreCase("-scale") || item.equalsIgnoreCase("--scale")
+                            || item.equalsIgnoreCase("-size")) {
+                        if (i + 1 < list.size()) {
+                            try {
+                                requestedMusicScale = Integer.parseInt(list.get(++i).replace("%", ""));
+                            } catch (NumberFormatException ignored) {
+                                return "Usage: visual music -scale [50-120] (for example: visual music -scale 65)";
+                            }
+                        } else {
+                            return "Usage: visual music -scale [50-120] (for example: visual music -scale 65)";
+                        }
                     }
                 }
             }
@@ -93,6 +105,20 @@ public class visual implements CommandAbstraction {
                 showSystemCard(info, fixed);
                 return null;
             } else if (arg.equalsIgnoreCase("music")) {
+                if (requestedMusicScale != null) {
+                    if (requestedMusicScale < 50 || requestedMusicScale > 120) {
+                        return "Music card scale must be between 50% and 120%.";
+                    }
+                    Behavior.music_widget_scale.parent().write(Behavior.music_widget_scale,
+                            String.valueOf(requestedMusicScale));
+                    if (info.context instanceof LauncherActivity
+                            && XMLPrefsManager.getBoolean(Behavior.persistent_music_card)) {
+                        ((LauncherActivity) info.context).refreshPersistentContainer();
+                    } else {
+                        showMusicCard(info, fixed);
+                    }
+                    return "Music card size set to " + requestedMusicScale + "%.";
+                }
                 showMusicCard(info, fixed);
                 return null;
             } else if (arg.equalsIgnoreCase("notes")) {
@@ -132,7 +158,7 @@ public class visual implements CommandAbstraction {
             }
         }
 
-        return "Usage: visual [battery | system | notes | shortcuts | music | weather | termux | dashboard] [-fixed] or visual clear";
+        return "Usage: visual [battery | system | notes | shortcuts | music | weather | termux | dashboard] [-fixed]; visual music -scale [50-120]; or visual clear";
     }
 
 
@@ -291,14 +317,15 @@ public class visual implements CommandAbstraction {
             preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
         }
         ThemeEngine.DesignTokens theme = ThemeEngine.getPreset(preset);
+        float musicScale = getMusicScale();
         GradientDrawable cardBackground = new GradientDrawable();
         cardBackground.setColor(theme.surface);
-        cardBackground.setCornerRadius(Tuils.dpToPx(info.context, (int) theme.borderRadius));
-        cardBackground.setStroke(Tuils.dpToPx(info.context, (int) theme.borderWidth), theme.border);
+        cardBackground.setCornerRadius(Tuils.dpToPx(info.context, theme.borderRadius * musicScale));
+        cardBackground.setStroke(Math.max(1, Math.round(Tuils.dpToPx(info.context, theme.borderWidth * musicScale))), theme.border);
         card.setBackground(cardBackground);
-        albumArt.setBackground(makeMusicPill(info.context, theme.surface, theme));
+        albumArt.setBackground(makeMusicPill(info.context, theme.surface, theme, musicScale));
         albumArt.setClipToOutline(true);
-        musicSource.setBackground(makeMusicPill(info.context, theme.surface, theme));
+        musicSource.setBackground(makeMusicPill(info.context, theme.surface, theme, musicScale));
         musicSource.setPadding(Tuils.dpToPx(info.context, 7), Tuils.dpToPx(info.context, 3),
                 Tuils.dpToPx(info.context, 7), Tuils.dpToPx(info.context, 3));
         title.setTextColor(theme.primary);
@@ -310,10 +337,12 @@ public class visual implements CommandAbstraction {
         progress.setProgressTintList(ColorStateList.valueOf(theme.primary));
         progress.setProgressBackgroundTintList(ColorStateList.valueOf(theme.border));
         progress.setThumbTintList(ColorStateList.valueOf(theme.primary));
-        styleMusicControl(btnPrev, theme, false);
-        styleMusicControl(btnPlay, theme, true);
-        styleMusicControl(btnNext, theme, false);
-        styleMusicControl(btnSet, theme, false);
+        styleMusicControl(btnPrev, theme, false, musicScale);
+        styleMusicControl(btnPlay, theme, true, musicScale);
+        styleMusicControl(btnNext, theme, false, musicScale);
+        styleMusicControl(btnSet, theme, false, musicScale);
+        applyMusicScale(card, musicScale);
+        installResponsiveMusicWidth(card, musicScale);
 
         final Handler handler = new Handler(Looper.getMainLooper());
         final MediaController[] activeController = new MediaController[1];
@@ -590,11 +619,86 @@ public class visual implements CommandAbstraction {
         return String.format(Locale.getDefault(), "%d:%02d", seconds / 60L, seconds % 60L);
     }
 
-    private static void styleMusicControl(TextView control, ThemeEngine.DesignTokens theme, boolean primary) {
+    private float getMusicScale() {
+        try {
+            int percent = Integer.parseInt(XMLPrefsManager.get(Behavior.music_widget_scale));
+            return Math.max(0.5f, Math.min(1.2f, percent / 100f));
+        } catch (Exception ignored) {
+            return 0.75f;
+        }
+    }
+
+    private static void applyMusicScale(View view, float scale) {
+        if (view instanceof TextView) {
+            TextView text = (TextView) view;
+            text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, text.getTextSize() * scale);
+        }
+
+        view.setPadding(Math.round(view.getPaddingLeft() * scale), Math.round(view.getPaddingTop() * scale),
+                Math.round(view.getPaddingRight() * scale), Math.round(view.getPaddingBottom() * scale));
+        if (view.getMinimumWidth() > 0) view.setMinimumWidth(Math.round(view.getMinimumWidth() * scale));
+        if (view.getMinimumHeight() > 0) view.setMinimumHeight(Math.round(view.getMinimumHeight() * scale));
+
+        ViewGroup.LayoutParams params = view.getLayoutParams();
+        if (params != null) {
+            if (params.width > 0) params.width = Math.max(1, Math.round(params.width * scale));
+            if (params.height > 0) params.height = Math.max(1, Math.round(params.height * scale));
+            if (params instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) params;
+                margins.setMargins(Math.round(margins.leftMargin * scale), Math.round(margins.topMargin * scale),
+                        Math.round(margins.rightMargin * scale), Math.round(margins.bottomMargin * scale));
+            }
+            view.setLayoutParams(params);
+        }
+
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) applyMusicScale(group.getChildAt(i), scale);
+        }
+    }
+
+    private static void installResponsiveMusicWidth(View card, float scale) {
+        final ViewGroup[] parentRef = new ViewGroup[1];
+        final View.OnLayoutChangeListener[] resizeListener = new View.OnLayoutChangeListener[1];
+        card.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override public void onViewAttachedToWindow(View view) {
+                if (!(view.getParent() instanceof ViewGroup)) return;
+                ViewGroup parent = (ViewGroup) view.getParent();
+                parentRef[0] = parent;
+                Runnable resize = () -> {
+                    int availableWidth = parent.getWidth() - parent.getPaddingLeft() - parent.getPaddingRight();
+                    if (availableWidth <= 0 || card.getParent() != parent) return;
+                    int targetWidth = Math.max(1, Math.round(availableWidth * scale));
+                    ViewGroup.LayoutParams params = card.getLayoutParams();
+                    if (params == null || params.width == targetWidth) return;
+                    params.width = targetWidth;
+                    if (params instanceof android.widget.FrameLayout.LayoutParams) {
+                        ((android.widget.FrameLayout.LayoutParams) params).gravity = android.view.Gravity.CENTER;
+                    } else if (params instanceof LinearLayout.LayoutParams) {
+                        ((LinearLayout.LayoutParams) params).gravity = android.view.Gravity.CENTER_HORIZONTAL;
+                    }
+                    card.setLayoutParams(params);
+                };
+                resizeListener[0] = (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> resize.run();
+                parent.addOnLayoutChangeListener(resizeListener[0]);
+                parent.post(resize);
+            }
+
+            @Override public void onViewDetachedFromWindow(View view) {
+                if (parentRef[0] != null && resizeListener[0] != null) {
+                    parentRef[0].removeOnLayoutChangeListener(resizeListener[0]);
+                }
+                parentRef[0] = null;
+                resizeListener[0] = null;
+            }
+        });
+    }
+
+    private static void styleMusicControl(TextView control, ThemeEngine.DesignTokens theme, boolean primary, float scale) {
         GradientDrawable background = new GradientDrawable();
         background.setColor(primary ? theme.primary : theme.surface);
-        background.setCornerRadius(Tuils.dpToPx(control.getContext(), 10));
-        background.setStroke(Tuils.dpToPx(control.getContext(), 1), primary ? theme.primary : theme.border);
+        background.setCornerRadius(Tuils.dpToPx(control.getContext(), 10 * scale));
+        background.setStroke(Math.max(1, Math.round(Tuils.dpToPx(control.getContext(), scale))), primary ? theme.primary : theme.border);
         control.setBackground(background);
         control.setTextColor(primary ? theme.background : theme.primary);
         control.setPadding(Tuils.dpToPx(control.getContext(), 4), 0,
@@ -602,11 +706,11 @@ public class visual implements CommandAbstraction {
         control.setTypeface(Tuils.getTypeface(control.getContext()));
     }
 
-    private static GradientDrawable makeMusicPill(Context context, int color, ThemeEngine.DesignTokens theme) {
+    private static GradientDrawable makeMusicPill(Context context, int color, ThemeEngine.DesignTokens theme, float scale) {
         GradientDrawable background = new GradientDrawable();
         background.setColor(color);
-        background.setCornerRadius(Tuils.dpToPx(context, 8));
-        background.setStroke(Tuils.dpToPx(context, 1), theme.border);
+        background.setCornerRadius(Tuils.dpToPx(context, 8 * scale));
+        background.setStroke(Math.max(1, Math.round(Tuils.dpToPx(context, scale))), theme.border);
         return background;
     }
 
