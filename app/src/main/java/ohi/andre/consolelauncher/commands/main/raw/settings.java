@@ -15,6 +15,8 @@ import ohi.andre.consolelauncher.managers.xml.classes.XMLPrefsSave;
 import ohi.andre.consolelauncher.managers.xml.options.Behavior;
 import ohi.andre.consolelauncher.managers.xml.options.Theme;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
+import ohi.andre.consolelauncher.managers.ThemeEngine;
+import ohi.andre.consolelauncher.managers.WorkspaceManager;
 import ohi.andre.consolelauncher.tuils.Tuils;
 import ohi.andre.consolelauncher.tuils.interfaces.Reloadable;
 
@@ -34,17 +36,16 @@ public class settings implements CommandAbstraction {
 
         LayoutInflater inflater = LayoutInflater.from(info.context);
         View card = inflater.inflate(R.layout.card_settings, null);
+        boolean spanish = "es".equalsIgnoreCase(XMLPrefsManager.get(Behavior.language));
 
         TextView title = card.findViewById(R.id.settings_title);
-        title.setText("SETTINGS");
+        title.setText(spanish ? "CYTHERNOIR / AJUSTES" : "CYTHERNOIR / SETTINGS");
         title.setTypeface(Tuils.getTypeface(info.context));
+        ((TextView) card.findViewById(R.id.settings_themes_label)).setText(spanish ? "SISTEMAS DE COLOR" : "COLOR SYSTEMS");
+        ((TextView) card.findViewById(R.id.settings_workspaces_label)).setText(spanish ? "PERFILES DE PANTALLA" : "WORKSPACE PROFILES");
 
         Button btnEn = card.findViewById(R.id.btn_lang_en);
         Button btnEs = card.findViewById(R.id.btn_lang_es);
-        Button btnClassic = card.findViewById(R.id.btn_theme_classic);
-        Button btnModern = card.findViewById(R.id.btn_theme_modern);
-        Button btnCyber = card.findViewById(R.id.btn_theme_cyber);
-        Button btnNeo = card.findViewById(R.id.btn_theme_neo);
 
         btnEn.setOnClickListener(v -> {
             Behavior.language.parent().write(Behavior.language, "en");
@@ -56,24 +57,35 @@ public class settings implements CommandAbstraction {
             ((Reloadable) info.context).reload();
         });
 
-        btnClassic.setOnClickListener(v -> {
-            Behavior.theme_preset.parent().write(Behavior.theme_preset, "CLASSIC_TERMINAL");
-            ((Reloadable) info.context).reload();
-        });
+        int[] presetButtonIds = {R.id.btn_theme_classic, R.id.btn_theme_modern, R.id.btn_theme_cyber,
+                R.id.btn_theme_neo, R.id.btn_theme_amber, R.id.btn_theme_nord, R.id.btn_theme_dracula,
+                R.id.btn_theme_amoled, R.id.btn_theme_watchdogs};
+        ThemeEngine.Preset[] presets = ThemeEngine.Preset.values();
+        String currentPreset = XMLPrefsManager.get(Behavior.theme_preset);
+        for (int i = 0; i < presetButtonIds.length && i < presets.length; i++) {
+            Button button = card.findViewById(presetButtonIds[i]);
+            ThemeEngine.Preset preset = presets[i];
+            String label = preset.name().replace("_TERMINAL", "").replace("_CYBER", "").replace('_', ' ');
+            button.setText(preset.name().equals(currentPreset) ? "✓ " + label : label);
+            button.setOnClickListener(v -> {
+                Behavior.theme_preset.parent().write(Behavior.theme_preset, preset.name());
+                ((Reloadable) info.context).reload();
+            });
+        }
 
-        btnModern.setOnClickListener(v -> {
-            Behavior.theme_preset.parent().write(Behavior.theme_preset, "MODERN_TERMINAL");
-            ((Reloadable) info.context).reload();
-        });
-
-        btnCyber.setOnClickListener(v -> {
-            Behavior.theme_preset.parent().write(Behavior.theme_preset, "CYBER_TERMINAL");
-            ((Reloadable) info.context).reload();
-        });
-
-        if (btnNeo != null) {
-            btnNeo.setOnClickListener(v -> {
-                Behavior.theme_preset.parent().write(Behavior.theme_preset, "NEO_TERMINAL");
+        int[] workspaceButtonIds = {R.id.btn_workspace_minimal, R.id.btn_workspace_developer,
+                R.id.btn_workspace_privacy, R.id.btn_workspace_cyber, R.id.btn_workspace_gaming,
+                R.id.btn_workspace_custom};
+        WorkspaceManager.Workspace[] workspaces = WorkspaceManager.Workspace.values();
+        WorkspaceManager.Workspace activeWorkspace = WorkspaceManager.getActiveWorkspace(info.context);
+        String[] spanishWorkspaceNames = {"Minimal", "Desarrollo", "Privacidad", "Ciber", "Juegos", "Personalizado"};
+        for (int i = 0; i < workspaceButtonIds.length; i++) {
+            Button button = card.findViewById(workspaceButtonIds[i]);
+            WorkspaceManager.Workspace workspace = workspaces[i];
+            String workspaceName = spanish ? spanishWorkspaceNames[i] : workspace.getName();
+            button.setText(workspace == activeWorkspace ? "✓ " + workspaceName : workspaceName);
+            button.setOnClickListener(v -> {
+                WorkspaceManager.setWorkspace(info.context, workspace);
                 ((Reloadable) info.context).reload();
             });
         }

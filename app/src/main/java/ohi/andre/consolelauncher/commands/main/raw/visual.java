@@ -3,10 +3,9 @@ package ohi.andre.consolelauncher.commands.main.raw;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaMetadata;
@@ -37,6 +36,7 @@ import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
 import ohi.andre.consolelauncher.managers.AppsManager;
 import ohi.andre.consolelauncher.managers.NotesManager;
+import ohi.andre.consolelauncher.managers.PrivacyCenter;
 import ohi.andre.consolelauncher.managers.notifications.NotificationService;
 import ohi.andre.consolelauncher.managers.ThemeEngine;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
@@ -150,7 +150,7 @@ public class visual implements CommandAbstraction {
         long totalRam = Tuils.totalRam() / 1024; // MB
         long freeRam = (long) (Tuils.freeRam(am, mi) / (1024 * 1024)); // MB
         long usedRam = totalRam - freeRam;
-        int pct = (int) ((usedRam / (float) totalRam) * 100);
+        int pct = totalRam > 0 ? Math.max(0, Math.min(100, (int) ((usedRam / (float) totalRam) * 100))) : 0;
 
         String device = Build.MANUFACTURER + " " + Build.MODEL;
         String androidVer = "Android " + Build.VERSION.RELEASE + " (API " + Build.VERSION.SDK_INT + ")";
@@ -171,6 +171,8 @@ public class visual implements CommandAbstraction {
         systemInfo.setText(sb.toString());
         ramInfo.setVisibility(View.GONE);
         ramProgress.setProgress(pct);
+        ThemeEngine.DesignTokens theme = currentTheme();
+        ramProgress.setProgressTintList(ColorStateList.valueOf(theme.primary));
 
         if (fixed && info.context instanceof LauncherActivity) {
             Behavior.persistent_system_card.parent().write(Behavior.persistent_system_card, "true");
@@ -200,7 +202,7 @@ public class visual implements CommandAbstraction {
         int scale = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1) : -1;
         int statusInt = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1) : -1;
 
-        int pct = (scale > 0) ? (int) ((level / (float) scale) * 100) : 0;
+        int pct = (scale > 0 && level >= 0) ? Math.max(0, Math.min(100, (int) ((level / (float) scale) * 100))) : 0;
         
         StringBuilder batteryAscii = new StringBuilder("[");
         int segments = 20;
@@ -215,13 +217,14 @@ public class visual implements CommandAbstraction {
         progress.setProgress(pct);
 
         boolean isCharging = statusInt == BatteryManager.BATTERY_STATUS_CHARGING || statusInt == BatteryManager.BATTERY_STATUS_FULL;
-        status.setText(isCharging ? "⚡ CHARGING_PROTOCOL: ACTIVE" : "🔋 DISCHARGING_MODE: ENABLED");
+        status.setText(isCharging ? "CHARGING  /  POWER CONNECTED" : "ON BATTERY  /  DISCHARGING");
 
-        int color = isCharging ? Color.CYAN : (pct > 20 ? Color.GREEN : Color.RED);
-        title.setTextColor(color);
+        ThemeEngine.DesignTokens theme = currentTheme();
+        int color = pct <= 20 ? theme.error : (isCharging ? theme.success : theme.primary);
+        title.setTextColor(theme.primary);
         percentage.setTextColor(color);
-        status.setTextColor(color);
-        progress.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        status.setTextColor(theme.textMuted);
+        progress.setProgressTintList(ColorStateList.valueOf(color));
 
         if (fixed && info.context instanceof LauncherActivity) {
             Behavior.persistent_battery_card.parent().write(Behavior.persistent_battery_card, "true");
@@ -263,7 +266,7 @@ public class visual implements CommandAbstraction {
         btnNext.setTypeface(Tuils.getTypeface(info.context));
         btnSet.setTypeface(Tuils.getTypeface(info.context));
 
-        btnSet.setOnClickListener(v -> Tuils.sendOutput(info.context, "To set the default music app, use: config -set music_target_app [package_name]\nExample: com.spotify.music"));
+        btnSet.setOnClickListener(v -> PrivacyCenter.openSettings(info.context, "Notification access"));
 
         MediaSessionManager msm = (MediaSessionManager) info.context.getSystemService(Context.MEDIA_SESSION_SERVICE);
         
@@ -275,108 +278,149 @@ public class visual implements CommandAbstraction {
             preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
         }
         ThemeEngine.DesignTokens theme = ThemeEngine.getPreset(preset);
+        styleMusicControl(btnPrev, theme);
+        styleMusicControl(btnPlay, theme);
+        styleMusicControl(btnNext, theme);
+        styleMusicControl(btnSet, theme);
 
         final Handler handler = new Handler(Looper.getMainLooper());
-        final Runnable updateTask = new Runnable() {
-            final String[] bars = {" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
-            
-            @Override
-            public void run() {
-                if (!fixed && card.getWindowToken() == null) return;
-                if (fixed && card.getParent() == null) {
-                    if (info.context instanceof LauncherActivity) {
-                        ((LauncherActivity) info.context).onPersistentOutput(card);
-                    } else {
-                        return;
-                    }
-                }
+        final MediaController[] activeController = new MediaController[1];
+        final boolean[] listening = {false};
+        final String[] bars = {"▂", "▃", "▄", "▅", "▆", "▇", "█"};
+        final Runnable[] renderRef = new Runnable[1];
 
-                try {
-                    List<MediaController> controllers = null;
-                    try {
-                        controllers = msm.getActiveSessions(new ComponentName(info.context, NotificationService.class));
-                    } catch (SecurityException e) {
-                        Tuils.log("MediaSession SecurityException", e);
-                    }
-
-                    if (controllers == null || controllers.isEmpty()) {
-                        try {
-                            controllers = msm.getActiveSessions(null);
-                        } catch (Exception ignore) {}
-                    }
-
-                    if (controllers != null && !controllers.isEmpty()) {
-                        MediaController mc = controllers.get(0);
-                        MediaMetadata metadata = mc.getMetadata();
-                        PlaybackState state = mc.getPlaybackState();
-
-                        if (metadata != null) {
-                            String artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST);
-                            String track = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
-                            songName.setText((artist != null ? artist : "UNKNOWN") + " - " + (track != null ? track : "UNKNOWN"));
-                        } else {
-                            songName.setText("ACTIVE_SESSION [NO_METADATA]");
-                        }
-
-                        boolean isPlaying = state != null && state.getState() == PlaybackState.STATE_PLAYING;
-                        btnPlay.setText(isPlaying ? "[ PAUSE ]" : "[ PLAY ]");
-
-                        if (isPlaying) {
-                            StringBuilder ascii = new StringBuilder();
-                            for (int j = 0; j < 10; j++) {
-                                int h = (int) (1 + Math.random() * (bars.length - 1));
-                                ascii.append(bars[h]).append(" ");
-                            }
-                            ascii.append("\n");
-                            for (int j = 0; j < 10; j++) {
-                                int h = (int) (Math.random() * 3);
-                                ascii.append(bars[h]).append(" ");
-                            }
-                            visualizer.setText(ascii.toString());
-                        } else {
-                            visualizer.setText("|| || || || || || || || || ||\n.. .. .. .. .. .. .. .. .. ..");
-                        }
-
-                        btnPlay.setOnClickListener(v -> {
-                            if (isPlaying) mc.getTransportControls().pause();
-                            else mc.getTransportControls().play();
-                        });
-                        btnPrev.setOnClickListener(v -> mc.getTransportControls().skipToPrevious());
-                        btnNext.setOnClickListener(v -> mc.getTransportControls().skipToNext());
-                        
-                        title.setOnClickListener(v -> {
-                            String pkg = mc.getPackageName();
-                            Intent launch = info.context.getPackageManager().getLaunchIntentForPackage(pkg);
-                            if (launch != null) {
-                                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                info.context.startActivity(launch);
-                            }
-                        });
-                    } else {
-                        songName.setText("NO_ACTIVE_SESSION");
-                        visualizer.setText("-- -- -- -- -- -- -- -- --");
-                        
-                        title.setOnClickListener(v -> {
-                            String target = XMLPrefsManager.get(Behavior.music_target_app);
-                            if (target != null && !target.isEmpty()) {
-                                Intent launch = info.context.getPackageManager().getLaunchIntentForPackage(target);
-                                if (launch != null) {
-                                    launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    info.context.startActivity(launch);
-                                }
-                                else Tuils.sendOutput(info.context, "Target app not found: " + target);
-                            } else {
-                                Tuils.sendOutput(info.context, "Set target app with: config -set music_target_app [pkg]");
-                            }
-                        });
-                    }
-                } catch (Exception e) {
-                    songName.setText("ERROR: " + e.getMessage());
-                }
-
-                handler.postDelayed(this, 150);
+        Runnable animation = new Runnable() {
+            @Override public void run() {
+                MediaController controller = activeController[0];
+                PlaybackState state = controller == null ? null : controller.getPlaybackState();
+                if (!card.isAttachedToWindow() || state == null || state.getState() != PlaybackState.STATE_PLAYING) return;
+                StringBuilder barsText = new StringBuilder();
+                for (int i = 0; i < 18; i++) barsText.append(bars[(int) (Math.random() * bars.length)]).append(' ');
+                visualizer.setText(barsText.toString());
+                handler.postDelayed(this, 650);
             }
         };
+
+        MediaController.Callback controllerCallback = new MediaController.Callback() {
+            @Override public void onMetadataChanged(MediaMetadata metadata) {
+                if (renderRef[0] != null) renderRef[0].run();
+            }
+            @Override public void onPlaybackStateChanged(PlaybackState state) {
+                if (renderRef[0] != null) renderRef[0].run();
+            }
+            @Override public void onSessionDestroyed() {
+                if (activeController[0] != null) activeController[0].unregisterCallback(this);
+                activeController[0] = null;
+                if (renderRef[0] != null) renderRef[0].run();
+            }
+        };
+
+        renderRef[0] = () -> {
+            MediaController controller = activeController[0];
+            if (controller == null) {
+                songName.setText(PrivacyCenter.hasNotificationAccess(info.context)
+                        ? "NO_ACTIVE_SESSION  /  START A MUSIC APP"
+                        : "GRANT NOTIFICATION ACCESS TO CONNECT A PLAYER");
+                btnPlay.setText("[ PLAY ]");
+                btnPlay.setEnabled(false);
+                btnPrev.setEnabled(false);
+                btnNext.setEnabled(false);
+                visualizer.setText("-- -- -- -- -- -- -- -- -- --");
+                title.setOnClickListener(v -> {
+                    String target = XMLPrefsManager.get(Behavior.music_target_app);
+                    if (target != null && !target.isEmpty()) {
+                        Intent launch = info.context.getPackageManager().getLaunchIntentForPackage(target);
+                        if (launch != null) {
+                            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            info.context.startActivity(launch);
+                        } else Tuils.sendOutput(info.context, "Target app not found: " + target);
+                    }
+                });
+                handler.removeCallbacks(animation);
+                return;
+            }
+
+            MediaMetadata metadata = controller.getMetadata();
+            String artist = metadata == null ? null : metadata.getString(MediaMetadata.METADATA_KEY_ARTIST);
+            String track = metadata == null ? null : metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
+            if ((artist == null || artist.isEmpty()) && metadata != null) artist = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST);
+            songName.setText(((artist == null || artist.isEmpty()) ? "UNKNOWN ARTIST" : artist)
+                    + "  /  " + ((track == null || track.isEmpty()) ? "UNKNOWN TRACK" : track));
+
+            PlaybackState state = controller.getPlaybackState();
+            boolean playing = state != null && state.getState() == PlaybackState.STATE_PLAYING;
+            long actions = state == null ? 0 : state.getActions();
+            btnPlay.setText(playing ? "[ PAUSE ]" : "[ PLAY ]");
+            btnPlay.setContentDescription(playing ? "Pause music" : "Play music");
+            btnPlay.setEnabled((actions & (playing ? PlaybackState.ACTION_PAUSE : PlaybackState.ACTION_PLAY)) != 0);
+            btnPrev.setEnabled((actions & PlaybackState.ACTION_SKIP_TO_PREVIOUS) != 0);
+            btnNext.setEnabled((actions & PlaybackState.ACTION_SKIP_TO_NEXT) != 0);
+            visualizer.setText(playing ? "SESSION ACTIVE  /  ANIMATED DISPLAY"
+                    : "SESSION PAUSED  /  MEDIA CONTROLS READY");
+
+            btnPlay.setOnClickListener(v -> {
+                PlaybackState latest = controller.getPlaybackState();
+                if (latest != null && latest.getState() == PlaybackState.STATE_PLAYING) controller.getTransportControls().pause();
+                else controller.getTransportControls().play();
+            });
+            btnPrev.setOnClickListener(v -> controller.getTransportControls().skipToPrevious());
+            btnNext.setOnClickListener(v -> controller.getTransportControls().skipToNext());
+            title.setOnClickListener(v -> {
+                Intent launch = info.context.getPackageManager().getLaunchIntentForPackage(controller.getPackageName());
+                if (launch != null) {
+                    launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    info.context.startActivity(launch);
+                }
+            });
+            handler.removeCallbacks(animation);
+            if (playing && card.isAttachedToWindow()) handler.post(animation);
+        };
+
+        MediaSessionManager.OnActiveSessionsChangedListener sessionsListener = controllers -> handler.post(() -> {
+            MediaController selected = chooseMusicController(controllers);
+            if (selected != activeController[0]) {
+                if (activeController[0] != null) activeController[0].unregisterCallback(controllerCallback);
+                activeController[0] = selected;
+                if (selected != null) selected.registerCallback(controllerCallback, handler);
+            }
+            renderRef[0].run();
+        });
+
+        card.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override public void onViewAttachedToWindow(View v) {
+                if (msm == null || listening[0]) return;
+                try {
+                    msm.addOnActiveSessionsChangedListener(sessionsListener,
+                            new ComponentName(info.context, NotificationService.class), handler);
+                    listening[0] = true;
+                } catch (SecurityException e) {
+                    Tuils.log("Media session access is not enabled", e);
+                }
+                if (!listening[0]) {
+                    renderRef[0].run();
+                    return;
+                }
+                try {
+                    List<MediaController> active = msm.getActiveSessions(
+                            new ComponentName(info.context, NotificationService.class));
+                    sessionsListener.onActiveSessionsChanged(active);
+                } catch (SecurityException e) {
+                    songName.setText("ENABLE NOTIFICATION ACCESS TO CONNECT MUSIC");
+                }
+            }
+            @Override public void onViewDetachedFromWindow(View v) {
+                handler.removeCallbacks(animation);
+                if (activeController[0] != null) {
+                    activeController[0].unregisterCallback(controllerCallback);
+                    activeController[0] = null;
+                }
+                if (msm != null && listening[0]) {
+                    try { msm.removeOnActiveSessionsChangedListener(sessionsListener); }
+                    catch (Exception ignored) {}
+                }
+                listening[0] = false;
+            }
+        });
 
         if (fixed && info.context instanceof LauncherActivity) {
             if (!XMLPrefsManager.getBoolean(Behavior.persistent_music_card)) {
@@ -395,7 +439,40 @@ public class visual implements CommandAbstraction {
             }
         }
 
-        handler.post(updateTask);
+    }
+
+    private static MediaController chooseMusicController(List<MediaController> controllers) {
+        if (controllers == null || controllers.isEmpty()) return null;
+        for (MediaController controller : controllers) {
+            PlaybackState state = controller.getPlaybackState();
+            if (state != null && state.getState() == PlaybackState.STATE_PLAYING) return controller;
+        }
+        for (MediaController controller : controllers) {
+            PlaybackState state = controller.getPlaybackState();
+            if (state != null && state.getState() != PlaybackState.STATE_STOPPED
+                    && state.getState() != PlaybackState.STATE_NONE) return controller;
+        }
+        return null;
+    }
+
+    private static void styleMusicControl(TextView control, ThemeEngine.DesignTokens theme) {
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(theme.surface);
+        background.setCornerRadius(Tuils.dpToPx(control.getContext(), 8));
+        background.setStroke(Tuils.dpToPx(control.getContext(), 1), theme.primary);
+        control.setBackground(background);
+        control.setTextColor(theme.primary);
+        control.setPadding(Tuils.dpToPx(control.getContext(), 12), Tuils.dpToPx(control.getContext(), 9),
+                Tuils.dpToPx(control.getContext(), 12), Tuils.dpToPx(control.getContext(), 9));
+        control.setTypeface(Tuils.getTypeface(control.getContext()));
+    }
+
+    private static ThemeEngine.DesignTokens currentTheme() {
+        try {
+            return ThemeEngine.getPreset(ThemeEngine.Preset.valueOf(XMLPrefsManager.get(Behavior.theme_preset)));
+        } catch (Exception ignored) {
+            return ThemeEngine.getPreset(ThemeEngine.Preset.CLASSIC_TERMINAL);
+        }
     }
 
     private void showNotesCard(MainPack info, boolean fixed) {

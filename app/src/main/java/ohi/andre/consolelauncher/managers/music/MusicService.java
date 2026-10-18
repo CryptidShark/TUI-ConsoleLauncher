@@ -113,6 +113,9 @@ public class MusicService extends Service implements
     }
 
     public String playSong(){
+        if (player == null || songs == null || songs.isEmpty() || songPosn < 0 || songPosn >= songs.size()) {
+            return getString(R.string.no_songs);
+        }
         try {
             player.reset();
         } catch (Exception e) {
@@ -121,6 +124,7 @@ public class MusicService extends Service implements
         }
 
         Song playSong = songs.get(songPosn);
+        songTitle = playSong.getTitle();
 
         long id = playSong.getID();
         if(id == -1) {
@@ -133,7 +137,6 @@ public class MusicService extends Service implements
                 return null;
             }
         } else {
-            songTitle=playSong.getTitle();
             long currSong = playSong.getID();
             Uri trackUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
             try {
@@ -151,12 +154,12 @@ public class MusicService extends Service implements
     }
 
     public void setSong(int songIndex){
-        songPosn = songIndex;
+        if (songs != null && songIndex >= 0 && songIndex < songs.size()) songPosn = songIndex;
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        if(player.getCurrentPosition()>0){
+        if (player != null) {
             mp.reset();
             playNext();
         }
@@ -164,7 +167,7 @@ public class MusicService extends Service implements
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        mp.reset();
+        try { mp.reset(); } catch (Exception ignored) {}
         return false;
     }
 
@@ -214,53 +217,61 @@ public class MusicService extends Service implements
     }
 
     public int getPosn(){
-        return player.getCurrentPosition();
+        try { return player == null ? 0 : player.getCurrentPosition(); }
+        catch (Exception ignored) { return 0; }
     }
 
     public int getDur(){
-        return player.getDuration();
+        try { return player == null ? 0 : player.getDuration(); }
+        catch (Exception ignored) { return 0; }
     }
 
     public boolean isPng(){
-        return player.isPlaying();
+        try { return player != null && player.isPlaying(); }
+        catch (Exception ignored) { return false; }
     }
 
     public void pausePlayer(){
-        player.pause();
+        try { if (player != null && player.isPlaying()) player.pause(); }
+        catch (Exception ignored) {}
     }
 
     public void stop() {
         try {
-            player.stop();
+            if (player != null) player.stop();
         } catch (Exception e) {}
 
         try {
-            player.release();
+            if (player != null) player.release();
         } catch (Exception e) {}
+        player = null;
 
         setSong(0);
     }
 
     public void playPlayer() {
-        player.start();
+        try { if (player != null) player.start(); }
+        catch (Exception ignored) {}
     }
 
     public void seek(int posn){
-        player.seekTo(posn);
+        try { if (player != null) player.seekTo(posn); }
+        catch (Exception ignored) {}
     }
 
     public void go(){
-        player.start();
+        try { if (player != null) player.start(); }
+        catch (Exception ignored) {}
     }
 
     public String playPrev(){
-        if(songs.size() == 0) return getString(R.string.no_songs);
+        if(songs == null || songs.isEmpty()) return getString(R.string.no_songs);
         songPosn = previous();
         return playSong();
     }
 
     public String playNext() {
-        if(songs.size() == 0) return getString(R.string.no_songs);
+        if(songs == null || songs.isEmpty()) return getString(R.string.no_songs);
         songPosn = next();
         return playSong();
     }
@@ -285,8 +296,11 @@ public class MusicService extends Service implements
     public void onDestroy() {
         super.onDestroy();
 
-        player.release();
-        songs.clear();
+        if (player != null) {
+            try { player.release(); } catch (Exception ignored) {}
+            player = null;
+        }
+        if (songs != null) songs.clear();
 
         stopForeground(true);
     }

@@ -18,8 +18,10 @@ public class help implements CommandAbstraction {
     public String exec(ExecutePack pack) throws Exception {
         MainPack info = (MainPack) pack;
         CommandAbstraction cmd = info.get(CommandAbstraction.class);
-        int res = cmd == null ? R.string.output_commandnotfound : cmd.helpRes();
-        return "Priority: " + info.cmdPrefs.getPriority(cmd) + Tuils.NEWLINE + info.res.getString(res);
+        if (cmd == null) return info.res.getString(R.string.output_commandnotfound);
+        int helpRes = cmd.helpRes();
+        String description = helpRes > 0 ? info.res.getString(helpRes) : "No detailed help is available for this command yet.";
+        return "Priority: " + info.cmdPrefs.getPriority(cmd) + Tuils.NEWLINE + description;
     }
 
     @Override

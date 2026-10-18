@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
@@ -24,12 +25,19 @@ import ohi.andre.consolelauncher.tuils.interfaces.Reloadable;
 public class ProfileManager {
 
     private static final int PROFILE_SCHEMA_VERSION = 1;
+    private static final int MAX_PROFILE_BYTES = 2 * 1024 * 1024;
 
     public static String exportProfile(Context context, String profileName) {
         if (profileName == null || profileName.trim().isEmpty()) {
             profileName = "default_profile.json";
         }
-        if (!profileName.endsWith(".json")) {
+        // Keep exports inside the app's configuration directory even if the
+        // caller supplies a path or traversal segments.
+        profileName = new File(profileName.trim()).getName();
+        if (profileName.isEmpty() || profileName.equals(".") || profileName.equals("..")) {
+            return "Invalid profile name.";
+        }
+        if (!profileName.toLowerCase(java.util.Locale.ROOT).endsWith(".json")) {
             profileName += ".json";
         }
 
@@ -61,13 +69,16 @@ public class ProfileManager {
                 cmdObj.put(c.label(), XMLPrefsManager.get(c));
             }
             root.put("cmd", cmdObj);
+            root.put("workspace", WorkspaceManager.getActiveWorkspace(context).name());
 
             File folder = Tuils.getFolder();
+            if (folder == null && context != null) folder = context.getFilesDir();
+            if (folder == null || (!folder.exists() && !folder.mkdirs())) return "Unable to create the profile folder.";
             File dest = new File(folder, profileName);
-            FileOutputStream fos = new FileOutputStream(dest);
-            fos.write(root.toString(2).getBytes(StandardCharsets.UTF_8));
-            fos.flush();
-            fos.close();
+            try (FileOutputStream fos = new FileOutputStream(dest)) {
+                fos.write(root.toString(2).getBytes(StandardCharsets.UTF_8));
+                fos.flush();
+            }
 
             return "Profile exported successfully to: " + dest.getAbsolutePath();
         } catch (Exception e) {
@@ -80,19 +91,32 @@ public class ProfileManager {
             return "Usage: config -import_profile [filename.json]";
         }
 
-        File file = new File(Tuils.getFolder(), profileName);
+        File profileFolder = Tuils.getFolder();
+        File file = profileFolder == null
+                ? new File(context.getFilesDir(), profileName)
+                : new File(profileFolder, profileName);
         if (!file.exists()) {
             file = new File(profileName);
         }
         if (!file.exists()) {
             return "Profile file not found: " + profileName;
         }
+        if (!file.isFile() || file.length() <= 0 || file.length() > MAX_PROFILE_BYTES) {
+            return "Profile must be a non-empty JSON file smaller than 2 MB.";
+        }
 
         try {
-            FileInputStream fis = new FileInputStream(file);
-            byte[] data = new byte[(int) file.length()];
-            fis.read(data);
-            fis.close();
+            byte[] data;
+            try (FileInputStream fis = new FileInputStream(file);
+                 ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[8192];
+                int count;
+                while ((count = fis.read(buffer)) != -1) {
+                    output.write(buffer, 0, count);
+                    if (output.size() > MAX_PROFILE_BYTES) return "Profile exceeds the 2 MB import limit.";
+                }
+                data = output.toByteArray();
+            }
 
             String jsonStr = new String(data, StandardCharsets.UTF_8);
             JSONObject root = new JSONObject(jsonStr);
@@ -136,6 +160,11 @@ public class ProfileManager {
                         c.parent().write(c, cmdObj.getString(c.label()));
                     }
                 }
+            }
+
+            if (root.has("workspace")) {
+                WorkspaceManager.Workspace workspace = WorkspaceManager.fromName(root.optString("workspace"));
+                if (workspace != null) WorkspaceManager.setWorkspace(context, workspace, false);
             }
 
             if (context instanceof Reloadable) {

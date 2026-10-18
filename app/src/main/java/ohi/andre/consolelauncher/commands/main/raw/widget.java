@@ -30,7 +30,7 @@ public class widget implements CommandAbstraction {
                     return null;
                 }
             } else if (arg.equalsIgnoreCase("perm")) {
-                return "Note: Widgets require 'Bind Widgets' permission. If 'widget add' fails, check your device 'Special App Access' settings.";
+                return "Android controls widget binding. Set Cythernoir/T-UI as your Home app, then use `widget add` and approve Android's picker or binding prompt.";
             } else if (arg.equalsIgnoreCase("list")) {
                 List<Integer> ids = info.widgetManager.getActiveWidgetIds();
                 if (ids.isEmpty()) return "No active widgets.";
@@ -68,11 +68,11 @@ public class widget implements CommandAbstraction {
                 if (pack.args.length > 1) {
                     try {
                         int id = Integer.parseInt(pack.args[1].toString());
-                        info.widgetManager.removeWidget(id);
+                        if (!info.widgetManager.removeWidget(id)) return "Widget ID " + id + " is not active. Use `widget list` to see saved IDs.";
                         if (info.context instanceof LauncherActivity) {
                             ((LauncherActivity) info.context).refreshPersistentContainer();
                         }
-                        return "Widget " + id + " removed from system host.";
+                        return "Widget " + id + " removed.";
                     } catch (Exception e) {
                         return "Invalid ID.";
                     }

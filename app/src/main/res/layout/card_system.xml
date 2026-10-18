@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="14dp">
 
     <TextView
         android:id="@+id/system_title"
@@ -11,7 +11,8 @@
         android:layout_height="wrap_content"
         android:text="SYSTEM DASHBOARD"
         android:textStyle="bold"
-        android:textSize="14sp" />
+        android:textSize="13sp"
+        android:letterSpacing="0.08" />
 
     <TextView
         android:id="@+id/system_info"

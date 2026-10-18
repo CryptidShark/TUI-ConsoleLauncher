@@ -1,59 +1,87 @@
 package ohi.andre.consolelauncher.managers;
 
 import android.content.Context;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ohi.andre.consolelauncher.LauncherActivity;
+import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
+import ohi.andre.consolelauncher.managers.xml.options.Behavior;
+
+/** Preset sets of pinned cards for common launcher workflows. */
 public class WorkspaceManager {
 
+    private static final String PREFS = "launcher_workspaces";
+    private static final String ACTIVE_KEY = "active_workspace";
+
     public enum Workspace {
-        MINIMAL("Minimal", Arrays.asList("Clock", "Search", "Apps")),
-        DEVELOPER("Developer", Arrays.asList("Clock", "Search", "Terminal", "CPU", "RAM", "Network", "Battery")),
-        PRIVACY("Privacy", Arrays.asList("Clock", "Search", "Apps")),
-        CYBER("Cyber", Arrays.asList("Clock", "Search", "Terminal", "System", "Media", "Widgets")),
-        GAMING("Gaming", Arrays.asList("Clock", "Search", "Performance", "Battery")),
-        CUSTOM("Custom", Arrays.asList("Clock", "Search", "Apps", "Widgets"));
+        MINIMAL("Minimal", new Behavior[0]),
+        DEVELOPER("Developer", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_battery_card, Behavior.persistent_shortcuts_card}),
+        PRIVACY("Privacy", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_notes_card}),
+        CYBER("Cyber", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_music_card, Behavior.persistent_shortcuts_card}),
+        GAMING("Gaming", new Behavior[]{Behavior.persistent_battery_card, Behavior.persistent_music_card}),
+        CUSTOM("Custom", null);
 
-        private final String name;
-        private final List<String> modules;
+        private final String label;
+        private final Behavior[] cards;
 
-        Workspace(String name, List<String> modules) {
-            this.name = name;
-            this.modules = modules;
+        Workspace(String label, Behavior[] cards) {
+            this.label = label;
+            this.cards = cards;
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public List<String> getModules() {
-            return modules;
-        }
+        public String getName() { return label; }
     }
 
-    private Workspace activeWorkspace = Workspace.MINIMAL;
-    private final Context context;
+    private WorkspaceManager() {}
 
-    public WorkspaceManager(Context context) {
-        this.context = context;
+    public static Workspace getActiveWorkspace(Context context) {
+        String name = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(ACTIVE_KEY, Workspace.CUSTOM.name());
+        try { return Workspace.valueOf(name); }
+        catch (Exception ignored) { return Workspace.CUSTOM; }
     }
 
-    public Workspace getActiveWorkspace() {
-        return activeWorkspace;
+    public static boolean setWorkspace(Context context, Workspace workspace) {
+        return setWorkspace(context, workspace, true);
     }
 
-    public void setWorkspace(Workspace workspace) {
-        if (workspace != null) {
-            this.activeWorkspace = workspace;
+    public static boolean setWorkspace(Context context, Workspace workspace, boolean applyCards) {
+        if (context == null || workspace == null) return false;
+        if (applyCards && workspace.cards != null) {
+            for (Behavior card : cardOptions()) {
+                boolean enabled = Arrays.asList(workspace.cards).contains(card);
+                card.parent().write(card, Boolean.toString(enabled));
+            }
         }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(ACTIVE_KEY, workspace.name()).apply();
+        if (applyCards && context instanceof LauncherActivity) {
+            ((LauncherActivity) context).refreshPersistentContainer();
+        }
+        return true;
     }
 
-    public List<String> getAvailableWorkspaces() {
-        List<String> list = new ArrayList<>();
-        for (Workspace w : Workspace.values()) {
-            list.add(w.getName());
+    public static Workspace fromName(String name) {
+        if (name == null) return null;
+        for (Workspace workspace : Workspace.values()) {
+            if (workspace.name().equalsIgnoreCase(name) || workspace.label.equalsIgnoreCase(name)) return workspace;
         }
-        return list;
+        return null;
+    }
+
+    public static List<String> getAvailableWorkspaces() {
+        List<String> names = new ArrayList<>();
+        for (Workspace workspace : Workspace.values()) names.add(workspace.label);
+        return names;
+    }
+
+    private static List<Behavior> cardOptions() {
+        return Arrays.asList(Behavior.persistent_system_card, Behavior.persistent_battery_card,
+                Behavior.persistent_notes_card, Behavior.persistent_shortcuts_card,
+                Behavior.persistent_music_card, Behavior.persistent_weather_card,
+                Behavior.persistent_termux_card);
     }
 }

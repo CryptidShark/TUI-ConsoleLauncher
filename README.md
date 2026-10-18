@@ -1,92 +1,61 @@
-# Cythernoir T-UI Linux CLI Launcher
+# Cythernoir Launcher
 
-Updated for compatibility with modern Android versions (API 34+) and enhanced with security hardening.
+**Cythernoir Launcher** es mi fork de T-UI Console Launcher: una pantalla de inicio para Android que combina una terminal interactiva con accesos a aplicaciones, tarjetas informativas y controles del sistema. El proyecto conserva la base de T-UI y añade su propia identidad, ajustes y funciones.
 
----
+El nombre de la aplicación, su pantalla “Acerca de” y la documentación usan ahora **Cythernoir Launcher**, conservando el crédito al proyecto base.
 
-## 📖 Manual de Usuario
-Para consultar la guía paso a paso sobre instalación, comandos, gestos, temas, widgets y copia de seguridad, consulta el manual completo en español:
+## Qué puedes hacer
 
-👉 **[📖 Manual de usuario oficial (docs/USER_GUIDE.md)](docs/USER_GUIDE.md)**
+- **Usar Android desde una interfaz de terminal:** abrir aplicaciones, buscar contenido y ejecutar comandos con sugerencias y aliases.
+- **Personalizar la pantalla:** elegir entre los temas incluidos, ajustar preferencias de interfaz y fijar tarjetas de información.
+- **Añadir widgets Android:** usar `widget add`, `widget list`, `widget move`, `widget height`, `widget remove` y `widget clear` para administrar widgets compatibles.
+- **Controlar música:** reproducir canciones locales con el reproductor integrado o controlar sesiones de otros reproductores desde la tarjeta `visual music`.
+- **Consultar información rápida:** fijar tarjetas como batería, sistema, notas, accesos directos y música.
+- **Usar herramientas del launcher:** gestionar notas, notificaciones, contactos, RSS, ubicación, temas, perfiles y ajustes mediante comandos.
+- **Buscar y diagnosticar:** usar `palette [consulta]` para encontrar acciones, `privacy` para revisar permisos y `doctor` para localizar problemas de configuración.
+- **Cambiar de contexto:** aplicar workspaces con conjuntos de tarjetas para desarrollo, privacidad, uso general o juegos.
+- **Ampliar los comandos disponibles:** instalar BusyBox opcionalmente con `bbman -install`. La descarga requiere conexión a Internet y el instalador verifica el archivo con SHA-256.
 
----
+Para ver los comandos disponibles, abre el launcher y escribe `help`. Para comenzar, prueba `apps -ls`, `search`, `settings` o `visual battery -fixed`.
 
-## 🚀 Recent Changes & Modernization
+## Música y tarjeta dinámica
 
-These updates ensure the launcher remains functional, secure, and performant on modern Android devices (Android 11 through Android 14+).
+`visual music -fixed` fija el reproductor visual en la pantalla del launcher. Puede mostrar el título y artista de una sesión multimedia activa, y ofrecer controles de reproducir/pausar y anterior/siguiente. Para controlar otras aplicaciones de música, concede a T-UI el permiso **Acceso a notificaciones** en los ajustes de Android.
 
-> **Pro Tip:** On the very first install, if background transparency does not take effect immediately, simply type \`restart\` in the terminal and press enter.
+La animación ASCII de la tarjeta es decorativa: no mide el audio ni muestra un espectro real. El reproductor integrado de Cythernoir es independiente de esa tarjeta y reproduce canciones accesibles al sistema.
 
-### ⌨️ New Commands
-*   **`username [user] [device]`**: Instantly customize your terminal prompt. Changes both the username and device name and reloads the UI to apply.
-*   **`theme -preset [name]`**: Rapidly switch between high-quality pre-configured themes.
-    *   **Available Presets:** `blue`, `red`, `green`, `pink`, `bw`, `cyberpunk`.
-    *   **Smart Suggestions:** Applying a preset automatically colors the suggestion bar and shortcut buttons to match the aesthetic.
-*   **`bbman`**: The new BusyBox manager for installing and verifying Linux binaries.
+## Widgets Android
 
-### ✨ Enhanced Features
-*   **Built-in BusyBox Manager:** Gain access to 300+ Linux commands (ls, grep, awk, top, etc.) via the new `bbman -install` command.
-*   **Theme Preset Shortcut Buttons:** Enhanced the `theme -preset` command to show interactive shortcut buttons for presets.
-*   **Synchronized Theme UI:** Applying a preset now automatically colors the shortcut buttons (suggestions) to match the overall theme.
-*   **One-Tap Application:** Shortcut buttons for theme presets execute immediately upon clicking.
+1. Establece Cythernoir/T-UI como aplicación de inicio predeterminada si Android o el fabricante lo requiere para alojar widgets.
+2. Ejecuta `widget add` y selecciona un widget en el selector de Android.
+3. Completa cualquier pantalla de configuración que solicite la aplicación del widget.
+4. Administra los widgets con `widget list`, `widget move [ID] up|down`, `widget height [ID] [dp]`, `widget remove [ID]` y `widget clear`.
 
----
+La compatibilidad y el aspecto dependen también de cada proveedor de widgets y de la versión de Android.
 
-## 🐧 BusyBox Integration
+## Temas incluidos
 
-To enable a full Linux environment, you can install BusyBox directly from the launcher:
+Los presets definidos por la aplicación son `CLASSIC_TERMINAL`, `MODERN_TERMINAL`, `CYBER_TERMINAL`, `NEO_TERMINAL`, `AMBER_TERMINAL`, `NORD_TERMINAL`, `DRACULA_TERMINAL`, `AMOLED_TERMINAL` y `WATCHDOGS_CYBER`. La disponibilidad de opciones puede depender de la versión instalada. Consulta `theme` y `help` dentro de la aplicación.
 
-1.  Type `bbman -install` in the terminal.
-2.  The launcher will automatically detect your architecture, download the verified binary, and check its integrity.
-3.  Once finished, you can run any Linux command directly (e.g., `ls`, `ping`, `vi`).
-4.  To remove it at any time, use `bbman -remove`.
+## Requisitos y compilación
 
-**Security Note:** Binaries are sourced from the trusted EXALAB repository and are verified against hardcoded SHA-256 hashes to ensure they have not been tampered with.
+- Android mínimo: **API 24**.
+- SDK de compilación y destino: **API 37**.
+- Java: **17**.
+- Gradle Wrapper: **9.4.1**; Android Gradle Plugin: **8.13.2**.
 
----
+Con Android SDK y Java configurados, puedes compilar las variantes de depuración:
 
-## 🛠 Modern Build System
-*   **Target SDK:** Updated to **API 34 (Android 14)**.
-*   **Min SDK:** API 21 (Android 5.0).
-*   **AndroidX Migration:** Fully migrated from legacy Support Libraries to **AndroidX**.
-*   **Gradle & AGP:** Updated to Gradle 8.2 and Android Gradle Plugin 8.2.0.
-*   **Java Compatibility:** Built with **Java 17** support.
+```powershell
+.\gradlew.bat :app:assembleFdroidDebug :app:assemblePlaystoreDebug
+```
 
----
+Las variantes disponibles son `fdroid` y `playstore`. Algunas funciones requieren permisos de Android; el launcher los solicita o los explica cuando se usan.
 
-## 🛡 Security Hardening (OWASP MASVS Compliance)
+## Guía
 
-This project has been audited and hardened following the **OWASP Mobile Application Security Verification Standard (MASVS)**.
+Consulta la [guía de usuario en español](docs/USER_GUIDE.md) para conocer la instalación, comandos y ajustes. La [matriz de compatibilidad](docs/COMPATIBILITY.md) reúne los límites y pasos de validación para distintos dispositivos.
 
-### 📦 MASVS-STORAGE: Data Storage and Privacy
-*   **Scoped Storage Implementation:** All application data has been moved from public external storage (`/sdcard/t-ui/`) to secure, app-private **Scoped Storage** (`Context.getExternalFilesDir()`). This prevents other applications from accessing your T-UI configuration and logs.
-*   **Backup Protection:** `android:allowBackup` is set to `false` to prevent sensitive data extraction via ADB backups (MASVS-STORAGE-1).
-*   **Secure File Sharing:** Uses `FileProvider` for secure, permission-based file sharing instead of vulnerable `file://` URIs.
+## Créditos
 
-### 🌐 MASVS-NETWORK: Network Communication
-*   **Enforced TLS:** `android:usesCleartextTraffic` is disabled globally. All network communications are forced over **HTTPS** (TLS 1.2+).
-*   **Hardened Service Endpoints:** Internal services (Weather API, Connectivity checks) have been upgraded to secure HTTPS endpoints (MASVS-NETWORK-1).
-
-### ⚙️ MASVS-PLATFORM: Platform Interaction
-*   **Signature-Level Protection:** Implemented a custom permission `ohi.andre.consolelauncher.permission.RECEIVE_CMD` with `protectionLevel="signature"`. This ensures only apps signed with the same developer key can programmatically send commands to the launcher.
-*   **Intent Security:** All system-bound `PendingIntents` use the `FLAG_IMMUTABLE` flag to prevent intent redirection attacks (Android 12+ requirement).
-*   **Receiver Security:** All Broadcast Receivers are registered with appropriate export flags (`RECEIVER_EXPORTED` or `RECEIVER_NOT_EXPORTED`) to prevent unauthorized external triggers.
-
-### 🛠 MASVS-CODE: Code Quality & Build Settings
-*   **Minification & Obfuscation:** Release builds have R8/Proguard enabled (`minifyEnabled true`) to shrink resources and obfuscate code, making reverse engineering more difficult (MASVS-RESILIENCE-1).
-*   **Foreground Service Security:** Updated to comply with Android 14's strict foreground service types (`specialUse`, `mediaPlayback`).
-
----
-
-## 🔗 Useful links
-
-**Official community**&nbsp;&nbsp;-->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**[Reddit](https://www.reddit.com/r/tui_launcher/)**<br>
-**Official Group**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**[Telegram](https://t.me/tuilauncher)**<br>
-**Wiki**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**[GitHub.com](https://github.com/Andre1299/TUI-ConsoleLauncher/wiki)**<br>
-
-## 📚 Open Source Libraries
-* [**CompareString2**](https://github.com/fAndreuzzi/CompareString2)
-* [**OkHttp**](https://github.com/square/okhttp)
-* [**HTML cleaner**](http://htmlcleaner.sourceforge.net/)
-* [**JsonPath**](https://github.com/json-path/JsonPath)
-* [**jsoup**](https://github.com/jhy/jsoup/)
+Cythernoir Launcher parte del proyecto de código abierto [T-UI Console Launcher](https://github.com/Andre1299/TUI-ConsoleLauncher), de Francesco Andreuzzi, y conserva dependencias y componentes de sus autores originales. Este repositorio es un fork independiente; las funciones y cambios de Cythernoir se mantienen aquí.

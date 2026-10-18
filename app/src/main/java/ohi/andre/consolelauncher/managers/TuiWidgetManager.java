@@ -9,12 +9,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Process;
+import android.os.Build;
+import android.app.role.RoleManager;
 import android.util.DisplayMetrics;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -32,9 +31,9 @@ public class TuiWidgetManager {
     private static final int HOST_ID = 1042;
     public static final int REQUEST_PICK_APPWIDGET = 10430;
     public static final int REQUEST_CREATE_APPWIDGET = 10440;
-    public static final int REQUEST_BIND_APPWIDGET = 10450;
     private static final String PREFS_NAME = "persistent_widgets";
     private static final String WIDGET_IDS_KEY = "active_ids";
+    private static final String WIDGET_IDS_ORDER_KEY = "active_ids_ordered";
 
     private final AppWidgetHost mAppWidgetHost;
     private final AppWidgetManager mAppWidgetManager;
@@ -62,59 +61,70 @@ public class TuiWidgetManager {
         } catch (Exception ignore) {}
 
         int appWidgetId = mAppWidgetHost.allocateAppWidgetId();
-        Intent pickIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
-        pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        pickIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-        
+        mPendingWidgetId = appWidgetId;
         try {
+            Intent pickIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
+            pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            pickIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             activity.startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET);
         } catch (Exception e) {
+            deleteWidgetId(appWidgetId);
+            mPendingWidgetId = -1;
             Tuils.sendOutput(activity, "Error opening widget picker: " + e.getMessage());
         }
     }
 
     public void configureWidget(LauncherActivity activity, Intent data) {
-        Bundle extras = data.getExtras();
+        Bundle extras = data != null ? data.getExtras() : null;
         int appWidgetId = extras != null ? extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) : -1;
-        if (appWidgetId == -1) return;
+        if (appWidgetId == -1) appWidgetId = mPendingWidgetId;
+        if (appWidgetId == -1) {
+            Tuils.sendOutput(activity, "The widget picker returned no widget ID. Run `widget add` again.");
+            return;
+        }
 
         AppWidgetProviderInfo appWidgetInfo = mAppWidgetManager.getAppWidgetInfo(appWidgetId);
-        if (appWidgetInfo == null) return;
-
-        if (appWidgetInfo.configure != null) {
-            mPendingWidgetId = appWidgetId;
-            Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
-            intent.setComponent(appWidgetInfo.configure);
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-            
-            activity.startActivityForResult(intent, REQUEST_CREATE_APPWIDGET);
-        } else {
-            boolean bound = false;
-            try {
-                bound = mAppWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, appWidgetInfo.provider);
-            } catch (SecurityException e) {
-                Tuils.log("SecurityException binding widget", e);
-            }
-
-            if (bound) {
-                createWidget(activity, appWidgetId);
-            } else {
-                Tuils.sendOutput(activity, "System permission required for widget binding...");
-                mPendingWidgetId = appWidgetId;
-                Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_BIND);
-                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, appWidgetInfo.provider);
-                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE, Process.myUserHandle());
-                intent.putExtra("appWidgetHostId", HOST_ID);
-
-                activity.startActivityForResult(intent, REQUEST_BIND_APPWIDGET);
-            }
+        if (appWidgetInfo == null) {
+            cancelPendingWidget(data);
+            Tuils.sendOutput(activity, "Selected widget provider is no longer available.");
+            return;
         }
+
+        // ACTION_APPWIDGET_PICK returns a widget ID already associated with the
+        // selected provider. Rebinding it can fail on Android and strand widgets
+        // without a configuration activity, so proceed directly to setup.
+        continueWidgetSetup(activity, appWidgetId, appWidgetInfo);
+    }
+
+    private void continueWidgetSetup(LauncherActivity activity, int appWidgetId, AppWidgetProviderInfo info) {
+        if (info.configure == null) {
+            createWidget(activity, appWidgetId);
+            return;
+        }
+        mPendingWidgetId = appWidgetId;
+        Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
+        intent.setComponent(info.configure);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        try {
+            activity.startActivityForResult(intent, REQUEST_CREATE_APPWIDGET);
+        } catch (Exception e) {
+            deleteWidgetId(appWidgetId);
+            mPendingWidgetId = -1;
+            Tuils.sendOutput(activity, "Error configuring widget: " + e.getMessage());
+        }
+    }
+
+    public void cancelPendingWidget(Intent data) {
+        int id = data != null ? data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mPendingWidgetId) : mPendingWidgetId;
+        if (id != -1) deleteWidgetId(id);
+        mPendingWidgetId = -1;
     }
 
     public void deleteWidgetId(int appWidgetId) {
         mAppWidgetHost.deleteAppWidgetId(appWidgetId);
+        mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().remove("height_" + appWidgetId).apply();
+        if (mPendingWidgetId == appWidgetId) mPendingWidgetId = -1;
     }
 
     public void createWidgetFromIntent(LauncherActivity activity, Intent data) {
@@ -139,8 +149,8 @@ public class TuiWidgetManager {
             float density = metrics.density > 0 ? metrics.density : 1.0f;
 
             int widthDp = (int) (metrics.widthPixels / density);
-            int minHeightDp = appWidgetInfo.minHeight > 0 ? (int) (appWidgetInfo.minHeight / density) : 100;
-            if (minHeightDp < 40) minHeightDp = 100;
+            int minHeightDp = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    .getInt("height_" + appWidgetId, appWidgetInfo.minHeight > 0 ? Math.max(40, appWidgetInfo.minHeight) : 100);
 
             Bundle options = new Bundle();
             options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp);
@@ -159,7 +169,7 @@ public class TuiWidgetManager {
         AppWidgetProviderInfo appWidgetInfo = mAppWidgetManager.getAppWidgetInfo(appWidgetId);
         if (appWidgetInfo == null) {
             Tuils.sendOutput(activity, "Widget provider not found or uninstalled for ID " + appWidgetId + ". Removing stale widget.");
-            mAppWidgetHost.deleteAppWidgetId(appWidgetId);
+            deleteWidgetId(appWidgetId);
             mActiveWidgetIds.remove(Integer.valueOf(appWidgetId));
             saveState(null);
             return;
@@ -195,6 +205,8 @@ public class TuiWidgetManager {
             errorView.setText("[ WIDGET_ID: " + appWidgetId + " ] ERROR_RENDERING: " + e.getMessage());
             errorView.setPadding(16, 16, 16, 16);
             activity.onPersistentOutput(errorView);
+            if (!mActiveWidgetIds.contains(appWidgetId)) mActiveWidgetIds.add(appWidgetId);
+            saveState(null);
         }
         
         mPendingWidgetId = -1;
@@ -218,16 +230,18 @@ public class TuiWidgetManager {
     public boolean setWidgetHeight(LauncherActivity activity, int widgetId, int heightDp) {
         if (!mActiveWidgetIds.contains(widgetId)) return false;
         try {
-            DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-            int heightPx = Tuils.dpToPx(mContext, heightDp);
-            
+            if (heightDp < 40 || heightDp > 2000) return false;
             AppWidgetProviderInfo info = mAppWidgetManager.getAppWidgetInfo(widgetId);
-            if (info != null) {
-                Bundle options = new Bundle();
-                options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, heightDp);
-                options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp);
-                mAppWidgetManager.updateAppWidgetOptions(widgetId, options);
-            }
+            if (info == null) return false;
+            SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            prefs.edit().putInt("height_" + widgetId, heightDp).apply();
+            Bundle options = new Bundle();
+            int widthDp = Math.round(mContext.getResources().getDisplayMetrics().widthPixels / mContext.getResources().getDisplayMetrics().density);
+            options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp);
+            options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp);
+            options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, heightDp);
+            options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp);
+            mAppWidgetManager.updateAppWidgetOptions(widgetId, options);
             if (activity != null) {
                 activity.refreshPersistentContainer();
             }
@@ -238,18 +252,22 @@ public class TuiWidgetManager {
     }
 
     public List<Integer> getActiveWidgetIds() {
-        return mActiveWidgetIds;
+        return new ArrayList<>(mActiveWidgetIds);
     }
 
-    public void removeWidget(int appWidgetId) {
+    public boolean removeWidget(int appWidgetId) {
+        if (!mActiveWidgetIds.contains(appWidgetId)) return false;
         mAppWidgetHost.deleteAppWidgetId(appWidgetId);
         mActiveWidgetIds.remove(Integer.valueOf(appWidgetId));
+        mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().remove("height_" + appWidgetId).apply();
         saveState(null);
+        return true;
     }
 
     public void clearAllWidgets() {
         for (Integer id : mActiveWidgetIds) {
             mAppWidgetHost.deleteAppWidgetId(id);
+            mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().remove("height_" + id).apply();
         }
         mActiveWidgetIds.clear();
         saveState(null);
@@ -257,6 +275,10 @@ public class TuiWidgetManager {
 
     public boolean isDefaultLauncher() {
         try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                RoleManager roleManager = mContext.getSystemService(RoleManager.class);
+                return roleManager != null && roleManager.isRoleHeld(RoleManager.ROLE_HOME);
+            }
             final Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_HOME);
             final ResolveInfo res = mContext.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
@@ -274,8 +296,13 @@ public class TuiWidgetManager {
         
         SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         Set<String> set = new HashSet<>();
-        for (Integer id : mActiveWidgetIds) set.add(id.toString());
-        prefs.edit().putStringSet(WIDGET_IDS_KEY, set).apply();
+        StringBuilder orderedIds = new StringBuilder();
+        for (Integer id : mActiveWidgetIds) {
+            set.add(id.toString());
+            if (orderedIds.length() > 0) orderedIds.append(',');
+            orderedIds.append(id);
+        }
+        prefs.edit().putStringSet(WIDGET_IDS_KEY, set).putString(WIDGET_IDS_ORDER_KEY, orderedIds.toString()).apply();
     }
 
     public void restoreState(Bundle savedInstanceState) {
@@ -288,10 +315,20 @@ public class TuiWidgetManager {
             }
         } else {
             SharedPreferences prefs = mContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            Set<String> set = prefs.getStringSet(WIDGET_IDS_KEY, null);
-            if (set != null) {
+            String orderedIds = prefs.getString(WIDGET_IDS_ORDER_KEY, null);
+            if (orderedIds != null) {
                 mActiveWidgetIds.clear();
-                for (String s : set) mActiveWidgetIds.add(Integer.parseInt(s));
+                for (String id : orderedIds.split(",")) {
+                    try { mActiveWidgetIds.add(Integer.parseInt(id)); } catch (NumberFormatException ignored) {}
+                }
+            } else {
+                Set<String> set = prefs.getStringSet(WIDGET_IDS_KEY, null);
+                if (set == null) return;
+                mActiveWidgetIds.clear();
+                for (String s : set) {
+                    try { mActiveWidgetIds.add(Integer.parseInt(s)); } catch (NumberFormatException ignored) {}
+                }
+                saveState(null);
             }
         }
 

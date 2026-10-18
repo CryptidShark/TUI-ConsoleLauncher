@@ -1,11 +1,11 @@
 <resources>
 
     <!-- various text -->
-    <string name="app_name">T-UI</string>
+    <string name="app_name">Cythernoir Launcher</string>
     <string name="location_off">Turn on GPS</string>
     <string name="share_label">Share</string>
-    <string name="output_about">Francesco Andreuzzi (Italy)\n\t-> Programmer
-        \n\nThanks to Luke Winward for his original idea</string>
+    <string name="output_about">Cythernoir Launcher\nIndependent T-UI Console Launcher fork\n
+        \nOriginal project by Francesco Andreuzzi; thanks to Luke Winward for the original idea</string>
     <string name="available_commands">AVAILABLE COMMANDS</string>
     <string name="output_refresh">Refresh: apps, alias, music, contacts, rss feeds</string>
     <string name="output_rate">Thank you!</string>
@@ -201,6 +201,11 @@
 
     <!-- command/args -->
     <string name="output_commandnotfound">Command not found.\nTry to use \"$ help\" or \"$ tutorial\"</string>
+    <string name="help_doctor">Check launcher setup, permissions, widgets, music and optional tools</string>
+    <string name="help_privacy">Review optional Android permissions and open their settings</string>
+    <string name="help_palette">Search apps, commands, aliases, shortcuts and workspaces</string>
+    <string name="help_workspace">List or switch pinned-card workspaces</string>
+    <string name="help_manual">Show the Cythernoir quick-start guide</string>
     <string name="output_invalid_param">Invalid option:</string>
 
     <!-- flash -->

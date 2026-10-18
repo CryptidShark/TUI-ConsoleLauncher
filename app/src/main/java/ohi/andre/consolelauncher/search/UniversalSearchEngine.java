@@ -16,6 +16,7 @@ import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.CommandGroup;
 import ohi.andre.consolelauncher.managers.AliasManager;
 import ohi.andre.consolelauncher.managers.AppsManager;
+import ohi.andre.consolelauncher.managers.WorkspaceManager;
 import ohi.andre.consolelauncher.tuils.Tuils;
 
 public class UniversalSearchEngine {
@@ -155,6 +156,19 @@ public class UniversalSearchEngine {
                             ));
                         }
                     }
+                }
+            }
+        }
+
+        // Workspace presets
+        for (String workspace : WorkspaceManager.getAvailableWorkspaces()) {
+            int score = calculateMatchScore(q, workspace.toLowerCase(Locale.ROOT));
+            if (score > 0) {
+                String key = "workspace:" + workspace.toLowerCase(Locale.ROOT);
+                if (seenKeys.add(key)) {
+                    results.add(new SearchResult(workspace, "Switch launcher workspace",
+                            SearchResult.Category.ACTION, score,
+                            new SearchAction.SwitchWorkspaceAction(workspace)));
                 }
             }
         }

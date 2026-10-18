@@ -690,13 +690,8 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                 Tuils.sendOutput(this, "Widget selected, configuring...");
                 widgetManager.configureWidget(this, data);
             } else {
+                widgetManager.cancelPendingWidget(data);
                 Tuils.sendOutput(this, "Widget pick cancelled (code: " + resultCode + ")");
-                if (data != null) {
-                    int appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
-                    if (appWidgetId != -1) {
-                        widgetManager.deleteWidgetId(appWidgetId);
-                    }
-                }
             }
         } else if (requestCode == TuiWidgetManager.REQUEST_CREATE_APPWIDGET) {
             if (resultCode == RESULT_OK) {
@@ -704,16 +699,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                 widgetManager.createWidgetFromIntent(this, data);
             } else {
                 Tuils.sendOutput(this, "Widget configuration failed or cancelled.");
-            }
-        } else if (requestCode == TuiWidgetManager.REQUEST_BIND_APPWIDGET) {
-            if (resultCode == RESULT_OK) {
-                Tuils.sendOutput(this, "Widget bind success.");
-                widgetManager.createWidgetFromIntent(this, data);
-            } else {
-                // Final strategy for Samsung/Modern Android: 
-                // If bind fails but user says they have permission, try to create anyway
-                Tuils.sendOutput(this, "Widget bind returned " + resultCode + ". Attempting direct creation...");
-                widgetManager.createWidgetFromIntent(this, data);
+                widgetManager.cancelPendingWidget(data);
             }
         }
 

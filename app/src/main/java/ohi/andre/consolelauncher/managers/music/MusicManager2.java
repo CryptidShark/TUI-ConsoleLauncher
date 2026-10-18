@@ -54,6 +54,7 @@ public class MusicManager2 implements MediaController.MediaPlayerControl {
 
     public MusicManager2(Context c) {
         mContext = c;
+        songs = new ArrayList<>();
         updateSongs();
 
         headsetBroadcast = new BroadcastReceiver() {
@@ -162,7 +163,7 @@ public class MusicManager2 implements MediaController.MediaPlayerControl {
     }
 
     public String lsSongs() {
-        if(songs.size() == 0) return "[]";
+        if(songs == null || songs.isEmpty()) return "[]";
 
         List<String> ss = new ArrayList<>();
         for(Song s : songs) {
@@ -185,20 +186,28 @@ public class MusicManager2 implements MediaController.MediaPlayerControl {
                     else songs.clear();
 
                     if(XMLPrefsManager.getBoolean(Behavior.songs_from_mediastore)) {
-                        ContentResolver musicResolver = mContext.getContentResolver();
-                        Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
-                        if(musicCursor!=null && musicCursor.moveToFirst()){
-                            int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-                            int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
-                            do {
-                                long thisId = musicCursor.getLong(idColumn);
-                                String thisTitle = musicCursor.getString(titleColumn);
-                                songs.add(new Song(thisId, thisTitle));
+                        String permission = Build.VERSION.SDK_INT >= 33
+                                ? "android.permission.READ_MEDIA_AUDIO" : android.Manifest.permission.READ_EXTERNAL_STORAGE;
+                        if (mContext.checkSelfPermission(permission) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                            ContentResolver musicResolver = mContext.getContentResolver();
+                            Uri musicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                            Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
+                            if (musicCursor != null) {
+                                try {
+                                    int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+                                    int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
+                                    if (titleColumn >= 0 && idColumn >= 0 && musicCursor.moveToFirst()) {
+                                        do {
+                                            long thisId = musicCursor.getLong(idColumn);
+                                            String thisTitle = musicCursor.getString(titleColumn);
+                                            songs.add(new Song(thisId, thisTitle));
+                                        } while (musicCursor.moveToNext());
+                                    }
+                                } finally {
+                                    musicCursor.close();
+                                }
                             }
-                            while (musicCursor.moveToNext());
                         }
-                        musicCursor.close();
                     } else {
                         String path = XMLPrefsManager.get(Behavior.songs_folder);
                         if(path.length() == 0) return;
@@ -324,13 +333,13 @@ public class MusicManager2 implements MediaController.MediaPlayerControl {
     }
 
     public Song get(int index) {
-        if(index < 0 || index >= songs.size()) return null;
+        if(songs == null || index < 0 || index >= songs.size()) return null;
         return songs.get(index);
     }
 
     @Override
     public void seekTo(int pos) {
-        musicSrv.seek(pos);
+        if (musicSrv != null && musicBound) musicSrv.seek(pos);
     }
 
     public void select(String song) {
@@ -343,6 +352,7 @@ public class MusicManager2 implements MediaController.MediaPlayerControl {
         }
 
         int i = -1;
+        if (songs == null) return;
         for(int index = 0; index < songs.size(); index++) {
             if(songs.get(index).getTitle().equals(song)) i = index;
         }
@@ -357,10 +367,10 @@ public class MusicManager2 implements MediaController.MediaPlayerControl {
 
     @Override
     public void start() {
-        musicSrv.go();
+        if (musicSrv != null && musicBound) musicSrv.go();
     }
 
     public List<Song> getSongs() {
-        return new ArrayList<>(songs);
+        return songs == null ? new ArrayList<>() : new ArrayList<>(songs);
     }
 }

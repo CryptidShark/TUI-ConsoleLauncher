@@ -1,10 +1,10 @@
 <resources>
     <!-- various text -->
-    <string name="app_name">T-UI</string>
+    <string name="app_name">Cythernoir Launcher</string>
     <string name="location_off">Activar GPS</string>
     <string name="share_label">Compartir</string>
-    <string name="output_about">Francesco Andreuzzi (Italia)\n\t-> Programador
-        \n\nGracias a Luke Winward por su idea original</string>
+    <string name="output_about">Cythernoir Launcher\nFork independiente de T-UI Console Launcher\n
+        \nProyecto original de Francesco Andreuzzi; gracias a Luke Winward por la idea original</string>
     <string name="available_commands">COMANDOS DISPONIBLES</string>
     <string name="output_refresh">Actualizar: apps, alias, música, contactos, feeds rss</string>
     <string name="output_rate">¡Gracias!</string>
@@ -200,6 +200,11 @@
 
     <!-- command/args -->
     <string name="output_commandnotfound">Comando no encontrado.\nIntenta usar \"$ help\" o \"$ tutorial\"</string>
+    <string name="help_doctor">Revisa la configuración, permisos, widgets, música y herramientas opcionales</string>
+    <string name="help_privacy">Revisa permisos opcionales de Android y abre sus ajustes</string>
+    <string name="help_palette">Busca aplicaciones, comandos, aliases, accesos directos y espacios de trabajo</string>
+    <string name="help_workspace">Lista o cambia los espacios de trabajo y sus tarjetas</string>
+    <string name="help_manual">Muestra la guía rápida de Cythernoir</string>
     <string name="output_invalid_param">Opción inválida:</string>
 
     <!-- flash -->

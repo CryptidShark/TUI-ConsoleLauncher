@@ -8,6 +8,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import ohi.andre.consolelauncher.MainManager;
 import ohi.andre.consolelauncher.managers.AppsManager;
+import ohi.andre.consolelauncher.managers.WorkspaceManager;
 import ohi.andre.consolelauncher.tuils.PrivateIOReceiver;
 import ohi.andre.consolelauncher.tuils.Tuils;
 
@@ -80,7 +81,10 @@ public interface SearchAction {
         @Override
         public void execute(Context context) {
             if (context != null && workspaceName != null) {
-                Tuils.sendOutput(context, "Workspace switched to: " + workspaceName);
+                WorkspaceManager.Workspace workspace = WorkspaceManager.fromName(workspaceName);
+                if (workspace != null && WorkspaceManager.setWorkspace(context, workspace)) {
+                    Tuils.sendOutput(context, "Workspace switched to: " + workspace.getName());
+                }
             }
         }
 
