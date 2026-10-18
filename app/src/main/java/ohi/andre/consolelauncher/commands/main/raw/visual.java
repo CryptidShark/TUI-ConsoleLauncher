@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaMetadata;
@@ -22,12 +23,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import ohi.andre.consolelauncher.LauncherActivity;
 import ohi.andre.consolelauncher.R;
@@ -249,30 +253,36 @@ public class visual implements CommandAbstraction {
         if (fixed) {
             Behavior.persistent_music_card.parent().write(Behavior.persistent_music_card, "true");
         }
-        
+
         LayoutInflater inflater = LayoutInflater.from(info.context);
         View card = inflater.inflate(R.layout.card_music, null);
 
         TextView title = card.findViewById(R.id.music_title);
         TextView songName = card.findViewById(R.id.song_name);
-        TextView visualizer = card.findViewById(R.id.ascii_visualizer);
+        TextView songArtist = card.findViewById(R.id.song_artist);
+        TextView musicSource = card.findViewById(R.id.music_source);
         TextView btnPrev = card.findViewById(R.id.btn_prev);
         TextView btnPlay = card.findViewById(R.id.btn_play_pause);
         TextView btnNext = card.findViewById(R.id.btn_next);
         TextView btnSet = card.findViewById(R.id.music_settings);
+        TextView positionView = card.findViewById(R.id.music_position);
+        TextView durationView = card.findViewById(R.id.music_duration);
+        ImageView albumArt = card.findViewById(R.id.album_art);
+        SeekBar progress = card.findViewById(R.id.music_progress);
 
         title.setTypeface(Tuils.getTypeface(info.context));
         songName.setTypeface(Tuils.getTypeface(info.context));
-        visualizer.setTypeface(Tuils.getTypeface(info.context));
+        songArtist.setTypeface(Tuils.getTypeface(info.context));
+        musicSource.setTypeface(Tuils.getTypeface(info.context));
         btnPrev.setTypeface(Tuils.getTypeface(info.context));
         btnPlay.setTypeface(Tuils.getTypeface(info.context));
         btnNext.setTypeface(Tuils.getTypeface(info.context));
         btnSet.setTypeface(Tuils.getTypeface(info.context));
-
-        btnSet.setOnClickListener(v -> PrivacyCenter.openSettings(info.context, "Notification access"));
+        positionView.setTypeface(Tuils.getTypeface(info.context));
+        durationView.setTypeface(Tuils.getTypeface(info.context));
 
         MediaSessionManager msm = (MediaSessionManager) info.context.getSystemService(Context.MEDIA_SESSION_SERVICE);
-        
+
         String presetName = XMLPrefsManager.get(Behavior.theme_preset);
         ThemeEngine.Preset preset;
         try {
@@ -281,6 +291,20 @@ public class visual implements CommandAbstraction {
             preset = ThemeEngine.Preset.CLASSIC_TERMINAL;
         }
         ThemeEngine.DesignTokens theme = ThemeEngine.getPreset(preset);
+        GradientDrawable cardBackground = new GradientDrawable();
+        cardBackground.setColor(theme.surface);
+        cardBackground.setCornerRadius(Tuils.dpToPx(info.context, (int) theme.borderRadius));
+        cardBackground.setStroke(Tuils.dpToPx(info.context, (int) theme.borderWidth), theme.border);
+        card.setBackground(cardBackground);
+        title.setTextColor(theme.primary);
+        songName.setTextColor(theme.text);
+        songArtist.setTextColor(theme.textMuted);
+        musicSource.setTextColor(theme.secondary);
+        positionView.setTextColor(theme.textMuted);
+        durationView.setTextColor(theme.textMuted);
+        progress.setProgressTintList(ColorStateList.valueOf(theme.primary));
+        progress.setProgressBackgroundTintList(ColorStateList.valueOf(theme.border));
+        progress.setThumbTintList(ColorStateList.valueOf(theme.primary));
         styleMusicControl(btnPrev, theme);
         styleMusicControl(btnPlay, theme);
         styleMusicControl(btnNext, theme);
@@ -289,18 +313,34 @@ public class visual implements CommandAbstraction {
         final Handler handler = new Handler(Looper.getMainLooper());
         final MediaController[] activeController = new MediaController[1];
         final boolean[] listening = {false};
-        final String[] bars = {"▂", "▃", "▄", "▅", "▆", "▇", "█"};
+        final long[] durationMs = {0L};
         final Runnable[] renderRef = new Runnable[1];
 
-        Runnable animation = new Runnable() {
+        Runnable progressTicker = new Runnable() {
             @Override public void run() {
                 MediaController controller = activeController[0];
                 PlaybackState state = controller == null ? null : controller.getPlaybackState();
                 if (!card.isAttachedToWindow() || state == null || state.getState() != PlaybackState.STATE_PLAYING) return;
-                StringBuilder barsText = new StringBuilder();
-                for (int i = 0; i < 18; i++) barsText.append(bars[(int) (Math.random() * bars.length)]).append(' ');
-                visualizer.setText(barsText.toString());
-                handler.postDelayed(this, 650);
+                updatePlaybackProgress(state);
+                handler.postDelayed(this, 1000);
+            }
+
+            private void updatePlaybackProgress(PlaybackState state) {
+                long position = state.getPosition();
+                if (position < 0) position = 0;
+                if (state.getState() == PlaybackState.STATE_PLAYING) {
+                    long updatedAt = state.getLastPositionUpdateTime();
+                    if (updatedAt > 0) {
+                        long elapsed = Math.max(0, SystemClock.elapsedRealtime() - updatedAt);
+                        position += (long) (elapsed * state.getPlaybackSpeed());
+                    }
+                }
+                if (durationMs[0] > 0) position = Math.min(position, durationMs[0]);
+                if (!progress.isPressed()) {
+                    progress.setProgress(durationMs[0] > 0
+                            ? (int) Math.min(1000, (position * 1000L) / durationMs[0]) : 0);
+                }
+                positionView.setText(formatMusicTime(position));
             }
         };
 
@@ -318,48 +358,120 @@ public class visual implements CommandAbstraction {
             }
         };
 
+        progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int value, boolean fromUser) {
+                if (fromUser && durationMs[0] > 0) {
+                    positionView.setText(formatMusicTime(durationMs[0] * value / 1000L));
+                }
+            }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) { handler.removeCallbacks(progressTicker); }
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {
+                MediaController controller = activeController[0];
+                if (controller != null && durationMs[0] > 0) {
+                    PlaybackState state = controller.getPlaybackState();
+                    if (state != null && (state.getActions() & PlaybackState.ACTION_SEEK_TO) != 0) {
+                        controller.getTransportControls().seekTo(durationMs[0] * seekBar.getProgress() / 1000L);
+                    }
+                    if (state != null && state.getState() == PlaybackState.STATE_PLAYING) {
+                        handler.post(progressTicker);
+                    }
+                }
+            }
+        });
+
+        btnSet.setOnClickListener(v -> {
+            if (!PrivacyCenter.hasNotificationAccess(info.context)) {
+                PrivacyCenter.openSettings(info.context, "Notification access");
+                return;
+            }
+            String target = XMLPrefsManager.get(Behavior.music_target_app);
+            if (target == null || target.isEmpty()) {
+                target = activeController[0] != null ? activeController[0].getPackageName() : "com.spotify.music";
+            }
+            Intent launch = info.context.getPackageManager().getLaunchIntentForPackage(target);
+            if (launch != null) {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                info.context.startActivity(launch);
+            } else {
+                Tuils.sendOutput(info.context, "Music app not found: " + target);
+            }
+        });
+
         renderRef[0] = () -> {
             MediaController controller = activeController[0];
             if (controller == null) {
-                songName.setText(PrivacyCenter.hasNotificationAccess(info.context)
-                        ? "NO_ACTIVE_SESSION  /  START A MUSIC APP"
-                        : "GRANT NOTIFICATION ACCESS TO CONNECT A PLAYER");
-                btnPlay.setText("[ PLAY ]");
+                boolean hasAccess = PrivacyCenter.hasNotificationAccess(info.context);
+                title.setText(hasAccess ? "NOW PLAYING" : "MUSIC ACCESS REQUIRED");
+                songName.setText(hasAccess ? "Nothing is playing" : "Connect notification access");
+                songArtist.setText(hasAccess ? "Start Spotify or another music app" : "Tap Connect to enable media controls");
+                musicSource.setText("SPOTIFY READY");
+                btnSet.setText(hasAccess ? "OPEN SPOTIFY" : "CONNECT");
+                albumArt.setImageResource(android.R.drawable.ic_media_play);
+                progress.setProgress(0);
+                durationMs[0] = 0;
+                positionView.setText("0:00");
+                durationView.setText("--:--");
+                btnPlay.setText("▶");
                 btnPlay.setEnabled(false);
                 btnPrev.setEnabled(false);
                 btnNext.setEnabled(false);
-                visualizer.setText("-- -- -- -- -- -- -- -- -- --");
-                title.setOnClickListener(v -> {
-                    String target = XMLPrefsManager.get(Behavior.music_target_app);
-                    if (target != null && !target.isEmpty()) {
-                        Intent launch = info.context.getPackageManager().getLaunchIntentForPackage(target);
-                        if (launch != null) {
-                            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            info.context.startActivity(launch);
-                        } else Tuils.sendOutput(info.context, "Target app not found: " + target);
-                    }
-                });
-                handler.removeCallbacks(animation);
+                progress.setEnabled(false);
+                handler.removeCallbacks(progressTicker);
                 return;
             }
 
             MediaMetadata metadata = controller.getMetadata();
             String artist = metadata == null ? null : metadata.getString(MediaMetadata.METADATA_KEY_ARTIST);
-            String track = metadata == null ? null : metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
             if ((artist == null || artist.isEmpty()) && metadata != null) artist = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST);
-            songName.setText(((artist == null || artist.isEmpty()) ? "UNKNOWN ARTIST" : artist)
-                    + "  /  " + ((track == null || track.isEmpty()) ? "UNKNOWN TRACK" : track));
+            String track = metadata == null ? null : metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
+            String album = metadata == null ? null : metadata.getString(MediaMetadata.METADATA_KEY_ALBUM);
+            songName.setText(track == null || track.isEmpty() ? "Unknown track" : track);
+            songArtist.setText(artist == null || artist.isEmpty() ? (album == null ? "Unknown artist" : album) : artist);
+            Bitmap artwork = metadata == null ? null : metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
+            if (artwork == null && metadata != null) artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART);
+            if (artwork == null && metadata != null) artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON);
+            if (artwork != null) albumArt.setImageBitmap(artwork);
+            else albumArt.setImageResource(android.R.drawable.ic_media_play);
+
+            String source = controller.getPackageName();
+            try {
+                source = info.context.getPackageManager().getApplicationLabel(
+                        info.context.getPackageManager().getApplicationInfo(source, 0)).toString();
+            } catch (Exception ignored) {}
+            btnSet.setText("OPEN APP");
 
             PlaybackState state = controller.getPlaybackState();
             boolean playing = state != null && state.getState() == PlaybackState.STATE_PLAYING;
+            musicSource.setText(controller.getPackageName().equals("com.spotify.music")
+                    ? (playing ? "SPOTIFY  •  PLAYING" : "SPOTIFY  •  PAUSED")
+                    : source.toUpperCase(Locale.ROOT) + "  •  MEDIA SESSION");
             long actions = state == null ? 0 : state.getActions();
-            btnPlay.setText(playing ? "[ PAUSE ]" : "[ PLAY ]");
+            btnPlay.setText(playing ? "Ⅱ" : "▶");
             btnPlay.setContentDescription(playing ? "Pause music" : "Play music");
             btnPlay.setEnabled((actions & (playing ? PlaybackState.ACTION_PAUSE : PlaybackState.ACTION_PLAY)) != 0);
             btnPrev.setEnabled((actions & PlaybackState.ACTION_SKIP_TO_PREVIOUS) != 0);
             btnNext.setEnabled((actions & PlaybackState.ACTION_SKIP_TO_NEXT) != 0);
-            visualizer.setText(playing ? "SESSION ACTIVE  /  ANIMATED DISPLAY"
-                    : "SESSION PAUSED  /  MEDIA CONTROLS READY");
+            btnPrev.setAlpha(btnPrev.isEnabled() ? 1f : 0.42f);
+            btnNext.setAlpha(btnNext.isEnabled() ? 1f : 0.42f);
+            btnPlay.setAlpha(btnPlay.isEnabled() ? 1f : 0.42f);
+            durationMs[0] = metadata == null ? 0 : metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
+            if (durationMs[0] > 0) {
+                durationView.setText(formatMusicTime(durationMs[0]));
+                progress.setEnabled((actions & PlaybackState.ACTION_SEEK_TO) != 0);
+            } else {
+                durationView.setText("LIVE");
+                progress.setEnabled(false);
+            }
+            if (state != null) {
+                long currentPosition = Math.max(0, state.getPosition());
+                if (playing && state.getLastPositionUpdateTime() > 0) {
+                    currentPosition += (long) (Math.max(0, SystemClock.elapsedRealtime() - state.getLastPositionUpdateTime()) * state.getPlaybackSpeed());
+                }
+                if (durationMs[0] > 0) currentPosition = Math.min(currentPosition, durationMs[0]);
+                positionView.setText(formatMusicTime(currentPosition));
+                progress.setProgress(durationMs[0] > 0
+                        ? (int) Math.min(1000, (currentPosition * 1000L) / durationMs[0]) : 0);
+            }
 
             btnPlay.setOnClickListener(v -> {
                 PlaybackState latest = controller.getPlaybackState();
@@ -368,19 +480,13 @@ public class visual implements CommandAbstraction {
             });
             btnPrev.setOnClickListener(v -> controller.getTransportControls().skipToPrevious());
             btnNext.setOnClickListener(v -> controller.getTransportControls().skipToNext());
-            title.setOnClickListener(v -> {
-                Intent launch = info.context.getPackageManager().getLaunchIntentForPackage(controller.getPackageName());
-                if (launch != null) {
-                    launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    info.context.startActivity(launch);
-                }
-            });
-            handler.removeCallbacks(animation);
-            if (playing && card.isAttachedToWindow()) handler.post(animation);
+            handler.removeCallbacks(progressTicker);
+            if (playing && card.isAttachedToWindow()) handler.post(progressTicker);
         };
 
         MediaSessionManager.OnActiveSessionsChangedListener sessionsListener = controllers -> handler.post(() -> {
-            MediaController selected = chooseMusicController(controllers);
+            String preferredPackage = XMLPrefsManager.get(Behavior.music_target_app);
+            MediaController selected = chooseMusicController(controllers, preferredPackage);
             if (selected != activeController[0]) {
                 if (activeController[0] != null) activeController[0].unregisterCallback(controllerCallback);
                 activeController[0] = selected;
@@ -389,30 +495,38 @@ public class visual implements CommandAbstraction {
             renderRef[0].run();
         });
 
-        card.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override public void onViewAttachedToWindow(View v) {
-                if (msm == null || listening[0]) return;
+        Runnable[] connectSessionAccess = new Runnable[1];
+        connectSessionAccess[0] = new Runnable() {
+            @Override public void run() {
+                if (!card.isAttachedToWindow() || msm == null || listening[0]) return;
                 try {
                     msm.addOnActiveSessionsChangedListener(sessionsListener,
                             new ComponentName(info.context, NotificationService.class), handler);
                     listening[0] = true;
-                } catch (SecurityException e) {
-                    Tuils.log("Media session access is not enabled", e);
-                }
-                if (!listening[0]) {
-                    renderRef[0].run();
-                    return;
-                }
-                try {
                     List<MediaController> active = msm.getActiveSessions(
                             new ComponentName(info.context, NotificationService.class));
                     sessionsListener.onActiveSessionsChanged(active);
                 } catch (SecurityException e) {
-                    songName.setText("ENABLE NOTIFICATION ACCESS TO CONNECT MUSIC");
+                    // The card can stay attached while the user grants access in Settings.
+                    if (listening[0]) {
+                        try { msm.removeOnActiveSessionsChangedListener(sessionsListener); }
+                        catch (Exception ignored) {}
+                        listening[0] = false;
+                    }
+                    handler.postDelayed(this, 1500);
+                    renderRef[0].run();
                 }
             }
+        };
+
+        card.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override public void onViewAttachedToWindow(View v) {
+                if (msm == null || listening[0]) return;
+                connectSessionAccess[0].run();
+            }
             @Override public void onViewDetachedFromWindow(View v) {
-                handler.removeCallbacks(animation);
+                handler.removeCallbacks(connectSessionAccess[0]);
+                handler.removeCallbacks(progressTicker);
                 if (activeController[0] != null) {
                     activeController[0].unregisterCallback(controllerCallback);
                     activeController[0] = null;
@@ -444,8 +558,16 @@ public class visual implements CommandAbstraction {
 
     }
 
-    private static MediaController chooseMusicController(List<MediaController> controllers) {
+    private static MediaController chooseMusicController(List<MediaController> controllers, String preferredPackage) {
         if (controllers == null || controllers.isEmpty()) return null;
+        if (preferredPackage != null && !preferredPackage.isEmpty()) {
+            for (MediaController controller : controllers) {
+                PlaybackState state = controller.getPlaybackState();
+                if (preferredPackage.equals(controller.getPackageName()) && state != null
+                        && state.getState() != PlaybackState.STATE_STOPPED
+                        && state.getState() != PlaybackState.STATE_NONE) return controller;
+            }
+        }
         for (MediaController controller : controllers) {
             PlaybackState state = controller.getPlaybackState();
             if (state != null && state.getState() == PlaybackState.STATE_PLAYING) return controller;
@@ -456,6 +578,11 @@ public class visual implements CommandAbstraction {
                     && state.getState() != PlaybackState.STATE_NONE) return controller;
         }
         return null;
+    }
+
+    private static String formatMusicTime(long milliseconds) {
+        long seconds = Math.max(0, milliseconds / 1000L);
+        return String.format(Locale.getDefault(), "%d:%02d", seconds / 60L, seconds % 60L);
     }
 
     private static void styleMusicControl(TextView control, ThemeEngine.DesignTokens theme) {

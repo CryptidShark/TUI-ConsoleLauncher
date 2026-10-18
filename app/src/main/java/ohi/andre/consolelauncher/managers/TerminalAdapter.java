@@ -212,6 +212,7 @@ public class TerminalAdapter extends RecyclerView.Adapter<TerminalAdapter.ViewHo
     }
 
     private void applyThemeRecursively(View view) {
+        if (view.getId() == R.id.music_card_root) return;
         if (view instanceof TextView) {
             ((TextView) view).setTextColor(theme.text);
             ((TextView) view).setTypeface(Tuils.getTypeface(context));

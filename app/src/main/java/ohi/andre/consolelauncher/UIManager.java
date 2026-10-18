@@ -916,6 +916,27 @@ public class UIManager implements OnTouchListener {
         }
         ThemeEngine.DesignTokens designTokens = ThemeEngine.getPreset(preset);
 
+        View terminalChrome = rootView.findViewById(R.id.terminal_chrome);
+        if (terminalChrome != null) {
+            terminalChrome.setBackgroundColor(designTokens.background);
+            TextView tabIcon = rootView.findViewById(R.id.terminal_tab_icon);
+            TextView tabTitle = rootView.findViewById(R.id.terminal_tab_title);
+            TextView tabSubtitle = rootView.findViewById(R.id.terminal_tab_subtitle);
+            TextView sessionStatus = rootView.findViewById(R.id.terminal_session_status);
+            View tab = rootView.findViewById(R.id.terminal_tab);
+            if (tabIcon != null) tabIcon.setTextColor(designTokens.primary);
+            if (tabTitle != null) tabTitle.setTextColor(designTokens.text);
+            if (tabSubtitle != null) tabSubtitle.setTextColor(designTokens.textMuted);
+            if (sessionStatus != null) sessionStatus.setTextColor(designTokens.success);
+            if (tab != null) {
+                GradientDrawable tabBackground = new GradientDrawable();
+                tabBackground.setColor(designTokens.surface);
+                tabBackground.setCornerRadius(Tuils.dpToPx(mContext, 7));
+                tabBackground.setStroke(Tuils.dpToPx(mContext, 1), designTokens.border);
+                tab.setBackground(tabBackground);
+            }
+        }
+
         if (!XMLPrefsManager.getBoolean(Ui.system_wallpaper) || !canApplyTheme) {
             rootView.setBackgroundColor(designTokens.background);
         } else {
@@ -1369,6 +1390,14 @@ public class UIManager implements OnTouchListener {
         TextView prefixView = (TextView) inputOutputView.findViewById(R.id.prefix_view);
 
         applyBgRect(inputOutputView.findViewById(R.id.input_group), bgRectColors[INPUT_BGCOLOR_INDEX], bgColors[INPUT_BGCOLOR_INDEX], margins[INPUTAREA_MARGINS_INDEX], strokeWidth, cornerRadius);
+        if (XMLPrefsManager.getColor(Theme.input_bgrectcolor) == Color.TRANSPARENT
+                && XMLPrefsManager.getColor(Theme.input_bg) == Color.TRANSPARENT) {
+            GradientDrawable inputSurface = new GradientDrawable();
+            inputSurface.setColor(designTokens.surface);
+            inputSurface.setCornerRadius(Tuils.dpToPx(mContext, 10));
+            inputSurface.setStroke(Tuils.dpToPx(mContext, 1), designTokens.border);
+            inputOutputView.findViewById(R.id.input_group).setBackground(inputSurface);
+        }
         applyShadow(inputView, outlineColors[INPUT_BGCOLOR_INDEX], shadowXOffset, shadowYOffset, shadowRadius);
         applyShadow(prefixView, outlineColors[INPUT_BGCOLOR_INDEX], shadowXOffset, shadowYOffset, shadowRadius);
 

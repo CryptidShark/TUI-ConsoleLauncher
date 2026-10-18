@@ -11,6 +11,7 @@ public class ThemeEngine {
 
     public enum Preset {
         CLASSIC_TERMINAL,
+        WINDOWS_TERMINAL,
         MODERN_TERMINAL,
         CYBER_TERMINAL,
         NEO_TERMINAL,
@@ -66,6 +67,27 @@ public class ThemeEngine {
         classic.borderWidth = 1;
         classic.useShadows = false;
         presets.put(Preset.CLASSIC_TERMINAL, classic);
+
+        // Windows Terminal inspired: quiet charcoal surfaces and a clear blue accent.
+        DesignTokens windows = new DesignTokens();
+        windows.background = Color.parseColor("#FF101214");
+        windows.surface = Color.parseColor("#FF1C1E22");
+        windows.primary = Color.parseColor("#FF4FC1FF");
+        windows.secondary = Color.parseColor("#FF8AB4F8");
+        windows.accent = Color.parseColor("#FF0078D4");
+        windows.text = Color.parseColor("#FFE6E6E6");
+        windows.textMuted = Color.parseColor("#FF9A9DA3");
+        windows.success = Color.parseColor("#FF6CCB5F");
+        windows.warning = Color.parseColor("#FFFFC857");
+        windows.error = Color.parseColor("#FFFF6B6B");
+        windows.info = Color.parseColor("#FF4FC1FF");
+        windows.border = Color.parseColor("#FF35383E");
+        windows.cursor = Color.parseColor("#FF4FC1FF");
+        windows.selection = Color.parseColor("#554FC1FF");
+        windows.borderRadius = 10;
+        windows.borderWidth = 1;
+        windows.useShadows = true;
+        presets.put(Preset.WINDOWS_TERMINAL, windows);
 
         // MODERN TERMINAL
         DesignTokens modern = new DesignTokens();
@@ -237,8 +259,9 @@ public class ThemeEngine {
     }
 
     public static DesignTokens getPreset(Preset preset) {
-        DesignTokens tokens = presets.get(preset);
-        if (tokens == null) return presets.get(Preset.CLASSIC_TERMINAL);
+        DesignTokens source = presets.get(preset);
+        if (source == null) source = presets.get(Preset.CLASSIC_TERMINAL);
+        DesignTokens tokens = copy(source);
         
         try {
             int xmlOutputColor = XMLPrefsManager.getColor(Theme.output_color);
@@ -253,11 +276,34 @@ public class ThemeEngine {
             }
 
             int xmlBgColor = XMLPrefsManager.getColor(Theme.bg_color);
-            if (xmlBgColor != Color.BLACK && xmlBgColor != 0) {
+            int defaultBgColor = Color.parseColor(Theme.bg_color.defaultValue());
+            if (xmlBgColor != defaultBgColor && xmlBgColor != 0) {
                 tokens.background = xmlBgColor;
             }
         } catch (Exception ignored) {}
 
+        return tokens;
+    }
+
+    private static DesignTokens copy(DesignTokens source) {
+        DesignTokens tokens = new DesignTokens();
+        tokens.background = source.background;
+        tokens.surface = source.surface;
+        tokens.primary = source.primary;
+        tokens.secondary = source.secondary;
+        tokens.accent = source.accent;
+        tokens.text = source.text;
+        tokens.textMuted = source.textMuted;
+        tokens.success = source.success;
+        tokens.warning = source.warning;
+        tokens.error = source.error;
+        tokens.info = source.info;
+        tokens.border = source.border;
+        tokens.cursor = source.cursor;
+        tokens.selection = source.selection;
+        tokens.borderRadius = source.borderRadius;
+        tokens.borderWidth = source.borderWidth;
+        tokens.useShadows = source.useShadows;
         return tokens;
     }
 }

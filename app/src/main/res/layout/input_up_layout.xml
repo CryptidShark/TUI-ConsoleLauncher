@@ -4,6 +4,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <include layout="@layout/terminal_chrome" />
+
     <HorizontalScrollView android:id="@id/suggestions_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,7 +36,11 @@
         android:layout_height="wrap_content"
         android:weightSum="@integer/input_group_weightsum"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
 
         <ohi.andre.consolelauncher.tuils.OutlineTextView
             android:id="@+id/prefix_view"

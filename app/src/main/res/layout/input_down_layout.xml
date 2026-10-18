@@ -4,6 +4,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <include
+        android:id="@+id/terminal_chrome"
+        layout="@layout/terminal_chrome" />
+
     <HorizontalScrollView android:id="@+id/suggestions_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -63,7 +67,11 @@
 
         android:weightSum="@integer/input_group_weightsum"
 
-        android:layout_above="@id/tools_view">
+        android:layout_above="@id/tools_view"
+        android:paddingStart="12dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
 
         <ohi.andre.consolelauncher.tuils.OutlineTextView
             android:id="@+id/prefix_view"
@@ -110,6 +118,7 @@
         android:id="@+id/terminal_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/terminal_chrome"
         android:layout_above="@id/input_group"
         android:clipToPadding="false"
         android:scrollbars="vertical" />

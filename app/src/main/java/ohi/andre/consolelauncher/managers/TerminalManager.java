@@ -104,9 +104,6 @@ public class TerminalManager {
 
         inputFormat = XMLPrefsManager.get(Behavior.input_format);
         outputFormat = XMLPrefsManager.get(Behavior.output_format);
-        inputColor = XMLPrefsManager.getColor(Theme.input_color);
-        outputColor = XMLPrefsManager.getColor(Theme.output_color);
-
         prefix = XMLPrefsManager.get(Ui.input_prefix);
         suPrefix = XMLPrefsManager.get(Ui.input_root_prefix);
 
@@ -119,6 +116,11 @@ public class TerminalManager {
         }
         ThemeEngine.DesignTokens designTokens = ThemeEngine.getPreset(preset);
 
+        // ThemeEngine has already applied explicit XML color overrides while
+        // keeping preset colors when the stored values are still defaults.
+        inputColor = designTokens.primary;
+        outputColor = designTokens.text;
+
         int ioSize = XMLPrefsManager.getInt(Ui.input_output_size);
 
         prefixView.setTypeface(Tuils.getTypeface(context));
@@ -128,6 +130,7 @@ public class TerminalManager {
         this.mPrefix = prefixView;
 
         int toolbarColor = XMLPrefsManager.getColor(Theme.toolbar_color);
+        if (toolbarColor == android.graphics.Color.WHITE) toolbarColor = designTokens.primary;
 
         if (submitView != null) {
             submitView.setColorFilter(designTokens.primary, PorterDuff.Mode.SRC_IN);

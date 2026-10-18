@@ -130,7 +130,7 @@ public enum Behavior implements XMLPrefsSave {
     music_target_app {
         @Override
         public String defaultValue() {
-            return "";
+            return "com.spotify.music";
         }
 
         @Override
@@ -162,12 +162,12 @@ public enum Behavior implements XMLPrefsSave {
     theme_preset {
         @Override
         public String defaultValue() {
-            return "CLASSIC_TERMINAL";
+            return "WINDOWS_TERMINAL";
         }
 
         @Override
         public String info() {
-            return "Visual theme preset (CLASSIC_TERMINAL, MODERN_TERMINAL, CYBER_TERMINAL, NEO_TERMINAL, AMBER_TERMINAL, NORD_TERMINAL, DRACULA_TERMINAL, AMOLED_TERMINAL)";
+            return "Visual theme preset (WINDOWS_TERMINAL, CLASSIC_TERMINAL, MODERN_TERMINAL, CYBER_TERMINAL, NEO_TERMINAL, AMBER_TERMINAL, NORD_TERMINAL, DRACULA_TERMINAL, AMOLED_TERMINAL)";
         }
 
         @Override

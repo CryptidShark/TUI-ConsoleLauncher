@@ -927,6 +927,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     private void applyThemeRecursively(View view) {
         if (ui == null || ui.pack == null) return;
+        if (view.getId() == R.id.music_card_root) return;
         
         String presetName = XMLPrefsManager.get(Behavior.theme_preset);
         ThemeEngine.Preset preset;
