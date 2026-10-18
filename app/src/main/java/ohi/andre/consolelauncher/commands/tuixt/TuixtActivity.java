@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -70,6 +71,13 @@ public class TuixtActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                setResult(BACK_PRESSED);
+                finish();
+            }
+        });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0);
@@ -257,13 +265,6 @@ public class TuixtActivity extends AppCompatActivity {
             inputView.setText("help");
             inputView.setSelection(inputView.getText().length());
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        setResult(BACK_PRESSED);
-        finish();
     }
 
     @Override

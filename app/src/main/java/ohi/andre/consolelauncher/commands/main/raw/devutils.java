@@ -1,11 +1,19 @@
 package ohi.andre.consolelauncher.commands.main.raw;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.util.List;
 
 import ohi.andre.consolelauncher.BuildConfig;
+import ohi.andre.consolelauncher.LauncherActivity;
 import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
@@ -29,7 +37,17 @@ public class devutils extends ParamCommand {
                 if(text.size() == 0) return null;
                 else {
                     title = text.remove(0);
-                    if(text.size() >= 2) txt = Tuils.toPlanString(text, Tuils.SPACE);
+                    if(!text.isEmpty()) txt = Tuils.toPlanString(text, Tuils.SPACE);
+                }
+
+                if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(pack.context,
+                        Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    if (pack.context instanceof Activity) {
+                        ActivityCompat.requestPermissions((Activity) pack.context,
+                                new String[]{Manifest.permission.POST_NOTIFICATIONS}, LauncherActivity.COMMAND_REQUEST_PERMISSION);
+                        return pack.context.getString(R.string.output_waitingpermission);
+                    }
+                    return "Allow notifications in Android settings to post a test notification.";
                 }
 
                 NotificationManagerCompat.from(pack.context).notify(200,

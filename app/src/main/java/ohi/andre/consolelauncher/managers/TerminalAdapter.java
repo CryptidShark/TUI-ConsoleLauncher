@@ -119,18 +119,12 @@ public class TerminalAdapter extends RecyclerView.Adapter<TerminalAdapter.ViewHo
                 Spanned spanned = (Spanned) item.getText();
                 LongClickableSpan[] spans = spanned.getSpans(0, spanned.length(), LongClickableSpan.class);
                 if (spans != null && spans.length > 0) {
-                    final LongClickableSpan span = spans[0];
-                    textView.setOnClickListener(v -> {
-                        v.setAlpha(0.5f);
-                        v.postDelayed(() -> v.setAlpha(1.0f), 100);
-                        span.onClick(v);
-                    });
-                    textView.setOnLongClickListener(v -> {
-                        v.setAlpha(0.5f);
-                        v.postDelayed(() -> v.setAlpha(1.0f), 100);
-                        span.onLongClick(v);
-                        return true;
-                    });
+                    // LongClickMovementMethod dispatches both gestures itself.
+                    // View click listeners would dispatch the same action again.
+                    textView.setOnClickListener(null);
+                    textView.setOnLongClickListener(null);
+                    textView.setClickable(true);
+                    textView.setLongClickable(true);
                 } else {
                     textView.setOnClickListener(null);
                     textView.setOnLongClickListener(null);

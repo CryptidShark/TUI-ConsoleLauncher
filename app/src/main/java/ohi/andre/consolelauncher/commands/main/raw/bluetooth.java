@@ -1,7 +1,15 @@
 package ohi.andre.consolelauncher.commands.main.raw;
 
 import android.bluetooth.BluetoothAdapter;
+import android.Manifest;
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Build;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import ohi.andre.consolelauncher.LauncherActivity;
 import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
@@ -17,12 +25,27 @@ public class bluetooth implements CommandAbstraction {
 
         if(adapter == null) return info.context.getString(R.string.output_bluetooth_unavailable);
 
-        if(adapter.isEnabled()) {
-            adapter.disable();
-            return info.context.getString(R.string.output_bluetooth) + " false";
-        } else {
-            adapter.enable();
-            return info.context.getString(R.string.output_bluetooth) + " true";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                && ContextCompat.checkSelfPermission(info.context, Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (info.context instanceof Activity) {
+                ActivityCompat.requestPermissions((Activity) info.context,
+                        new String[]{Manifest.permission.BLUETOOTH_CONNECT}, LauncherActivity.COMMAND_REQUEST_PERMISSION);
+                return info.context.getString(R.string.output_waitingpermission);
+            }
+            return "Grant Nearby devices permission to control Bluetooth.";
+        }
+
+        try {
+            if(adapter.isEnabled()) {
+                adapter.disable();
+                return info.context.getString(R.string.output_bluetooth) + " false";
+            } else {
+                adapter.enable();
+                return info.context.getString(R.string.output_bluetooth) + " true";
+            }
+        } catch (SecurityException e) {
+            return "Bluetooth permission was denied. Grant Nearby devices permission and try again.";
         }
     }
 

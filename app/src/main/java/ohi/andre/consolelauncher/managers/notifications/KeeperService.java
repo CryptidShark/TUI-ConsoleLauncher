@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
@@ -91,9 +92,18 @@ public class KeeperService extends Service {
 
             String path = intent != null ? intent.getStringExtra(PATH_KEY) : Tuils.getFolder().getAbsolutePath();
 
-            NotificationManagerCompat.from(getApplicationContext()).notify(KeeperService.ONGOING_NOTIFICATION_ID,
-                    KeeperService.buildNotification(getApplicationContext(), title, subtitle, Tuils.getHint(path),
-                            clickCmd, showHome, lastCommands, upDown, priority));
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+                    || androidx.core.content.ContextCompat.checkSelfPermission(this,
+                    android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                try {
+                    NotificationManagerCompat.from(getApplicationContext()).notify(KeeperService.ONGOING_NOTIFICATION_ID,
+                            KeeperService.buildNotification(getApplicationContext(), title, subtitle, Tuils.getHint(path),
+                                    clickCmd, showHome, lastCommands, upDown, priority));
+                } catch (SecurityException ignored) {
+                    // The ongoing foreground notification remains active; a denied
+                    // runtime permission only prevents updating its optional content.
+                }
+            }
         }
 
         return super.onStartCommand(intent, flags, startId);

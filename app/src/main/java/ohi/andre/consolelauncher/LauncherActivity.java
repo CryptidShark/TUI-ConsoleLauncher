@@ -1,6 +1,7 @@
 package ohi.andre.consolelauncher;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
@@ -336,11 +337,8 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         filter1.addAction(PublicIOReceiver.ACTION_OUTPUT);
 
         publicIOReceiver = new PublicIOReceiver();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getApplicationContext().registerReceiver(publicIOReceiver, filter1, "ohi.andre.consolelauncher.permission.RECEIVE_CMD", null, Context.RECEIVER_EXPORTED);
-        } else {
-            getApplicationContext().registerReceiver(publicIOReceiver, filter1, "ohi.andre.consolelauncher.permission.RECEIVE_CMD", null);
-        }
+        ContextCompat.registerReceiver(getApplicationContext(), publicIOReceiver, filter1,
+                "ohi.andre.consolelauncher.permission.RECEIVE_CMD", null, ContextCompat.RECEIVER_EXPORTED);
 
         int requestedOrientation = XMLPrefsManager.getInt(Behavior.orientation);
         if(requestedOrientation >= 0 && requestedOrientation != 2) {
@@ -487,7 +485,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                onBackPressed();
+                handleLauncherBack();
             }
         });
 
@@ -595,8 +593,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         dispose();
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleLauncherBack() {
         if (backButtonEnabled && main != null) {
             if (ui != null) {
                 String currentInput = ui.getInput();
@@ -609,6 +606,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         }
     }
 
+    @SuppressLint("GestureBackNavigation") // Preserve the launcher's legacy hardware-key long-press shortcut.
     @Override
     public boolean onKeyLongPress(int keyCode, KeyEvent event) {
         if (keyCode != KeyEvent.KEYCODE_BACK)
@@ -720,6 +718,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(permissions.length > 0 && permissions[0].equals(Manifest.permission.READ_CONTACTS) && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             LocalBroadcastManager.getInstance(this.getApplicationContext()).sendBroadcast(new Intent(ContactManager.ACTION_REFRESH));
         }

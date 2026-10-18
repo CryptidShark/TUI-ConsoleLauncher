@@ -254,7 +254,9 @@ public class LongClickableSpan extends ClickableSpan {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 if(showMenu) {
-                    PopupMenu menu = new PopupMenu(v.getContext().getApplicationContext(), v);
+                    // PopupMenu needs the Activity/window context associated with
+                    // the anchor view; an application context has no window token.
+                    PopupMenu menu = new PopupMenu(v.getContext(), v);
                     menu.getMenuInflater().inflate(R.menu.notification_menu, menu.getMenu());
 
                     menu.getMenu().findItem(R.id.exclude_app).setVisible(showExcludeApp);
