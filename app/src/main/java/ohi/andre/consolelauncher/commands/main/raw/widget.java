@@ -20,9 +20,15 @@ public class widget implements CommandAbstraction {
         MainPack info = (MainPack) pack;
 
         if (pack.args != null && pack.args.length > 0) {
-            String arg = pack.args[0].toString();
+            String argumentText = pack.args[0] == null ? "" : pack.args[0].toString().trim();
+            if (argumentText.isEmpty()) return "Usage: widget [add | list | move | height | remove | clear | perm]";
+            String[] arguments = argumentText.split("\\s+");
+            String arg = arguments[0];
             if (arg.equalsIgnoreCase("add")) {
                 if (info.context instanceof LauncherActivity) {
+                    if (info.widgetManager == null) {
+                        return "Widget support is not ready. Restart T-UI and try again.";
+                    }
                     if (!info.widgetManager.isDefaultLauncher()) {
                         Tuils.sendOutput(info.context, "WARNING: T-UI is NOT your default launcher. Some widgets might fail to bind.");
                     }
@@ -40,10 +46,10 @@ public class widget implements CommandAbstraction {
                 }
                 return sb.toString();
             } else if (arg.equalsIgnoreCase("move")) {
-                if (pack.args.length > 2 && info.context instanceof LauncherActivity) {
+                if (arguments.length > 2 && info.context instanceof LauncherActivity) {
                     try {
-                        int id = Integer.parseInt(pack.args[1].toString());
-                        String dir = pack.args[2].toString();
+                        int id = Integer.parseInt(arguments[1]);
+                        String dir = arguments[2];
                         boolean up = dir.equalsIgnoreCase("up");
                         boolean moved = info.widgetManager.moveWidget((LauncherActivity) info.context, id, up);
                         return moved ? "Widget " + id + " moved " + (up ? "up" : "down") + "." : "Unable to move widget " + id;
@@ -53,10 +59,10 @@ public class widget implements CommandAbstraction {
                 }
                 return "Usage: widget move [ID] [up|down]";
             } else if (arg.equalsIgnoreCase("height") || arg.equalsIgnoreCase("resize")) {
-                if (pack.args.length > 2 && info.context instanceof LauncherActivity) {
+                if (arguments.length > 2 && info.context instanceof LauncherActivity) {
                     try {
-                        int id = Integer.parseInt(pack.args[1].toString());
-                        int heightDp = Integer.parseInt(pack.args[2].toString());
+                        int id = Integer.parseInt(arguments[1]);
+                        int heightDp = Integer.parseInt(arguments[2]);
                         boolean resized = info.widgetManager.setWidgetHeight((LauncherActivity) info.context, id, heightDp);
                         return resized ? "Widget " + id + " height updated to " + heightDp + "dp." : "Unable to resize widget " + id;
                     } catch (Exception e) {
@@ -65,9 +71,9 @@ public class widget implements CommandAbstraction {
                 }
                 return "Usage: widget height [ID] [dp]";
             } else if (arg.equalsIgnoreCase("remove")) {
-                if (pack.args.length > 1) {
+                if (arguments.length > 1) {
                     try {
-                        int id = Integer.parseInt(pack.args[1].toString());
+                        int id = Integer.parseInt(arguments[1]);
                         if (!info.widgetManager.removeWidget(id)) return "Widget ID " + id + " is not active. Use `widget list` to see saved IDs.";
                         if (info.context instanceof LauncherActivity) {
                             ((LauncherActivity) info.context).refreshPersistentContainer();
@@ -103,7 +109,8 @@ public class widget implements CommandAbstraction {
 
     @Override
     public int[] argType() {
-        return new int[] {CommandAbstraction.PLAIN_TEXT, CommandAbstraction.PLAIN_TEXT, CommandAbstraction.PLAIN_TEXT};
+        // PLAIN_TEXT is the full remainder; subcommand operands are split in exec().
+        return new int[] {CommandAbstraction.PLAIN_TEXT};
     }
 
     @Override

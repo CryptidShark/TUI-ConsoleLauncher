@@ -654,7 +654,10 @@ public class visual implements CommandAbstraction {
 
     @Override
     public int[] argType() {
-        return new int[] {CommandAbstraction.PLAIN_TEXT, CommandAbstraction.PLAIN_TEXT};
+        // PLAIN_TEXT consumes the complete remaining command line. Parse its
+        // subcommands and flags inside exec() instead of asking the command
+        // parser for multiple PLAIN_TEXT arguments (which it cannot split).
+        return new int[] {CommandAbstraction.PLAIN_TEXT};
     }
 
     @Override
