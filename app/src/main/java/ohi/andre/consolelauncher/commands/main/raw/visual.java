@@ -118,7 +118,10 @@ public class visual implements CommandAbstraction {
                 if (info.context instanceof LauncherActivity) {
                     ((LauncherActivity) info.context).runOnUiThread(() -> {
                         ViewGroup pc = ((LauncherActivity) info.context).findViewById(R.id.persistent_container);
-                        if (pc != null) pc.removeAllViews();
+                        if (pc != null) {
+                            pc.removeAllViews();
+                            ((LauncherActivity) info.context).updatePersistentAreaVisibility();
+                        }
                     });
                 }
                 return "Persistent area cleared.";

@@ -91,6 +91,7 @@ public class widget implements CommandAbstraction {
                                 }
                             }
                         }
+                        ((LauncherActivity) info.context).updatePersistentAreaVisibility();
                     });
                 }
                 return "Persistent widgets cleared.";

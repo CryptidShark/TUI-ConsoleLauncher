@@ -805,6 +805,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         if (persistentContainer != null) {
             runOnUiThread(() -> {
                 persistentContainer.removeAllViews();
+                updatePersistentAreaVisibility();
                 if (XMLPrefsManager.getBoolean(Behavior.persistent_system_card)) {
                     loadFixedVisual("system");
                 }
@@ -912,7 +913,15 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                     persistentContainer.addView(view);
                     applyThemeRecursively(view);
                 }
+                updatePersistentAreaVisibility();
             });
+        }
+    }
+
+    public void updatePersistentAreaVisibility() {
+        View persistentScroll = findViewById(R.id.persistent_scroll);
+        if (persistentScroll != null && persistentContainer != null) {
+            persistentScroll.setVisibility(persistentContainer.getChildCount() == 0 ? View.GONE : View.VISIBLE);
         }
     }
 
