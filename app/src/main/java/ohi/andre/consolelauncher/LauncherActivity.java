@@ -325,6 +325,10 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     private void finishOnCreate(Bundle savedInstanceState) {
 
+        // Install the loading view before starting services and building the launcher UI.
+        setContentView(R.layout.base_view);
+        showBinaryStartupIndicator();
+
         Thread.currentThread().setUncaughtExceptionHandler(new CustomExceptionHandler());
 
         XMLPrefsManager.loadCommons(this);
@@ -422,9 +426,6 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 
-        setContentView(R.layout.base_view);
-        showBinaryStartupIndicator();
-
         if(XMLPrefsManager.getBoolean(Ui.show_restart_message)) {
             CharSequence s = getIntent().getCharSequenceExtra(Reloadable.MESSAGE);
             if(s != null) out.onOutput(Tuils.span(s, XMLPrefsManager.getColor(Theme.restart_message_color)));
@@ -515,7 +516,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         if (!(decor instanceof ViewGroup) || isFinishing()) return;
 
         TextView indicator = new TextView(this);
-        indicator.setText("01 10 01 11 00 10 01");
+        indicator.setText("INICIANDO T-UI\n01 10 01 11 00 10 01");
         indicator.setTextColor(XMLPrefsManager.getColor(Theme.time_color));
         indicator.setTextSize(13);
         indicator.setTypeface(android.graphics.Typeface.MONOSPACE);
@@ -549,7 +550,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                 int bits = (int) (System.nanoTime() >>> 7) ^ (frame++ * 0x45D9F3B);
                 String binary = String.format(Locale.US, "%24s", Integer.toBinaryString(bits & 0xFFFFFF))
                         .replace(' ', '0');
-                indicator.setText(binary.substring(0, 4) + " " + binary.substring(4, 8) + " "
+                indicator.setText("INICIANDO T-UI\n" + binary.substring(0, 4) + " " + binary.substring(4, 8) + " "
                         + binary.substring(8, 12) + " " + binary.substring(12, 16) + " "
                         + binary.substring(16, 20) + " " + binary.substring(20, 24));
                 startupAnimationHandler.postDelayed(this, 90);
@@ -575,7 +576,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                 }
             }).start();
         };
-        startupAnimationHandler.postDelayed(startupBinaryDismissal, 650);
+        startupAnimationHandler.postDelayed(startupBinaryDismissal, 1800);
     }
 
     private int dp(float value) {
