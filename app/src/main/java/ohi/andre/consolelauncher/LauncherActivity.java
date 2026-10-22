@@ -23,6 +23,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.ContextMenu;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,6 +31,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -100,6 +102,11 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     private MainManager main;
     private TuiWidgetManager widgetManager;
     private ViewGroup persistentContainer;
+    private final Handler startupAnimationHandler = new Handler();
+    private TextView startupBinaryView;
+    private Runnable startupBinaryAnimation;
+    private Runnable startupBinaryDismissal;
+    private boolean startupAnimationFinishing;
 
     private PrivateIOReceiver privateIOReceiver;
     private PublicIOReceiver publicIOReceiver;
@@ -416,6 +423,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         }
 
         setContentView(R.layout.base_view);
+        showBinaryStartupIndicator();
 
         if(XMLPrefsManager.getBoolean(Ui.show_restart_message)) {
             CharSequence s = getIntent().getCharSequenceExtra(Reloadable.MESSAGE);
@@ -498,6 +506,80 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         }
 
         System.gc();
+        finishBinaryStartupIndicator();
+    }
+
+    /** Shows a small, non-blocking binary status badge while the launcher's UI is initialized. */
+    private void showBinaryStartupIndicator() {
+        View decor = getWindow().getDecorView();
+        if (!(decor instanceof ViewGroup) || isFinishing()) return;
+
+        TextView indicator = new TextView(this);
+        indicator.setText("01 10 01 11 00 10 01");
+        indicator.setTextColor(XMLPrefsManager.getColor(Theme.time_color));
+        indicator.setTextSize(13);
+        indicator.setTypeface(android.graphics.Typeface.MONOSPACE);
+        indicator.setGravity(Gravity.CENTER);
+        int horizontalPadding = dp(16);
+        int verticalPadding = dp(9);
+        indicator.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
+        indicator.setBackground(new GradientDrawable() {{
+            setColor(XMLPrefsManager.getColor(Theme.bg_color));
+            setCornerRadius(dp(24));
+            setStroke(dp(1), XMLPrefsManager.getColor(Theme.time_color) & 0x66FFFFFF);
+        }});
+        indicator.setElevation(dp(6));
+        indicator.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        androidx.core.view.WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
+        int statusBarInset = insets == null ? dp(24)
+                : insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+        params.topMargin = statusBarInset + dp(12);
+        ((ViewGroup) decor).addView(indicator, params);
+        startupBinaryView = indicator;
+
+        startupBinaryAnimation = new Runnable() {
+            private int frame;
+
+            @Override public void run() {
+                if (startupBinaryView != indicator || startupAnimationFinishing || isFinishing()) return;
+                int bits = (int) (System.nanoTime() >>> 7) ^ (frame++ * 0x45D9F3B);
+                String binary = String.format(Locale.US, "%24s", Integer.toBinaryString(bits & 0xFFFFFF))
+                        .replace(' ', '0');
+                indicator.setText(binary.substring(0, 4) + " " + binary.substring(4, 8) + " "
+                        + binary.substring(8, 12) + " " + binary.substring(12, 16) + " "
+                        + binary.substring(16, 20) + " " + binary.substring(20, 24));
+                startupAnimationHandler.postDelayed(this, 90);
+            }
+        };
+        startupAnimationHandler.post(startupBinaryAnimation);
+    }
+
+    private void finishBinaryStartupIndicator() {
+        if (startupBinaryView == null || startupAnimationFinishing) return;
+        // Keep it visible briefly after onCreate returns so the animation gets rendered.
+        startupBinaryDismissal = () -> {
+            startupAnimationFinishing = true;
+            if (startupBinaryAnimation != null) startupAnimationHandler.removeCallbacks(startupBinaryAnimation);
+            TextView indicator = startupBinaryView;
+            if (indicator == null) return;
+            indicator.animate().alpha(0f).setDuration(220).withEndAction(() -> {
+                startupBinaryView = null;
+                startupBinaryAnimation = null;
+                startupBinaryDismissal = null;
+                if (indicator.getParent() instanceof ViewGroup) {
+                    ((ViewGroup) indicator.getParent()).removeView(indicator);
+                }
+            }).start();
+        };
+        startupAnimationHandler.postDelayed(startupBinaryDismissal, 650);
+    }
+
+    private int dp(float value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private void loadFixedVisual(String type) {
@@ -588,6 +670,11 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     @Override
     protected void onDestroy() {
+        startupAnimationHandler.removeCallbacksAndMessages(null);
+        if (startupBinaryView != null && startupBinaryView.getParent() instanceof ViewGroup) {
+            ((ViewGroup) startupBinaryView.getParent()).removeView(startupBinaryView);
+        }
+        startupBinaryView = null;
         super.onDestroy();
 
         dispose();
