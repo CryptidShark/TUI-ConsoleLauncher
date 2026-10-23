@@ -87,11 +87,23 @@ public class LongClickMovementMethod extends LinkMovementMethod {
     }
 
     private LongClickableSpan findSpanAt(Spannable buffer, Layout layout, int line, int x, int y) {
-        if (y < 0 || y > layout.getHeight()
-                || x < layout.getLineLeft(line) || x > layout.getLineRight(line)) return null;
+        if (y < 0 || y > layout.getHeight()) return null;
+
         int offset = layout.getOffsetForHorizontal(line, x);
         LongClickableSpan[] spans = buffer.getSpans(offset, offset, LongClickableSpan.class);
-        return spans.length == 0 ? null : spans[0];
+        if (spans.length > 0) return spans[0];
+
+        if (offset > 0) {
+            spans = buffer.getSpans(Math.max(0, offset - 1), Math.min(buffer.length(), offset + 1), LongClickableSpan.class);
+            if (spans.length > 0) return spans[0];
+        }
+
+        LongClickableSpan[] allSpans = buffer.getSpans(0, buffer.length(), LongClickableSpan.class);
+        if (allSpans.length > 0 && x >= 0) {
+            return allSpans[0];
+        }
+
+        return null;
     }
 
     private void cancelTouch(TextView widget) {

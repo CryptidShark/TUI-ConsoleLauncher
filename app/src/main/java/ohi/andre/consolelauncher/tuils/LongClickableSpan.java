@@ -1,6 +1,7 @@
 package ohi.andre.consolelauncher.tuils;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -8,6 +9,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Vibrator;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.text.TextPaint;
@@ -133,26 +135,43 @@ public class LongClickableSpan extends ClickableSpan {
         // 1. Primary: Trigger the specific PendingIntent
         if (n.pendingIntent != null) {
             try {
+                Bundle optionsBundle = null;
+                if (Build.VERSION.SDK_INT >= 34) {
+                    try {
+                        ActivityOptions options = ActivityOptions.makeBasic();
+                        options.setPendingIntentBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+                        optionsBundle = options.toBundle();
+                    } catch (Throwable ignore) {}
+                }
+
+                Intent fillInIntent = new Intent();
+                fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
                 if (activity != null) {
                     try {
                         activity.startIntentSender(
                                 n.pendingIntent.getIntentSender(),
-                                null,
+                                fillInIntent,
+                                Intent.FLAG_ACTIVITY_NEW_TASK,
+                                Intent.FLAG_ACTIVITY_NEW_TASK,
                                 0,
-                                0,
-                                0
+                                optionsBundle
                         );
                         opened = true;
                     } catch (Exception e1) {
-                        Intent fillInIntent = new Intent();
-                        fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        n.pendingIntent.send(launchContext, 0, fillInIntent);
+                        if (optionsBundle != null) {
+                            n.pendingIntent.send(launchContext, 0, fillInIntent, null, null, null, optionsBundle);
+                        } else {
+                            n.pendingIntent.send(launchContext, 0, fillInIntent);
+                        }
                         opened = true;
                     }
                 } else {
-                    Intent fillInIntent = new Intent();
-                    fillInIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    n.pendingIntent.send(launchContext, 0, fillInIntent);
+                    if (optionsBundle != null) {
+                        n.pendingIntent.send(launchContext, 0, fillInIntent, null, null, null, optionsBundle);
+                    } else {
+                        n.pendingIntent.send(launchContext, 0, fillInIntent);
+                    }
                     opened = true;
                 }
             } catch (Exception e) {

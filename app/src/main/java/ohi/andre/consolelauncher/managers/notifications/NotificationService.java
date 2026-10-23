@@ -239,8 +239,20 @@ public class NotificationService extends NotificationListenerService {
 
                             if(found == 2) continue;
 
-//                        else
-                            Notification n = new Notification(System.currentTimeMillis(), text, pack, notification.contentIntent);
+                            PendingIntent pi = notification.contentIntent;
+                            if (pi == null && notification.fullScreenIntent != null) {
+                                pi = notification.fullScreenIntent;
+                            }
+                            if (pi == null && sbn.getNotification().actions != null && sbn.getNotification().actions.length > 0) {
+                                for (android.app.Notification.Action action : sbn.getNotification().actions) {
+                                    if (action != null && action.actionIntent != null) {
+                                        pi = action.actionIntent;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            Notification n = new Notification(System.currentTimeMillis(), text, pack, pi);
 
                             if(found == 1) {
                                 List<Notification> ns = new ArrayList<>();
