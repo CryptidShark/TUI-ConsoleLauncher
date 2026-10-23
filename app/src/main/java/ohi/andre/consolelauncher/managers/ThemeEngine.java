@@ -19,7 +19,8 @@ public class ThemeEngine {
         NORD_TERMINAL,
         DRACULA_TERMINAL,
         AMOLED_TERMINAL,
-        WATCHDOGS_CYBER
+        WATCHDOGS_CYBER,
+        GHOST_SHELL
     }
 
     public static class DesignTokens {
@@ -236,26 +237,47 @@ public class ThemeEngine {
         amoled.useShadows = false;
         presets.put(Preset.AMOLED_TERMINAL, amoled);
 
-        // WATCHDOGS_CYBER (Cybersecurity Urban Interface)
+        // WATCHDOGS_CYBER (Watch Dogs ctOS Minimalist Cyberpunk)
         DesignTokens watchdogs = new DesignTokens();
-        watchdogs.background = Color.parseColor("#E6080F14"); // Dark Petroleum / Deep Cyber
-        watchdogs.surface = Color.parseColor("#1A1F24");    // Dark Metallic Surface
-        watchdogs.primary = Color.parseColor("#00E5FF");    // Cyan Accent
-        watchdogs.secondary = Color.parseColor("#BD93F9");  // Violet Details
-        watchdogs.accent = Color.parseColor("#FF79C6");     // Magenta Highlight
-        watchdogs.text = Color.parseColor("#F8F8F2");       // Off-White Foreground
-        watchdogs.textMuted = Color.parseColor("#6272A4");  // Muted Tech Grey
-        watchdogs.success = Color.parseColor("#00E5FF");    // Cyan Success
-        watchdogs.warning = Color.parseColor("#FF79C6");    // Magenta Alert
-        watchdogs.error = Color.parseColor("#FF5555");      // Red Error
-        watchdogs.info = Color.parseColor("#BD93F9");       // Violet Info
-        watchdogs.border = Color.parseColor("#00E5FF");     // Cyan Border
-        watchdogs.cursor = Color.parseColor("#00E5FF");     // Cyan Cursor
+        watchdogs.background = Color.parseColor("#E60B0E14"); // Deep CtOS Slate / Cyber Dark
+        watchdogs.surface = Color.parseColor("#141A22");    // Metallic Surface
+        watchdogs.primary = Color.parseColor("#00E5FF");    // Electric Cyan
+        watchdogs.secondary = Color.parseColor("#BD93F9");  // Cyber Violet
+        watchdogs.accent = Color.parseColor("#FF79C6");     // Neon Magenta
+        watchdogs.text = Color.parseColor("#F0F4F8");       // Crisp Tech White
+        watchdogs.textMuted = Color.parseColor("#5A6978");  // Muted Tech Metallic Grey
+        watchdogs.success = Color.parseColor("#00FF9F");    // Cyber Lime
+        watchdogs.warning = Color.parseColor("#FFD600");    // Tech Yellow
+        watchdogs.error = Color.parseColor("#FF2A54");      // Glitch Crimson
+        watchdogs.info = Color.parseColor("#00E5FF");       // Electric Cyan
+        watchdogs.border = Color.parseColor("#00E5FF");     // Electric Cyan Border
+        watchdogs.cursor = Color.parseColor("#00E5FF");     // Electric Cyan Cursor
         watchdogs.selection = Color.parseColor("#3300E5FF");
         watchdogs.borderRadius = 2;
         watchdogs.borderWidth = 1;
         watchdogs.useShadows = true;
         presets.put(Preset.WATCHDOGS_CYBER, watchdogs);
+
+        // GHOST_SHELL (Section 9 Cyber-Tactical Neural Interface)
+        DesignTokens ghostShell = new DesignTokens();
+        ghostShell.background = Color.parseColor("#E6040C0E"); // Tactical Stealth Obsidian
+        ghostShell.surface = Color.parseColor("#0E171B");    // Deep Neural Surface
+        ghostShell.primary = Color.parseColor("#00FFD1");    // Section 9 Neon Cyan
+        ghostShell.secondary = Color.parseColor("#7D5FFF");  // Deep Cobalt
+        ghostShell.accent = Color.parseColor("#E056FD");     // Holographic Violet
+        ghostShell.text = Color.parseColor("#E8F8F5");       // Phosphor Tech White
+        ghostShell.textMuted = Color.parseColor("#4A6572");  // Stealth Grey
+        ghostShell.success = Color.parseColor("#00FF9D");    // Emerald Signal
+        ghostShell.warning = Color.parseColor("#FFD000");    // Tech Amber
+        ghostShell.error = Color.parseColor("#FF3B5C");      // Tactical Crimson
+        ghostShell.info = Color.parseColor("#00FFD1");       // Section 9 Cyan
+        ghostShell.border = Color.parseColor("#00FFD1");     // Neon Cyan Border
+        ghostShell.cursor = Color.parseColor("#00FFD1");     // Neon Cyan Cursor
+        ghostShell.selection = Color.parseColor("#3300FFD1");
+        ghostShell.borderRadius = 2;
+        ghostShell.borderWidth = 1;
+        ghostShell.useShadows = true;
+        presets.put(Preset.GHOST_SHELL, ghostShell);
     }
 
     public static DesignTokens getPreset(Preset preset) {

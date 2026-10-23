@@ -36,7 +36,7 @@ public class manual implements CommandAbstraction {
                 + "  config -import_profile [name.json]\n"
                 + "  Profiles store launcher settings; keep a copy before importing.\n\n"
                 + "THEMES & SETTINGS\n"
-                + "  theme -preset [blue|red|green|pink|bw|cyberpunk|watchdogs]\n"
+                + "  theme -preset [watchdogs|ghost_shell|blue|red|green|pink|bw|cyberpunk]\n"
                 + "  settings / config -get / config -set [option] [value]\n\n"
                 + "Run `help [command]` for command-specific usage. Android permissions and widget support vary by device.";
     }

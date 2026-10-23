@@ -99,24 +99,52 @@ public class theme extends ParamCommand {
                 switch(name) {
                     case "watchdogs_cyber":
                     case "watchdogs":
-                        colors.put(backgroundTarget, transPrefix + "080F14");
+                        colors.put(backgroundTarget, isTransparent ? "#000B0E14" : "#E60B0E14");
                         colors.put(Theme.input_color, "#00E5FF");
-                        colors.put(Theme.output_color, "#F8F8F2");
-                        colors.put(Theme.device_color, "#BD93F9");
+                        colors.put(Theme.output_color, "#F0F4F8");
+                        colors.put(Theme.time_color, "#00E5FF");
+                        colors.put(Theme.device_color, "#FFB86C");
+                        colors.put(Theme.battery_color_high, "#00FF9F");
+                        colors.put(Theme.battery_color_medium, "#FFD600");
+                        colors.put(Theme.battery_color_low, "#FF2A54");
+                        colors.put(Theme.storage_color, "#BD93F9");
+                        colors.put(Theme.ram_color, "#FF2A54");
+                        colors.put(Theme.network_info_color, "#00FF9F");
+                        colors.put(Theme.weather_color, "#FF79C6");
+                        colors.put(Theme.notes_color, "#00E5FF");
+                        colors.put(Theme.notes_locked_color, "#BD93F9");
+                        colors.put(Theme.cursor_color, "#00E5FF");
                         colors.put(Theme.enter_color, "#00E5FF");
                         colors.put(Theme.toolbar_color, "#00E5FF");
-                        colors.put(Theme.time_color, "#FF79C6");
+                        colors.put(Theme.alias_content_color, "#00FF9F");
+                        colors.put(Theme.hint_color, "#00FF9F");
+                        colors.put(Theme.statusbar_color, "#0B0E14");
+                        colors.put(Theme.navigationbar_color, "#0B0E14");
 
-                        suggestionColors.put(Suggestions.apps_bg_color, "#1A1F24");
+                        suggestionColors.put(Suggestions.apps_bg_color, "#141A22");
                         suggestionColors.put(Suggestions.alias_bg_color, "#BD93F9");
                         suggestionColors.put(Suggestions.cmd_bg_color, "#00E5FF");
-                        suggestionColors.put(Suggestions.file_bg_color, "#6272A4");
+                        suggestionColors.put(Suggestions.file_bg_color, "#5A6978");
                         suggestionColors.put(Suggestions.song_bg_color, "#FF79C6");
                         
-                        suggestionColors.put(Suggestions.apps_text_color, "#F8F8F2");
+                        suggestionColors.put(Suggestions.apps_text_color, "#F0F4F8");
                         suggestionColors.put(Suggestions.alias_text_color, "#000000");
                         suggestionColors.put(Suggestions.cmd_text_color, "#000000");
-                        
+                        suggestionColors.put(Suggestions.file_text_color, "#FFFFFF");
+                        suggestionColors.put(Suggestions.song_text_color, "#000000");
+
+                        try {
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.time_index, "0");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.device_index, "1");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.battery_index, "2");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.storage_index, "3");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.ram_index, "4");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.network_index, "5");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.weather_index, "6");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.notes_index, "7");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.status_lines_alignment, "0,0,0,0,0,0,0,0,0");
+                        } catch (Exception ignore) {}
+
                         Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.WATCHDOGS_CYBER.name());
                         break;
                     case "blue":
@@ -217,8 +245,59 @@ public class theme extends ParamCommand {
                         
                         suggestionColors.put(Suggestions.alias_text_color, "#000000");
                         break;
+                    case "ghost_shell":
+                    case "ghost":
+                    case "section9":
+                        colors.put(backgroundTarget, isTransparent ? "#00040C0E" : "#E6040C0E");
+                        colors.put(Theme.input_color, "#00FFD1");
+                        colors.put(Theme.output_color, "#E8F8F5");
+                        colors.put(Theme.time_color, "#00FFD1");
+                        colors.put(Theme.device_color, "#FFB000");
+                        colors.put(Theme.battery_color_high, "#00FF9D");
+                        colors.put(Theme.battery_color_medium, "#FFD000");
+                        colors.put(Theme.battery_color_low, "#FF3B5C");
+                        colors.put(Theme.storage_color, "#7D5FFF");
+                        colors.put(Theme.ram_color, "#FF3B5C");
+                        colors.put(Theme.network_info_color, "#00E5FF");
+                        colors.put(Theme.weather_color, "#E056FD");
+                        colors.put(Theme.notes_color, "#00FFD1");
+                        colors.put(Theme.notes_locked_color, "#7D5FFF");
+                        colors.put(Theme.cursor_color, "#00FFD1");
+                        colors.put(Theme.enter_color, "#00FFD1");
+                        colors.put(Theme.toolbar_color, "#00FFD1");
+                        colors.put(Theme.alias_content_color, "#00FF9D");
+                        colors.put(Theme.hint_color, "#00FFD1");
+                        colors.put(Theme.statusbar_color, "#040C0E");
+                        colors.put(Theme.navigationbar_color, "#040C0E");
+
+                        suggestionColors.put(Suggestions.apps_bg_color, "#0E171B");
+                        suggestionColors.put(Suggestions.alias_bg_color, "#7D5FFF");
+                        suggestionColors.put(Suggestions.cmd_bg_color, "#00FFD1");
+                        suggestionColors.put(Suggestions.file_bg_color, "#4A6572");
+                        suggestionColors.put(Suggestions.song_bg_color, "#E056FD");
+                        
+                        suggestionColors.put(Suggestions.apps_text_color, "#E8F8F5");
+                        suggestionColors.put(Suggestions.alias_text_color, "#FFFFFF");
+                        suggestionColors.put(Suggestions.cmd_text_color, "#000000");
+                        suggestionColors.put(Suggestions.file_text_color, "#FFFFFF");
+                        suggestionColors.put(Suggestions.song_text_color, "#FFFFFF");
+
+                        try {
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.time_index, "0");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.device_index, "1");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.battery_index, "2");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.storage_index, "3");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.ram_index, "4");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.network_index, "5");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.weather_index, "6");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.notes_index, "7");
+                            XMLPrefsManager.XMLPrefsRoot.UI.write(Ui.status_lines_alignment, "0,0,0,0,0,0,0,0,0");
+                        } catch (Exception ignore) {}
+
+                        Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.GHOST_SHELL.name());
+                        break;
                     default:
-                        return "Unknown preset. Available: watchdogs_cyber, blue, red, green, pink, bw, cyberpunk";
+                        return "Unknown preset. Available: watchdogs, ghost_shell, blue, red, green, pink, bw, cyberpunk";
                 }
 
                 colors.put(Theme.toolbar_bg, "#00000000");
