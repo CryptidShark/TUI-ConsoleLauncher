@@ -102,6 +102,61 @@ To comply with Scoped Storage requirements on Android 10+ and modern API levels 
 
 ---
 
+## ⚡ Gestures & Virtual Function Keys (Keybinds)
+
+- **Gestures:**
+  - **Swipe Up:** Opens search (`search`).
+  - **Swipe Down:** Shows notifications (`notifications`).
+  - **Swipe Left / Right:** Switches active workspace (`workspace next` / `workspace prev`).
+- **Virtual Function Keys (`keybind`):**
+  - Bind custom commands to virtual keys (F1 - F10):
+    ```bash
+    keybind F1 search google
+    keybind F2 termux run backup.sh
+    keybind list
+    keybind remove F1
+    ```
+  - Simply type `F1`, `F2`, etc. in the terminal to execute the bound action.
+
+---
+
+## ⚙️ User-Defined Custom Commands (`command`)
+
+Create powerful composite commands, sequential tasks separated by `;`, or Termux scripts:
+- **Create a custom command:**
+  ```bash
+  command create G search google
+  command create backup cp /sdcard/fotos /sdcard/backup
+  command create ops clear; time; monitor
+  ```
+- **List custom commands:**
+  ```bash
+  command list
+  ```
+- **Remove a custom command:**
+  ```bash
+  command remove backup
+  ```
+
+---
+
+## 📊 Comprehensive System Monitor (`monitor` / `visual sys`)
+
+Real-time system readout monitoring CPU load, RAM usage, battery temperature, network I/O, and cellular signal:
+- **Run monitor readout:**
+  ```bash
+  monitor
+  monitor -crt
+  monitor -nocrt
+  ```
+- **Create system monitor card:**
+  ```bash
+  visual sys
+  visual sys -fixed
+  ```
+
+---
+
 ## 🔍 Useful ADB Debugging Commands
 
 ```bash

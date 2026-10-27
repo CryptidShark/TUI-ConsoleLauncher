@@ -289,6 +289,29 @@ public class MainManager {
     public void onCommand(String input, String alias, boolean wasMusicService) {
         input = Tuils.removeUnncesarySpaces(input);
 
+        String upperInput = input.trim().toUpperCase();
+        if (upperInput.matches("F([1-9]|10)")) {
+            String boundCmd = ohi.andre.consolelauncher.commands.main.raw.keybind.getInstance(mContext).get(upperInput);
+            if (boundCmd != null) {
+                Tuils.sendOutput(mContext, "Executing keybind " + upperInput + ": " + boundCmd);
+                onCommand(boundCmd, (String) null, wasMusicService);
+                return;
+            }
+        }
+
+        String firstWord = input.trim().split("\\s+")[0];
+        String customAction = ohi.andre.consolelauncher.commands.main.raw.command.getInstance(mContext).get(firstWord);
+        if (customAction != null && alias == null && !firstWord.equalsIgnoreCase("command")) {
+            if (customAction.contains(";")) {
+                for (String sub : customAction.split(";")) {
+                    onCommand(sub.trim(), (String) null, wasMusicService);
+                }
+            } else {
+                onCommand(customAction, (String) null, wasMusicService);
+            }
+            return;
+        }
+
         if(alias == null) updateServices(input, wasMusicService);
 
         if(redirect != null) {
