@@ -157,6 +157,40 @@ Real-time system readout monitoring CPU load, RAM usage, battery temperature, ne
 
 ---
 
+## 🔊 Text-to-Speech (TTS) & Optical Character Recognition (OCR)
+
+- **Text-to-Speech (`tts`):**
+  - Read text aloud using Android's system TTS engine:
+    ```bash
+    tts Hello from T-UI console launcher
+    tts -stop
+    ```
+- **Optical Character Recognition (`ocr`):**
+  - Extract text from an image (using file path or SAF content URI):
+    ```bash
+    ocr /sdcard/Download/document.jpg
+    ocr content://com.android.providers.media.documents/document/image%3A1234
+    ```
+  - Extracted text is displayed in the terminal and automatically copied to the clipboard.
+
+---
+
+## 💬 Quick Assistant Floating Overlay (`overlay`)
+
+Quickly access T-UI mini-terminal from any other app without returning to home screen:
+- **Activate overlay floating bubble (`>_`):**
+  ```bash
+  overlay show
+  ```
+- **Deactivate overlay:**
+  ```bash
+  overlay hide
+  ```
+- **Permissions required:**
+  - Android will prompt for "Draw over other apps" (`SYSTEM_ALERT_WINDOW`) permission when running `overlay show` for the first time.
+
+---
+
 ## 🔍 Useful ADB Debugging Commands
 
 ```bash

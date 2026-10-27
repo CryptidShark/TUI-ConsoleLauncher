@@ -43,6 +43,7 @@
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <uses-permission android:name="android.permission.BIND_APPWIDGET"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!-- features -->
     <uses-feature
@@ -246,6 +247,9 @@
         </service>
         <service 
             android:name=".managers.notifications.NotificationMonitorService"
+            android:exported="false" />
+        <service
+            android:name=".services.TuiOverlayService"
             android:exported="false" />
 
         <activity
