@@ -191,6 +191,37 @@ Quickly access T-UI mini-terminal from any other app without returning to home s
 
 ---
 
+## 🎨 Themes & Customization (`theme`)
+
+Cythernoir Launcher includes state-of-the-art terminal color palettes inspired by community favorites in 2026:
+- **Available Presets:**
+  - `catppuccin_mocha` (Soft warm dark pastel)
+  - `tokyo_night` (Smooth blue-purple OLED optimized)
+  - `gruvbox_hard` (High contrast warm retro)
+  - `catppuccin_latte` (Clean light mode)
+  - `watchdogs`, `ghost_shell`, `cyberpunk`, `amber`, `nord`, `dracula`
+- **Commands:**
+  - **Preview a theme palette:**
+    ```bash
+    theme preview catppuccin_mocha
+    ```
+  - **Apply a theme preset:**
+    ```bash
+    theme preset catppuccin_mocha
+    ```
+- **Activate overlay floating bubble (`>_`):**
+  ```bash
+  overlay show
+  ```
+- **Deactivate overlay:**
+  ```bash
+  overlay hide
+  ```
+- **Permissions required:**
+  - Android will prompt for "Draw over other apps" (`SYSTEM_ALERT_WINDOW`) permission when running `overlay show` for the first time.
+
+---
+
 ## 🔍 Useful ADB Debugging Commands
 
 ```bash

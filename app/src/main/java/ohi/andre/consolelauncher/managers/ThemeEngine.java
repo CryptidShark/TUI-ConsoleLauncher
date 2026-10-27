@@ -20,7 +20,11 @@ public class ThemeEngine {
         DRACULA_TERMINAL,
         AMOLED_TERMINAL,
         WATCHDOGS_CYBER,
-        GHOST_SHELL
+        GHOST_SHELL,
+        CATPPUCCIN_MOCHA,
+        TOKYO_NIGHT,
+        GRUVBOX_HARD,
+        CATPPUCCIN_LATTE
     }
 
     public static class DesignTokens {
@@ -278,6 +282,90 @@ public class ThemeEngine {
         ghostShell.borderWidth = 1;
         ghostShell.useShadows = true;
         presets.put(Preset.GHOST_SHELL, ghostShell);
+
+        // CATPPUCCIN_MOCHA
+        DesignTokens catppuccinMocha = new DesignTokens();
+        catppuccinMocha.background = Color.parseColor("#E61E1E2E");
+        catppuccinMocha.surface = Color.parseColor("#313244");
+        catppuccinMocha.primary = Color.parseColor("#89b4fa");
+        catppuccinMocha.secondary = Color.parseColor("#cba6f7");
+        catppuccinMocha.accent = Color.parseColor("#f5c2e7");
+        catppuccinMocha.text = Color.parseColor("#cdd6f4");
+        catppuccinMocha.textMuted = Color.parseColor("#6c7086");
+        catppuccinMocha.success = Color.parseColor("#a6e3a1");
+        catppuccinMocha.warning = Color.parseColor("#f9e2af");
+        catppuccinMocha.error = Color.parseColor("#f38ba8");
+        catppuccinMocha.info = Color.parseColor("#89dceb");
+        catppuccinMocha.border = Color.parseColor("#45475a");
+        catppuccinMocha.cursor = Color.parseColor("#f5c2e7");
+        catppuccinMocha.selection = Color.parseColor("#3389b4fa");
+        catppuccinMocha.borderRadius = 6;
+        catppuccinMocha.borderWidth = 1;
+        catppuccinMocha.useShadows = true;
+        presets.put(Preset.CATPPUCCIN_MOCHA, catppuccinMocha);
+
+        // TOKYO_NIGHT
+        DesignTokens tokyoNight = new DesignTokens();
+        tokyoNight.background = Color.parseColor("#E61A1B26");
+        tokyoNight.surface = Color.parseColor("#24283b");
+        tokyoNight.primary = Color.parseColor("#7aa2f7");
+        tokyoNight.secondary = Color.parseColor("#bb9af7");
+        tokyoNight.accent = Color.parseColor("#7dcfff");
+        tokyoNight.text = Color.parseColor("#c0caf5");
+        tokyoNight.textMuted = Color.parseColor("#565f89");
+        tokyoNight.success = Color.parseColor("#9ece6a");
+        tokyoNight.warning = Color.parseColor("#e0af68");
+        tokyoNight.error = Color.parseColor("#f7768e");
+        tokyoNight.info = Color.parseColor("#2ac3de");
+        tokyoNight.border = Color.parseColor("#414868");
+        tokyoNight.cursor = Color.parseColor("#c0caf5");
+        tokyoNight.selection = Color.parseColor("#337aa2f7");
+        tokyoNight.borderRadius = 6;
+        tokyoNight.borderWidth = 1;
+        tokyoNight.useShadows = true;
+        presets.put(Preset.TOKYO_NIGHT, tokyoNight);
+
+        // GRUVBOX_HARD
+        DesignTokens gruvboxHard = new DesignTokens();
+        gruvboxHard.background = Color.parseColor("#E61D2021");
+        gruvboxHard.surface = Color.parseColor("#282828");
+        gruvboxHard.primary = Color.parseColor("#fabd2f");
+        gruvboxHard.secondary = Color.parseColor("#fe8019");
+        gruvboxHard.accent = Color.parseColor("#b8bb26");
+        gruvboxHard.text = Color.parseColor("#ebdbb2");
+        gruvboxHard.textMuted = Color.parseColor("#928374");
+        gruvboxHard.success = Color.parseColor("#b8bb26");
+        gruvboxHard.warning = Color.parseColor("#fabd2f");
+        gruvboxHard.error = Color.parseColor("#fb4934");
+        gruvboxHard.info = Color.parseColor("#83a598");
+        gruvboxHard.border = Color.parseColor("#504945");
+        gruvboxHard.cursor = Color.parseColor("#fabd2f");
+        gruvboxHard.selection = Color.parseColor("#33fabd2f");
+        gruvboxHard.borderRadius = 4;
+        gruvboxHard.borderWidth = 1;
+        gruvboxHard.useShadows = true;
+        presets.put(Preset.GRUVBOX_HARD, gruvboxHard);
+
+        // CATPPUCCIN_LATTE (Light Mode)
+        DesignTokens catppuccinLatte = new DesignTokens();
+        catppuccinLatte.background = Color.parseColor("#E6eff1f5");
+        catppuccinLatte.surface = Color.parseColor("#e6e9ef");
+        catppuccinLatte.primary = Color.parseColor("#1e66f5");
+        catppuccinLatte.secondary = Color.parseColor("#8839ef");
+        catppuccinLatte.accent = Color.parseColor("#ea76cb");
+        catppuccinLatte.text = Color.parseColor("#4c4f69");
+        catppuccinLatte.textMuted = Color.parseColor("#9ca0b0");
+        catppuccinLatte.success = Color.parseColor("#40a02b");
+        catppuccinLatte.warning = Color.parseColor("#df8e1d");
+        catppuccinLatte.error = Color.parseColor("#d20f39");
+        catppuccinLatte.info = Color.parseColor("#04a5e5");
+        catppuccinLatte.border = Color.parseColor("#ccd0da");
+        catppuccinLatte.cursor = Color.parseColor("#ea76cb");
+        catppuccinLatte.selection = Color.parseColor("#331e66f5");
+        catppuccinLatte.borderRadius = 6;
+        catppuccinLatte.borderWidth = 1;
+        catppuccinLatte.useShadows = true;
+        presets.put(Preset.CATPPUCCIN_LATTE, catppuccinLatte);
     }
 
     public static DesignTokens getPreset(Preset preset) {

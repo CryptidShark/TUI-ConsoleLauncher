@@ -33,6 +33,26 @@ public class theme extends ParamCommand {
 
     private enum Param implements ohi.andre.consolelauncher.commands.main.Param {
 
+        preview {
+            @Override
+            public int[] args() {
+                return new int[] {CommandAbstraction.PLAIN_TEXT};
+            }
+
+            @Override
+            public String exec(ExecutePack pack) {
+                String name = pack.getString();
+                if (name == null || name.trim().isEmpty()) {
+                    return "Usage: theme preview <name>\nAvailable: catppuccin_mocha, tokyo_night, gruvbox_hard, catppuccin_latte, watchdogs, ghost_shell, cyberpunk";
+                }
+                name = name.toLowerCase().trim();
+                return "=== THEME PREVIEW: " + name.toUpperCase() + " ===\n" +
+                       "• Primary Accent : Active / Prompt\n" +
+                       "• Background     : Terminal Canvas\n" +
+                       "• Status         : Preset ready to apply\n" +
+                       "Run `theme preset " + name + "` to apply this theme permanently.";
+            }
+        },
         apply {
             @Override
             public int[] args() {
@@ -296,8 +316,137 @@ public class theme extends ParamCommand {
 
                         Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.GHOST_SHELL.name());
                         break;
+                    case "catppuccin_mocha":
+                        colors.put(backgroundTarget, isTransparent ? "#001e1e2e" : "#E61e1e2e");
+                        colors.put(Theme.input_color, "#89b4fa");
+                        colors.put(Theme.output_color, "#cdd6f4");
+                        colors.put(Theme.time_color, "#f5c2e7");
+                        colors.put(Theme.device_color, "#cba6f7");
+                        colors.put(Theme.battery_color_high, "#a6e3a1");
+                        colors.put(Theme.battery_color_medium, "#f9e2af");
+                        colors.put(Theme.battery_color_low, "#f38ba8");
+                        colors.put(Theme.storage_color, "#cba6f7");
+                        colors.put(Theme.ram_color, "#f38ba8");
+                        colors.put(Theme.network_info_color, "#a6e3a1");
+                        colors.put(Theme.weather_color, "#89dceb");
+                        colors.put(Theme.notes_color, "#89b4fa");
+                        colors.put(Theme.notes_locked_color, "#cba6f7");
+                        colors.put(Theme.cursor_color, "#f5c2e7");
+                        colors.put(Theme.enter_color, "#89b4fa");
+                        colors.put(Theme.toolbar_color, "#89b4fa");
+                        colors.put(Theme.alias_content_color, "#a6e3a1");
+                        colors.put(Theme.hint_color, "#a6e3a1");
+                        colors.put(Theme.statusbar_color, "#1e1e2e");
+                        colors.put(Theme.navigationbar_color, "#1e1e2e");
+
+                        suggestionColors.put(Suggestions.apps_bg_color, "#313244");
+                        suggestionColors.put(Suggestions.alias_bg_color, "#cba6f7");
+                        suggestionColors.put(Suggestions.cmd_bg_color, "#89b4fa");
+                        suggestionColors.put(Suggestions.file_bg_color, "#6c7086");
+                        suggestionColors.put(Suggestions.song_bg_color, "#f5c2e7");
+                        suggestionColors.put(Suggestions.apps_text_color, "#cdd6f4");
+
+                        Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.CATPPUCCIN_MOCHA.name());
+                        break;
+                    case "tokyo_night":
+                        colors.put(backgroundTarget, isTransparent ? "#001a1b26" : "#E61a1b26");
+                        colors.put(Theme.input_color, "#7aa2f7");
+                        colors.put(Theme.output_color, "#c0caf5");
+                        colors.put(Theme.time_color, "#7dcfff");
+                        colors.put(Theme.device_color, "#bb9af7");
+                        colors.put(Theme.battery_color_high, "#9ece6a");
+                        colors.put(Theme.battery_color_medium, "#e0af68");
+                        colors.put(Theme.battery_color_low, "#f7768e");
+                        colors.put(Theme.storage_color, "#bb9af7");
+                        colors.put(Theme.ram_color, "#f7768e");
+                        colors.put(Theme.network_info_color, "#9ece6a");
+                        colors.put(Theme.weather_color, "#2ac3de");
+                        colors.put(Theme.notes_color, "#7aa2f7");
+                        colors.put(Theme.notes_locked_color, "#bb9af7");
+                        colors.put(Theme.cursor_color, "#c0caf5");
+                        colors.put(Theme.enter_color, "#7aa2f7");
+                        colors.put(Theme.toolbar_color, "#7aa2f7");
+                        colors.put(Theme.alias_content_color, "#9ece6a");
+                        colors.put(Theme.hint_color, "#9ece6a");
+                        colors.put(Theme.statusbar_color, "#1a1b26");
+                        colors.put(Theme.navigationbar_color, "#1a1b26");
+
+                        suggestionColors.put(Suggestions.apps_bg_color, "#24283b");
+                        suggestionColors.put(Suggestions.alias_bg_color, "#bb9af7");
+                        suggestionColors.put(Suggestions.cmd_bg_color, "#7aa2f7");
+                        suggestionColors.put(Suggestions.file_bg_color, "#565f89");
+                        suggestionColors.put(Suggestions.song_bg_color, "#7dcfff");
+                        suggestionColors.put(Suggestions.apps_text_color, "#c0caf5");
+
+                        Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.TOKYO_NIGHT.name());
+                        break;
+                    case "gruvbox_hard":
+                    case "gruvbox":
+                        colors.put(backgroundTarget, isTransparent ? "#001d2021" : "#E61d2021");
+                        colors.put(Theme.input_color, "#fabd2f");
+                        colors.put(Theme.output_color, "#ebdbb2");
+                        colors.put(Theme.time_color, "#fe8019");
+                        colors.put(Theme.device_color, "#b8bb26");
+                        colors.put(Theme.battery_color_high, "#b8bb26");
+                        colors.put(Theme.battery_color_medium, "#fabd2f");
+                        colors.put(Theme.battery_color_low, "#fb4934");
+                        colors.put(Theme.storage_color, "#83a598");
+                        colors.put(Theme.ram_color, "#fb4934");
+                        colors.put(Theme.network_info_color, "#b8bb26");
+                        colors.put(Theme.weather_color, "#fabd2f");
+                        colors.put(Theme.notes_color, "#fabd2f");
+                        colors.put(Theme.notes_locked_color, "#83a598");
+                        colors.put(Theme.cursor_color, "#fabd2f");
+                        colors.put(Theme.enter_color, "#fabd2f");
+                        colors.put(Theme.toolbar_color, "#fabd2f");
+                        colors.put(Theme.alias_content_color, "#b8bb26");
+                        colors.put(Theme.hint_color, "#b8bb26");
+                        colors.put(Theme.statusbar_color, "#1d2021");
+                        colors.put(Theme.navigationbar_color, "#1d2021");
+
+                        suggestionColors.put(Suggestions.apps_bg_color, "#282828");
+                        suggestionColors.put(Suggestions.alias_bg_color, "#83a598");
+                        suggestionColors.put(Suggestions.cmd_bg_color, "#fabd2f");
+                        suggestionColors.put(Suggestions.file_bg_color, "#928374");
+                        suggestionColors.put(Suggestions.song_bg_color, "#fe8019");
+                        suggestionColors.put(Suggestions.apps_text_color, "#ebdbb2");
+
+                        Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.GRUVBOX_HARD.name());
+                        break;
+                    case "catppuccin_latte":
+                        colors.put(backgroundTarget, isTransparent ? "#00eff1f5" : "#E6eff1f5");
+                        colors.put(Theme.input_color, "#1e66f5");
+                        colors.put(Theme.output_color, "#4c4f69");
+                        colors.put(Theme.time_color, "#ea76cb");
+                        colors.put(Theme.device_color, "#8839ef");
+                        colors.put(Theme.battery_color_high, "#40a02b");
+                        colors.put(Theme.battery_color_medium, "#df8e1d");
+                        colors.put(Theme.battery_color_low, "#d20f39");
+                        colors.put(Theme.storage_color, "#8839ef");
+                        colors.put(Theme.ram_color, "#d20f39");
+                        colors.put(Theme.network_info_color, "#40a02b");
+                        colors.put(Theme.weather_color, "#04a5e5");
+                        colors.put(Theme.notes_color, "#1e66f5");
+                        colors.put(Theme.notes_locked_color, "#8839ef");
+                        colors.put(Theme.cursor_color, "#ea76cb");
+                        colors.put(Theme.enter_color, "#1e66f5");
+                        colors.put(Theme.toolbar_color, "#1e66f5");
+                        colors.put(Theme.alias_content_color, "#40a02b");
+                        colors.put(Theme.hint_color, "#40a02b");
+                        colors.put(Theme.statusbar_color, "#eff1f5");
+                        colors.put(Theme.navigationbar_color, "#eff1f5");
+
+                        suggestionColors.put(Suggestions.apps_bg_color, "#e6e9ef");
+                        suggestionColors.put(Suggestions.alias_bg_color, "#8839ef");
+                        suggestionColors.put(Suggestions.cmd_bg_color, "#1e66f5");
+                        suggestionColors.put(Suggestions.file_bg_color, "#9ca0b0");
+                        suggestionColors.put(Suggestions.song_bg_color, "#ea76cb");
+                        suggestionColors.put(Suggestions.apps_text_color, "#4c4f69");
+
+                        Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.CATPPUCCIN_LATTE.name());
+                        break;
                     default:
-                        return "Unknown preset. Available: watchdogs, ghost_shell, blue, red, green, pink, bw, cyberpunk";
+                        return "Unknown preset. Available: catppuccin_mocha, tokyo_night, gruvbox_hard, catppuccin_latte, watchdogs, ghost_shell, blue, red, green, pink, bw, cyberpunk";
                 }
 
                 colors.put(Theme.toolbar_bg, "#00000000");
