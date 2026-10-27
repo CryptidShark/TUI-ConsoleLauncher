@@ -60,6 +60,48 @@ bbman -remove
 
 ---
 
+## 📱 Termux Integration
+
+T-UI supports executing Termux scripts and interacting with Tmux sessions via Termux's `RUN_COMMAND` Intent API (`com.termux.RUN_COMMAND`).
+
+### Installation & Prerequisites
+1. Install **Termux** from F-Droid or GitHub (avoid the deprecated Google Play Store version).
+2. Install Termux packages required for your scripts (`pkg update && pkg install bash tmux`).
+3. Enable external app execution in Termux by editing `~/.termux/termux.properties` and setting:
+   ```properties
+   allow-external-apps=true
+   ```
+4. Reload Termux settings: `termux-reload-settings`.
+
+### Commands
+- **Check Termux status:**
+  ```bash
+  termux status
+  ```
+- **Run a Termux script:**
+  ```bash
+  termux run script.sh
+  ```
+- **Connect/Attach to a Tmux session:**
+  ```bash
+  termux tmux
+  ```
+- **Create a persistent or floating script widget card:**
+  ```bash
+  visual script myscript.sh
+  visual script myscript.sh -fixed
+  ```
+
+---
+
+## 🗂 Storage Access Framework (SAF) & Modern Android (API 37)
+
+To comply with Scoped Storage requirements on Android 10+ and modern API levels (API 37):
+- File operations and document reading use SAF (`DocumentFile`, `ContentResolver`, and document tree intents) rather than raw legacy file system access.
+- Users grant secure, granular directory permissions via Android's system document picker.
+
+---
+
 ## 🔍 Useful ADB Debugging Commands
 
 ```bash

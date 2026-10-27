@@ -133,6 +133,17 @@ public class visual implements CommandAbstraction {
             } else if (arg.equalsIgnoreCase("termux")) {
                 showTermuxCard(info, fixed);
                 return null;
+            } else if (arg.equalsIgnoreCase("script")) {
+                String scriptName = "script.sh";
+                for (int i = 1; i < list.size(); i++) {
+                    String item = list.get(i).trim();
+                    if (!item.equalsIgnoreCase("-fixed") && !item.equalsIgnoreCase("fixed")) {
+                        scriptName = item;
+                        break;
+                    }
+                }
+                showScriptCard(info, scriptName, fixed);
+                return null;
             } else if (arg.equalsIgnoreCase("dashboard")) {
                 showDashboard(info);
                 return null;
@@ -880,6 +891,50 @@ public class visual implements CommandAbstraction {
             status.setText("Status: NOT_DETECTED\nTermux is not installed on this device.");
         }
         card.addView(status);
+
+        if (fixed && info.context instanceof LauncherActivity) {
+            ((LauncherActivity) info.context).onPersistentOutput(card);
+        } else {
+            Tuils.sendOutput(info.context, card);
+        }
+    }
+
+    private void showScriptCard(MainPack info, String scriptName, boolean fixed) {
+        LinearLayout card = new LinearLayout(info.context);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(Tuils.dpToPx(info.context, 12), Tuils.dpToPx(info.context, 10), Tuils.dpToPx(info.context, 12), Tuils.dpToPx(info.context, 10));
+
+        TextView title = new TextView(info.context);
+        title.setText("● [ SCRIPT: " + scriptName.toUpperCase() + " ]");
+        title.setTypeface(Tuils.getTypeface(info.context));
+        title.setTextSize(14);
+        title.setTypeface(null, Typeface.BOLD);
+        card.addView(title);
+
+        TextView status = new TextView(info.context);
+        status.setTypeface(Tuils.getTypeface(info.context));
+        status.setPadding(0, Tuils.dpToPx(info.context, 6), 0, Tuils.dpToPx(info.context, 6));
+        status.setText("Target: " + scriptName + "\nStatus: READY // Tap to execute via Termux");
+        card.addView(status);
+
+        card.setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent();
+                intent.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandService"));
+                intent.setAction("com.termux.RUN_COMMAND");
+                intent.putExtra("com.termux.intent.extra.EXECUTABLE", "/data/data/com.termux/files/usr/bin/bash");
+                intent.putExtra("com.termux.intent.extra.ARGUMENTS", new String[]{scriptName});
+                intent.putExtra("com.termux.intent.extra.WORKDIR", "/data/data/com.termux/files/home");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    info.context.startForegroundService(intent);
+                } else {
+                    info.context.startService(intent);
+                }
+                status.setText("Target: " + scriptName + "\nStatus: EXECUTED");
+            } catch (Exception e) {
+                status.setText("Target: " + scriptName + "\nStatus: ERROR - Termux missing or permission denied.");
+            }
+        });
 
         if (fixed && info.context instanceof LauncherActivity) {
             ((LauncherActivity) info.context).onPersistentOutput(card);
