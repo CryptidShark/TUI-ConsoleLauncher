@@ -43,18 +43,30 @@ public class termux implements CommandAbstraction {
         } else if (subCmd.equalsIgnoreCase("tmux")) {
             try {
                 Intent intent = new Intent();
-                intent.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandService"));
                 intent.setAction("com.termux.RUN_COMMAND");
                 intent.putExtra("com.termux.intent.extra.EXECUTABLE", "/data/data/com.termux/files/usr/bin/tmux");
                 intent.putExtra("com.termux.intent.extra.ARGUMENTS", new String[]{"attach"});
                 intent.putExtra("com.termux.intent.extra.WORKDIR", "/data/data/com.termux/files/home");
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(intent);
-                } else {
-                    context.startService(intent);
+                boolean executed = false;
+                try {
+                    intent.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandService"));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent);
+                    } else {
+                        context.startService(intent);
+                    }
+                    executed = true;
+                } catch (Exception exService) {
+                    try {
+                        intent.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandBroadcastReceiver"));
+                        context.sendBroadcast(intent);
+                        executed = true;
+                    } catch (Exception exBroadcast) {
+                        TermuxBridge.launchTermux(context);
+                    }
                 }
-                return "Connecting to tmux session in Termux...";
+                return executed ? "Connecting to tmux session in Termux..." : "Launched Termux app.";
             } catch (Exception e) {
                 TermuxBridge.launchTermux(context);
                 return "Launched Termux (tmux start failed: " + e.getMessage() + ")";
@@ -67,18 +79,30 @@ public class termux implements CommandAbstraction {
 
             try {
                 Intent intent = new Intent();
-                intent.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandService"));
                 intent.setAction("com.termux.RUN_COMMAND");
                 intent.putExtra("com.termux.intent.extra.EXECUTABLE", "/data/data/com.termux/files/usr/bin/bash");
                 intent.putExtra("com.termux.intent.extra.ARGUMENTS", new String[]{"-c", commandToRun});
                 intent.putExtra("com.termux.intent.extra.WORKDIR", "/data/data/com.termux/files/home");
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(intent);
-                } else {
-                    context.startService(intent);
+                boolean executed = false;
+                try {
+                    intent.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandService"));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent);
+                    } else {
+                        context.startService(intent);
+                    }
+                    executed = true;
+                } catch (Exception exService) {
+                    try {
+                        intent.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandBroadcastReceiver"));
+                        context.sendBroadcast(intent);
+                        executed = true;
+                    } catch (Exception exBroadcast) {
+                        TermuxBridge.launchTermux(context);
+                    }
                 }
-                return "Executing in Termux: " + commandToRun;
+                return executed ? "Executing in Termux: " + commandToRun : "Launched Termux app.";
             } catch (Exception e) {
                 return "Failed to execute Termux command: " + e.getMessage() + "\nEnsure permission 'com.termux.permission.RUN_COMMAND' is granted in Android settings and 'allow-external-apps=true' is set in ~/.termux/termux.properties.";
             }

@@ -81,6 +81,10 @@
         android:name="android.hardware.audio.output"
         android:required="false" />
 
+    <queries>
+        <package android:name="com.termux" />
+    </queries>
+
     <permission
         android:name="ohi.andre.consolelauncher.permission.RECEIVE_CMD"
         android:protectionLevel="signature" />
