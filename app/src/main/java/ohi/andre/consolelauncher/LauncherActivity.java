@@ -254,12 +254,6 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             Tuils.toFile(e);
         }
 
-        boolean fullscreen = XMLPrefsManager.getBoolean(Ui.fullscreen);
-        if(fullscreen) {
-            requestWindowFeature(Window.FEATURE_NO_TITLE);
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
-
         boolean useSystemWP = XMLPrefsManager.getBoolean(Ui.system_wallpaper);
         if (useSystemWP) {
             setTheme(R.style.Custom_SystemWP);
