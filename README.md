@@ -8,9 +8,22 @@ El nombre de la aplicación, su pantalla “Acerca de” y la documentación usa
 
 ## 🚀 Nuevas Funcionalidades Principales
 
+- **Animación Matrix de Carga Personalizable:** Al conectar tu dispositivo al cargador, aparece un fondo Matrix por detrás del launcher con dígitos binarios fluyendo de abajo hacia arriba (simulando que la energía sube desde el cable) y un gran rayo central (`⚡`). Puedes personalizar su color con:
+  ```bash
+  theme set charging_color #00FF9F
+  ```
 - **Integración con Termux:** Ejecuta scripts (`termux run <script>`), conéctate a sesiones tmux (`termux tmux`) y crea tarjetas dinámicas de monitoreo (`visual script <script>`).
 - **Storage Access Framework (SAF):** Gestión moderna y segura de archivos en Android 10+ / API 37 mediante selectores de árboles de documentos.
-- **Gestos y Teclas de Función Táctiles (`keybind`):** Desliza hacia arriba (buscador), abajo (notificaciones) o lateral (cambio de workspaces), y configura accesos rápidos para teclas virtuales F1–F10.
+- **Gestos Táctiles y Keybinds:** 
+  - Gestores preconfigurados: **Deslizar arriba** (buscador), **Deslizar abajo** (notificaciones), **Deslizar lateral** (cambio de workspaces).
+  - Configura o cambia estos gestos en cualquier momento usando el comando `config`:
+    ```bash
+    config set swipe_up_cmd search
+    config set swipe_down_cmd notifications
+    config set swipe_left_cmd workspace next
+    config set swipe_right_cmd workspace prev
+    ```
+  - Teclas de función virtuales para accesos rápidos escribiendo `F1` hasta `F10` (configurables con `keybind F1 <cmd>`).
 - **Comandos Personalizados (`command`):** Crea comandos compuestos y secuencias personalizadas (ej. `command create G search google`, `command create ops clear; time; monitor`), con persistencia en JSON.
 - **Monitor de Sistema Completo (`monitor` / `visual sys`):** Visualiza en tiempo real uso de CPU, RAM, temperatura de batería, red y señal, con modo CRT opcional (`-crt` / `-nocrt`).
 - **Text-to-Speech (TTS) y OCR (`tts`, `ocr`):** Lee texto en voz alta con el motor del sistema o extrae texto óptico de imágenes mediante SAF directo al portapapeles.
