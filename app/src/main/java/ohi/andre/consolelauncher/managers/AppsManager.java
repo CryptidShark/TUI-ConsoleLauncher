@@ -432,6 +432,31 @@ public class AppsManager implements XMLPrefsElement {
             }
         }
 
+        // Supplementary scan to ensure manufacturer system apps (e.g. Samsung Clock, Calculator) are indexed
+        try {
+            List<android.content.pm.PackageInfo> packages = mgr.getInstalledPackages(0);
+            for (android.content.pm.PackageInfo pkg : packages) {
+                if (pkg != null && pkg.packageName != null) {
+                    Intent launchIntent = mgr.getLaunchIntentForPackage(pkg.packageName);
+                    if (launchIntent != null && launchIntent.getComponent() != null) {
+                        String pkgName = launchIntent.getComponent().getPackageName();
+                        String clsName = launchIntent.getComponent().getClassName();
+                        CharSequence label = null;
+                        try {
+                            android.content.pm.ApplicationInfo ai = mgr.getApplicationInfo(pkgName, 0);
+                            label = mgr.getApplicationLabel(ai);
+                        } catch (Exception ignore) {}
+                        if (label == null) label = pkgName;
+
+                        LaunchInfo li = new LaunchInfo(pkgName, clsName, label.toString());
+                        if (AppUtils.findLaunchInfoWithComponent(infos, li.componentName) == null) {
+                            infos.add(li);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignore) {}
+
         return infos;
     }
 
