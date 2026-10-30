@@ -22,12 +22,16 @@ public class termux implements CommandAbstraction {
         }
 
         if (pack.args == null || pack.args.length == 0) {
-            return "Usage: termux [run <script> | tmux | status]";
+            return "Usage: termux [run <script> | tmux | status | help] or termux <command>";
         }
 
         String argText = pack.args[0] == null ? "" : pack.args[0].toString().trim();
-        if (argText.isEmpty()) {
-            return "Usage: termux [run <script> | tmux | status]";
+        if (argText.isEmpty() || argText.equalsIgnoreCase("help")) {
+            return "Termux Integration Help:\n" +
+                   "• termux run <script> - Execute a Termux script\n" +
+                   "• termux <command>    - Execute any command (e.g. termux ping 8.8.8.8)\n" +
+                   "• termux tmux         - Connect to tmux session\n" +
+                   "• termux status       - Check installation and RUN_COMMAND permission";
         }
 
         String[] parts = argText.split("\\s+", 2);
@@ -55,10 +59,10 @@ public class termux implements CommandAbstraction {
                 TermuxBridge.launchTermux(context);
                 return "Launched Termux (tmux start failed: " + e.getMessage() + ")";
             }
-        } else if (subCmd.equalsIgnoreCase("run") || !param.isEmpty() || subCmd.endsWith(".sh") || subCmd.endsWith(".py")) {
-            String script = subCmd.equalsIgnoreCase("run") ? param : argText;
-            if (script.isEmpty()) {
-                return "Usage: termux run <script_path_or_command>";
+        } else {
+            String commandToRun = subCmd.equalsIgnoreCase("run") ? param : argText;
+            if (commandToRun.isEmpty()) {
+                return "Usage: termux run <script> or termux <command>";
             }
 
             try {
@@ -66,7 +70,7 @@ public class termux implements CommandAbstraction {
                 intent.setComponent(new ComponentName("com.termux", "com.termux.app.RunCommandService"));
                 intent.setAction("com.termux.RUN_COMMAND");
                 intent.putExtra("com.termux.intent.extra.EXECUTABLE", "/data/data/com.termux/files/usr/bin/bash");
-                intent.putExtra("com.termux.intent.extra.ARGUMENTS", new String[]{script});
+                intent.putExtra("com.termux.intent.extra.ARGUMENTS", new String[]{"-c", commandToRun});
                 intent.putExtra("com.termux.intent.extra.WORKDIR", "/data/data/com.termux/files/home");
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -74,13 +78,11 @@ public class termux implements CommandAbstraction {
                 } else {
                     context.startService(intent);
                 }
-                return "Executing script in Termux: " + script;
+                return "Executing in Termux: " + commandToRun;
             } catch (Exception e) {
-                return "Failed to execute Termux script: " + e.getMessage() + "\nEnsure RUN_COMMAND permission is granted.";
+                return "Failed to execute Termux command: " + e.getMessage() + "\nEnsure permission 'com.termux.permission.RUN_COMMAND' is granted in Android settings and 'allow-external-apps=true' is set in ~/.termux/termux.properties.";
             }
         }
-
-        return "Unknown Termux command. Usage: termux [run <script> | tmux | status]";
     }
 
     @Override
