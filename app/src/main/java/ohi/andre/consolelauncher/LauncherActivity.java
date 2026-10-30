@@ -80,6 +80,7 @@ import ohi.andre.consolelauncher.managers.xml.options.Theme;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
 import ohi.andre.consolelauncher.tuils.Assist;
 import ohi.andre.consolelauncher.tuils.BusyBoxInstaller;
+import ohi.andre.consolelauncher.tuils.ChargingMatrixView;
 import ohi.andre.consolelauncher.tuils.CustomExceptionHandler;
 import ohi.andre.consolelauncher.tuils.LongClickableSpan;
 import ohi.andre.consolelauncher.tuils.PrivateIOReceiver;
@@ -104,9 +105,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     private MainManager main;
     private TuiWidgetManager widgetManager;
     private ViewGroup persistentContainer;
-    private final Handler chargingAnimationHandler = new Handler();
-    private TextView chargingBinaryView;
-    private Runnable chargingBinaryAnimation;
+    private ChargingMatrixView chargingMatrixView;
     private BroadcastReceiver chargingReceiver;
     private boolean isChargingReceiverRegistered = false;
 
@@ -563,66 +562,14 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             View decor = getWindow().getDecorView();
             if (!(decor instanceof ViewGroup)) return;
 
-            if (chargingBinaryView == null) {
-                TextView indicator = new TextView(this);
-                indicator.setTextColor(XMLPrefsManager.getColor(Theme.time_color));
-                indicator.setTextSize(11);
-                indicator.setTypeface(android.graphics.Typeface.MONOSPACE);
-                indicator.setGravity(Gravity.CENTER);
-                indicator.setSingleLine(true);
-
-                int horizontalPadding = dp(12);
-                int verticalPadding = dp(5);
-                indicator.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
-
-                GradientDrawable bg = new GradientDrawable();
-                int bgColor = XMLPrefsManager.getColor(Theme.bg_color);
-                int alphaBg = (bgColor & 0x00FFFFFF) | 0xDD0B0E14;
-                bg.setColor(alphaBg);
-                bg.setCornerRadius(dp(8));
-                int strokeColor = XMLPrefsManager.getColor(Theme.time_color);
-                bg.setStroke(dp(1), (strokeColor & 0x00FFFFFF) | 0x66000000 | (strokeColor & 0xFF000000));
-                indicator.setBackground(bg);
-                indicator.setElevation(dp(4));
-                indicator.setClickable(false);
-                indicator.setFocusable(false);
-                indicator.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-
+            if (chargingMatrixView == null) {
+                ChargingMatrixView matrixView = new ChargingMatrixView(this);
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                        Gravity.BOTTOM | Gravity.END);
-                params.bottomMargin = dp(60);
-                params.rightMargin = dp(14);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    params.setMarginEnd(dp(14));
-                }
-
-                indicator.setAlpha(0f);
-                ((ViewGroup) decor).addView(indicator, params);
-                indicator.animate().alpha(1f).setDuration(250).start();
-                chargingBinaryView = indicator;
-            }
-
-            if (chargingBinaryAnimation == null) {
-                chargingBinaryAnimation = new Runnable() {
-                    private int frame = 0;
-
-                    @Override
-                    public void run() {
-                        if (chargingBinaryView == null || isFinishing() ||
-                                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed())) {
-                            return;
-                        }
-                        int bits = (int) (System.nanoTime() >>> 7) ^ (frame++ * 0x45D9F3B);
-                        String binary = String.format(Locale.US, "%16s", Integer.toBinaryString(bits & 0xFFFF))
-                                .replace(' ', '0');
-                        String text = "⚡ " + binary.substring(0, 4) + " " + binary.substring(4, 8) + " "
-                                + binary.substring(8, 12) + " " + binary.substring(12, 16);
-                        chargingBinaryView.setText(text);
-                        chargingAnimationHandler.postDelayed(this, 90);
-                    }
-                };
-                chargingAnimationHandler.post(chargingBinaryAnimation);
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                matrixView.setAlpha(0f);
+                ((ViewGroup) decor).addView(matrixView, 0, params);
+                matrixView.animate().alpha(1f).setDuration(400).start();
+                chargingMatrixView = matrixView;
             }
         } else {
             hideChargingBinaryIndicator();
@@ -630,16 +577,12 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     }
 
     private void hideChargingBinaryIndicator() {
-        if (chargingBinaryAnimation != null) {
-            chargingAnimationHandler.removeCallbacks(chargingBinaryAnimation);
-            chargingBinaryAnimation = null;
-        }
-        if (chargingBinaryView != null) {
-            final TextView indicator = chargingBinaryView;
-            chargingBinaryView = null;
-            indicator.animate().alpha(0f).setDuration(200).withEndAction(() -> {
-                if (indicator.getParent() instanceof ViewGroup) {
-                    ((ViewGroup) indicator.getParent()).removeView(indicator);
+        if (chargingMatrixView != null) {
+            final ChargingMatrixView view = chargingMatrixView;
+            chargingMatrixView = null;
+            view.animate().alpha(0f).setDuration(300).withEndAction(() -> {
+                if (view.getParent() instanceof ViewGroup) {
+                    ((ViewGroup) view.getParent()).removeView(view);
                 }
             }).start();
         }

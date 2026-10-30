@@ -98,6 +98,22 @@ public enum Theme implements XMLPrefsSave {
             return "Time label color";
         }
     },
+    charging_color {
+        @Override
+        public String defaultValue() {
+            return "#00FFD1";
+        }
+
+        @Override
+        public String info() {
+            return "Charging matrix screen animation color";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.COLOR;
+        }
+    },
     storage_color {
         @Override
         public String defaultValue() {
