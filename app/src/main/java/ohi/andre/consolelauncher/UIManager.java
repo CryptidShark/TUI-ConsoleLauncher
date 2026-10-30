@@ -24,6 +24,9 @@ import android.os.Handler;
 import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
@@ -1391,6 +1394,11 @@ public class UIManager implements OnTouchListener {
                 1.0f
         );
         inputOutputView.setLayoutParams(params);
+        ViewCompat.setOnApplyWindowInsetsListener(inputOutputView, (v, insets) -> {
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), ime.bottom);
+            return insets;
+        });
         rootView.addView(inputOutputView);
 
         terminalView = (RecyclerView) inputOutputView.findViewById(R.id.terminal_view);
