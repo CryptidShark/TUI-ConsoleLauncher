@@ -577,11 +577,11 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
                 GradientDrawable bg = new GradientDrawable();
                 int bgColor = XMLPrefsManager.getColor(Theme.bg_color);
-                int alphaBg = (bgColor & 0x00FFFFFF) | 0xDD000000;
+                int alphaBg = (bgColor & 0x00FFFFFF) | 0xDD0B0E14;
                 bg.setColor(alphaBg);
-                bg.setCornerRadius(dp(14));
+                bg.setCornerRadius(dp(8));
                 int strokeColor = XMLPrefsManager.getColor(Theme.time_color);
-                bg.setStroke(dp(1), (strokeColor & 0x00FFFFFF) | 0x55000000 | (strokeColor & 0xFF000000));
+                bg.setStroke(dp(1), (strokeColor & 0x00FFFFFF) | 0x66000000 | (strokeColor & 0xFF000000));
                 indicator.setBackground(bg);
                 indicator.setElevation(dp(4));
                 indicator.setClickable(false);
@@ -590,12 +590,8 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                        Gravity.TOP | Gravity.END);
-
-                WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
-                int statusBarInset = insets == null ? dp(24)
-                        : insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-                params.topMargin = Math.max(statusBarInset, dp(12)) + dp(6);
+                        Gravity.BOTTOM | Gravity.END);
+                params.bottomMargin = dp(60);
                 params.rightMargin = dp(14);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                     params.setMarginEnd(dp(14));
