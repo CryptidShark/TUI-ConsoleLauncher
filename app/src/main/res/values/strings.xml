@@ -187,6 +187,11 @@
 
     <!-- phone -->
     <string name="output_wifi">WiFi active:</string>
+    <string name="output_wifi_open_settings">Use the system Wi-Fi panel to change the Wi-Fi state.</string>
+    <string name="output_wifi_settings_failed">Could not open the system Wi-Fi controls.</string>
+    <string name="output_wifi_request_sent">Wi-Fi change requested:</string>
+    <string name="output_wifi_request_failed">Android rejected the Wi-Fi change request.</string>
+    <string name="output_wifi_unavailable">Wi-Fi is not available on this device.</string>
     <string name="output_data">Mobile Data active:</string>
     <string name="output_bluetooth">Bluetooth active:</string>
     <string name="output_bluetooth_unavailable">Bluetooth is not available on this device</string>
@@ -367,7 +372,7 @@
         \n\nUsage:
         \n$ uninstall [appName]
     </string>
-    <string name="help_wifi">Toggle wifi</string>
+    <string name="help_wifi">Open Wi-Fi controls or toggle Wi-Fi on older Android versions</string>
     <string name="help_sms">Send an SMS.
         \n\nUsage:
         \n$ sms [contactName/number]
