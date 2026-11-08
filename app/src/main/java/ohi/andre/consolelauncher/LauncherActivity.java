@@ -965,6 +965,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         if (availableHeight > 0 && availableHeight < rowHeight * aliases.size()) {
             rowHeight = Math.max(Tuils.dpToPx(this, 28), availableHeight / aliases.size());
         }
+        final int dockRowHeight = rowHeight;
         for (String alias : aliases) {
             TextView chip = new TextView(this);
             chip.setText("[" + alias + "]");
@@ -979,13 +980,13 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         }
         rail.setClickable(true);
         rail.setOnTouchListener((view, event) -> {
-            int index = Math.max(0, Math.min(aliases.size() - 1, (int) (event.getY() / rowHeight)));
+            int index = Math.max(0, Math.min(aliases.size() - 1, (int) (event.getY() / dockRowHeight)));
             if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
                 for (int i = 0; i < rail.getChildCount(); i++) rail.getChildAt(i).setAlpha(i == index ? 1f : 0.55f);
                 return true;
             }
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (event.getY() >= 0 && event.getY() < rowHeight * aliases.size()) ui.executeEdgeDockAction(aliases.get(index));
+                if (event.getY() >= 0 && event.getY() < dockRowHeight * aliases.size()) ui.executeEdgeDockAction(aliases.get(index));
                 return true;
             }
             return event.getAction() == MotionEvent.ACTION_CANCEL;
