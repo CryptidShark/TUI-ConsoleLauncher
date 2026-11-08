@@ -193,9 +193,13 @@
     <string name="output_wifi_request_failed">Android rejected the Wi-Fi change request.</string>
     <string name="output_wifi_unavailable">Wi-Fi is not available on this device.</string>
     <string name="output_data">Mobile Data active:</string>
+    <string name="output_data_open_settings">Use the Android connectivity controls to change mobile data.</string>
+    <string name="output_data_settings_failed">Could not open the Android connectivity controls.</string>
     <string name="output_bluetooth">Bluetooth active:</string>
     <string name="output_bluetooth_unavailable">Bluetooth is not available on this device</string>
     <string name="output_airplane">Airplane mode active:</string>
+    <string name="output_airplane_open_settings">Use the Android airplane mode controls to change this setting.</string>
+    <string name="output_airplane_settings_failed">Could not open the Android airplane mode controls.</string>
 
     <!-- music -->
     <string name="output_playing">Playing:</string>
@@ -233,7 +237,7 @@
     <string name="output_smssent">SMS sent</string>
 
 
-    <string name="help_airplane">Toggle airplane mode</string>
+    <string name="help_airplane">Open the Android airplane mode controls</string>
     <string name="help_alias">-add [aliasName] [alias content] -> add a new alias
         \n-rm [aliasName] -> remove an existing alias
         \n-ls -> list your aliases
@@ -287,7 +291,7 @@
         \n-apply [file] -> move a file to the t-ui directory
         \n-tutorial -> open the tutorial page
     </string>
-    <string name="help_data">Toggle mobile data</string>
+    <string name="help_data">Open the Android connectivity controls</string>
     <string name="help_devutils">There\'s nothing interesting there</string>
     <string name="help_donate">Offer a coffee to the developer (PayPal only)</string>
     <string name="help_flash">Toggle the flashlight</string>

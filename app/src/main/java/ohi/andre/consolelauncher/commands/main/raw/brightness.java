@@ -32,12 +32,8 @@ public class brightness implements CommandAbstraction {
         final int brightness = pack.getInt();
 
         ((Activity) pack.context).runOnUiThread(() -> {
-            int b = brightness;
-
-            if(b < 0) b = 0;
-            else if(b > 100) b = 100;
-
-            b = b * 255 / 100;
+            int percent = Math.max(0, Math.min(100, brightness));
+            int b = percent * 255 / 100;
 
             int autobrightnessState;
             try {
@@ -51,7 +47,7 @@ public class brightness implements CommandAbstraction {
             ContentResolver cResolver = pack.context.getApplicationContext().getContentResolver();
             Settings.System.putInt(cResolver, SCREEN_BRIGHTNESS, b);
 
-            refreshBrightness(((Activity) pack.context).getWindow(), b);
+            refreshBrightness(((Activity) pack.context).getWindow(), toWindowBrightness(percent));
 
 //                if(autobrightnessState == SCREEN_BRIGHTNESS_MODE_AUTOMATIC) setAutoBrightness((Activity) pack.context, true);
         });
@@ -67,6 +63,10 @@ public class brightness implements CommandAbstraction {
             lp.screenBrightness = brightness;
         }
         window.setAttributes(lp);
+    }
+
+    static float toWindowBrightness(int percent) {
+        return Math.max(0, Math.min(100, percent)) / 100f;
     }
 
     @Override

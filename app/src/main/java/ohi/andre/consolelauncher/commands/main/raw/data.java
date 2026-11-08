@@ -1,68 +1,38 @@
 package ohi.andre.consolelauncher.commands.main.raw;
 
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.NetworkInfo.State;
-import android.net.wifi.WifiManager;
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.os.Build;
-
-import java.lang.reflect.Field;
+import android.provider.Settings;
 
 import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
-import ohi.andre.consolelauncher.commands.main.MainPack;
-import ohi.andre.consolelauncher.commands.main.specific.APICommand;
-import ohi.andre.consolelauncher.tuils.Tuils;
 
-public class data implements APICommand, CommandAbstraction {
+/** Opens Android's connectivity controls; regular apps cannot toggle mobile data directly. */
+public class data implements CommandAbstraction {
 
     @Override
     public String exec(ExecutePack pack) {
-        MainPack info = (MainPack) pack;
-        boolean active = toggle(info);
-        return info.res.getString(R.string.output_data) + Tuils.SPACE + Boolean.toString(active);
-    }
-
-    private boolean toggle(MainPack info) {
-        if (info.connectivityMgr == null) {
-            try {
-                init(info);
-            } catch (Exception e) {}
+        Intent intent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                ? new Intent(Settings.Panel.ACTION_INTERNET_CONNECTIVITY)
+                : new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+        if (intent.resolveActivity(pack.context.getPackageManager()) == null) {
+            intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
         }
-
-        boolean mobileConnected;
-
-        if (info.wifi == null)
-            info.wifi = (WifiManager) info.context.getSystemService(Context.WIFI_SERVICE);
-
-        if (info.wifi.isWifiEnabled())
-            mobileConnected = true;
-        else {
-            NetworkInfo mobileInfo = info.connectivityMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-            State state = mobileInfo.getState();
-            mobileConnected = state == NetworkInfo.State.CONNECTED || state == NetworkInfo.State.CONNECTING;
+        if (intent.resolveActivity(pack.context.getPackageManager()) == null) {
+            intent = new Intent(Settings.ACTION_DATA_ROAMING_SETTINGS);
         }
-
+        if (!(pack.context instanceof Activity)) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
         try {
-            info.setMobileDataEnabledMethod.invoke(info.connectMgr, !mobileConnected);
-        } catch (Exception e) {
-            e.printStackTrace();
+            pack.context.startActivity(intent);
+            return pack.context.getString(R.string.output_data_open_settings);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            return pack.context.getString(R.string.output_data_settings_failed);
         }
-
-        return !mobileConnected;
-    }
-
-    private void init(MainPack info) throws Exception {
-        info.connectivityMgr = (ConnectivityManager) info.context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        Class<?> conmanClass = Class.forName(info.connectivityMgr.getClass().getName());
-        Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
-        iConnectivityManagerField.setAccessible(true);
-        info.connectMgr = iConnectivityManagerField.get(info.connectivityMgr);
-        Class<?> iConnectivityManagerClass = Class.forName(info.connectMgr.getClass().getName());
-        info.setMobileDataEnabledMethod = iConnectivityManagerClass.getDeclaredMethod("setMobileDataEnabled", Boolean.TYPE);
-        info.setMobileDataEnabledMethod.setAccessible(true);
     }
 
     @Override
@@ -87,11 +57,6 @@ public class data implements APICommand, CommandAbstraction {
 
     @Override
     public String onArgNotFound(ExecutePack info, int index) {
-        return onNotArgEnough(info, 0);
-    }
-
-    @Override
-    public boolean willWorkOn(int api) {
-        return api < Build.VERSION_CODES.LOLLIPOP;
+        return null;
     }
 }
