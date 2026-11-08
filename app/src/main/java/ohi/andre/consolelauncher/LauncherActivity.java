@@ -110,6 +110,10 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     private MainManager main;
     private PopupWindow edgeDockWindow;
     private View edgeDockAnchor;
+    private View edgeDockReservedOutput;
+    private View edgeDockObservedOutput;
+    private int edgeDockBaseRightMargin;
+    private int edgeDockObservedHeight = -1;
     private TuiWidgetManager widgetManager;
     private ViewGroup persistentContainer;
     private ChargingMatrixView chargingMatrixView;
@@ -935,16 +939,32 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             edgeDockWindow.dismiss();
             edgeDockWindow = null;
         }
-        if (isFinishing() || edgeDockAnchor == null || ui == null || !EdgeDockManager.isEnabled(this)) return;
+        if (isFinishing() || edgeDockAnchor == null || ui == null) return;
         List<String> aliases = EdgeDockManager.getItems(this);
-        if (aliases.isEmpty()) return;
+        boolean showDock = EdgeDockManager.isEnabled(this) && !aliases.isEmpty();
+        View terminalOutput = edgeDockAnchor.findViewById(R.id.terminal_view);
+        observeEdgeDockOutputSize(terminalOutput);
+        reserveEdgeDockLane(terminalOutput, showDock);
+        if (!showDock) return;
+
+        View terminalHeader = edgeDockAnchor.findViewById(R.id.terminal_chrome);
+        if (terminalHeader == null || terminalOutput == null) return;
 
         LinearLayout rail = new LinearLayout(this);
         rail.setOrientation(LinearLayout.VERTICAL);
         rail.setGravity(Gravity.CENTER);
         rail.setPadding(Tuils.dpToPx(this, 3), Tuils.dpToPx(this, 5), Tuils.dpToPx(this, 3), Tuils.dpToPx(this, 5));
-        rail.setBackground(new ColorDrawable(Color.argb(225, 28, 30, 40)));
+        ThemeEngine.DesignTokens dockTheme = currentDesignTokens();
+        GradientDrawable railBackground = new GradientDrawable();
+        railBackground.setColor(dockTheme.surface);
+        railBackground.setCornerRadius(Tuils.dpToPx(this, 9));
+        railBackground.setStroke(Tuils.dpToPx(this, 1), dockTheme.border);
+        rail.setBackground(railBackground);
         int rowHeight = Tuils.dpToPx(this, 42);
+        int availableHeight = terminalOutput.getHeight();
+        if (availableHeight > 0 && availableHeight < rowHeight * aliases.size()) {
+            rowHeight = Math.max(Tuils.dpToPx(this, 28), availableHeight / aliases.size());
+        }
         for (String alias : aliases) {
             TextView chip = new TextView(this);
             chip.setText("[" + alias + "]");
@@ -953,7 +973,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             chip.setGravity(Gravity.CENTER);
             chip.setTextSize(11);
             chip.setTypeface(Tuils.getTypeface(this));
-            chip.setTextColor(XMLPrefsManager.getColor(Theme.input_color));
+            chip.setTextColor(dockTheme.primary);
             chip.setLayoutParams(new LinearLayout.LayoutParams(Tuils.dpToPx(this, 48), rowHeight));
             rail.addView(chip);
         }
@@ -970,11 +990,56 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             }
             return event.getAction() == MotionEvent.ACTION_CANCEL;
         });
-        edgeDockWindow = new PopupWindow(rail, Tuils.dpToPx(this, 54), rowHeight * aliases.size(), false);
+        int dockHeight = rowHeight * aliases.size();
+        edgeDockWindow = new PopupWindow(rail, Tuils.dpToPx(this, 54), dockHeight, false);
         edgeDockWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         edgeDockWindow.setOutsideTouchable(false);
         edgeDockWindow.setElevation(Tuils.dpToPx(this, 6));
-        edgeDockWindow.showAtLocation(edgeDockAnchor, Gravity.RIGHT | Gravity.CENTER_VERTICAL, Tuils.dpToPx(this, 22), 0);
+        int[] headerLocation = new int[2];
+        int[] outputLocation = new int[2];
+        terminalHeader.getLocationOnScreen(headerLocation);
+        terminalOutput.getLocationOnScreen(outputLocation);
+        int headerBottom = headerLocation[1] + terminalHeader.getHeight();
+        int outputBottom = outputLocation[1] + terminalOutput.getHeight();
+        int yOffset = Math.max(0, outputBottom - dockHeight - headerBottom);
+        edgeDockWindow.showAsDropDown(terminalHeader, 0, yOffset, Gravity.RIGHT);
+    }
+
+    private void reserveEdgeDockLane(View output, boolean reserve) {
+        if (output == null || !(output.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) output.getLayoutParams();
+        if (output != edgeDockReservedOutput) {
+            edgeDockReservedOutput = output;
+            edgeDockBaseRightMargin = params.rightMargin;
+        }
+        int dockLane = reserve ? Tuils.dpToPx(this, 62) : 0;
+        int rightMargin = edgeDockBaseRightMargin + dockLane;
+        if (params.rightMargin != rightMargin) {
+            params.rightMargin = rightMargin;
+            output.setLayoutParams(params);
+        }
+    }
+
+    private void observeEdgeDockOutputSize(View output) {
+        if (output == null || output == edgeDockObservedOutput) return;
+        edgeDockObservedOutput = output;
+        edgeDockObservedHeight = output.getHeight();
+        output.addOnLayoutChangeListener((view, left, top, right, bottom,
+                                          oldLeft, oldTop, oldRight, oldBottom) -> {
+            int height = bottom - top;
+            if (height != edgeDockObservedHeight) {
+                edgeDockObservedHeight = height;
+                view.post(this::refreshEdgeDock);
+            }
+        });
+    }
+
+    private ThemeEngine.DesignTokens currentDesignTokens() {
+        try {
+            return ThemeEngine.getPreset(ThemeEngine.Preset.valueOf(XMLPrefsManager.get(Behavior.theme_preset)));
+        } catch (Exception ignored) {
+            return ThemeEngine.getPreset(ThemeEngine.Preset.CLASSIC_TERMINAL);
+        }
     }
 
     public void refreshPersistentContainer() {

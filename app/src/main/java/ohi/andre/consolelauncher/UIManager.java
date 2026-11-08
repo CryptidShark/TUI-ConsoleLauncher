@@ -1405,7 +1405,30 @@ public class UIManager implements OnTouchListener {
         terminalView.setOnTouchListener(this);
         ((View) terminalView.getParent()).setOnTouchListener(this);
 
+        // Give the command/output history a clear console panel by default. Keep
+        // explicit user colors untouched when they configured an output surface.
+        boolean useDefaultConsoleFrame = XMLPrefsManager.getColor(Theme.output_bgrectcolor) == Color.TRANSPARENT
+                && XMLPrefsManager.getColor(Theme.output_bg) == Color.TRANSPARENT;
+        if (useDefaultConsoleFrame) {
+            boolean marginsAreDefault = true;
+            for (int margin : margins[OUTPUT_MARGINS_INDEX]) marginsAreDefault &= margin == 0;
+            if (marginsAreDefault) {
+                margins[OUTPUT_MARGINS_INDEX] = new int[]{
+                        Tuils.dpToPx(mContext, 8), Tuils.dpToPx(mContext, 4),
+                        Tuils.dpToPx(mContext, 7), Tuils.dpToPx(mContext, 7)};
+            }
+        }
         applyBgRect(terminalView, bgRectColors[OUTPUT_BGCOLOR_INDEX], bgColors[OUTPUT_BGCOLOR_INDEX], margins[OUTPUT_MARGINS_INDEX], strokeWidth, cornerRadius);
+        if (useDefaultConsoleFrame) {
+            GradientDrawable consoleFrame = new GradientDrawable();
+            consoleFrame.setShape(GradientDrawable.RECTANGLE);
+            consoleFrame.setColor(designTokens.background);
+            consoleFrame.setCornerRadius(Tuils.dpToPx(mContext, 9));
+            consoleFrame.setStroke(Tuils.dpToPx(mContext, 1), designTokens.border);
+            terminalView.setBackground(consoleFrame);
+            int consoleInset = Tuils.dpToPx(mContext, 7);
+            terminalView.setPadding(consoleInset, consoleInset, consoleInset, consoleInset);
+        }
         // terminalView shadow is handled by adapter items now
 
         final EditText inputView = (EditText) inputOutputView.findViewById(R.id.input_view);
