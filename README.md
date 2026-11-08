@@ -28,6 +28,8 @@ El nombre de la aplicación, su pantalla “Acerca de” y la documentación usa
 - **Monitor de Sistema Completo (`monitor` / `visual sys`):** Visualiza en tiempo real uso de CPU, RAM, temperatura de batería, red y señal, con modo CRT opcional (`-crt` / `-nocrt`).
 - **Text-to-Speech (TTS) y OCR (`tts`, `ocr`):** Lee texto en voz alta con el motor del sistema o extrae texto óptico de imágenes mediante SAF directo al portapapeles.
 - **Asistente Flotante / Overlay (`overlay`):** Mini-terminal flotante accesible desde cualquier aplicación superpuesta en pantalla (`overlay show`).
+- **Controles del sistema compatibles con Android moderno:** `wifi`, `data` y `airplane` abren los controles de conectividad de Android para que confirmes el cambio. Las apps normales ya no pueden alternar esos radios directamente en versiones modernas; el launcher informa que abrió los controles en vez de mostrar un estado que no cambió.
+- **Brillo preciso (`brightness <0-100>`):** Ajusta el brillo del sistema y de la ventana del launcher usando el rango correcto. Android puede pedir permiso de modificación de ajustes.
 
 ---
 
