@@ -3,6 +3,8 @@ package ohi.andre.consolelauncher.commands.main.raw;
 import android.os.Handler;
 import android.os.Looper;
 
+import java.util.ArrayList;
+
 import ohi.andre.consolelauncher.MainManager;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
@@ -23,7 +25,8 @@ public class mindful implements CommandAbstraction {
 
         if (action.equals("list")) {
             if (MindfulManager.getMarked(info.context).isEmpty()) return "No apps marked. Use: mindful mark <app>";
-            return "Mindful apps (package names):\n" + Tuils.toPlanString(MindfulManager.getMarked(info.context), "\n");
+            return "Mindful apps (package names):\n" + Tuils.toPlanString(
+                    new ArrayList<>(MindfulManager.getMarked(info.context)), "\n");
         }
         if (action.equals("mark") || action.equals("unmark")) {
             if (appName.isEmpty()) return "Usage: mindful " + action + " <app name or package>";
