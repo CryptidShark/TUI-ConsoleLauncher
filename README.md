@@ -15,13 +15,15 @@ El nombre de la aplicación, su pantalla “Acerca de” y la documentación usa
 - **Integración con Termux:** Ejecuta scripts (`termux run <script>`), conéctate a sesiones tmux (`termux tmux`) y crea tarjetas dinámicas de monitoreo (`visual script <script>`).
 - **Storage Access Framework (SAF):** Gestión moderna y segura de archivos en Android 10+ / API 37 mediante selectores de árboles de documentos.
 - **Gestos Táctiles y Keybinds:** 
-  - Gestores preconfigurados: **Deslizar arriba** (buscador), **Deslizar abajo** (notificaciones), **Deslizar lateral** (cambio de workspaces).
+  - Gestos configurables: **Deslizar arriba** (buscador), **deslizar abajo** (notificaciones), **deslizar lateral** (cambio de workspaces) y doble toque.
   - Configura o cambia estos gestos en cualquier momento usando el comando `config`:
     ```bash
-    config set swipe_up_cmd search
-    config set swipe_down_cmd notifications
-    config set swipe_left_cmd workspace next
-    config set swipe_right_cmd workspace prev
+    config -set swipe_up_cmd search
+    config -set swipe_down_cmd notifications
+    config -set swipe_left_cmd workspace next
+    config -set swipe_right_cmd workspace prev
+    config -set double_tap_lock false
+    config -set double_tap_cmd time
     ```
   - Teclas de función virtuales para accesos rápidos escribiendo `F1` hasta `F10` (configurables con `keybind F1 <cmd>`).
 - **Comandos Personalizados (`command`):** Crea comandos compuestos y secuencias personalizadas (ej. `command create G search google`, `command create ops clear; time; monitor`), con persistencia en JSON.

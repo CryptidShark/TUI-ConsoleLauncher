@@ -26,6 +26,21 @@ Los permisos dependen de las funciones utilizadas. Puedes negar los permisos que
 
 La sintaxis completa depende de cada comando; consulta `help [comando]`.
 
+## Gestos rápidos
+
+Configura los gestos desde la terminal sin abrir el teclado después de cada toque:
+
+```text
+config -set swipe_up_cmd search
+config -set swipe_down_cmd notifications
+config -set swipe_left_cmd workspace next
+config -set swipe_right_cmd workspace prev
+config -set double_tap_lock false
+config -set double_tap_cmd time
+```
+
+El doble toque conserva el bloqueo de pantalla si `double_tap_lock` está activo. Desactiva ese ajuste con `config -set double_tap_lock false` si quieres que el doble toque ejecute solo el comando asignado.
+
 ## Tarjetas y apariencia
 
 Fija las tarjetas que quieras en la parte superior del historial:
