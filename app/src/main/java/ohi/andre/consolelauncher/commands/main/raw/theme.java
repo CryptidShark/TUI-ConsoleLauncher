@@ -1,6 +1,7 @@
 package ohi.andre.consolelauncher.commands.main.raw;
 
 import android.content.Intent;
+import android.os.Build;
 import android.graphics.Color;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -117,6 +118,50 @@ public class theme extends ParamCommand {
                 String transPrefix = isTransparent ? "#00" : "#FF";
 
                 switch(name) {
+                    case "material_you":
+                    case "material-you":
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                            return "Material You system colors require Android 12 or later.";
+                        }
+                        int systemPrimary = systemColor(pack, "system_accent1_500", Color.parseColor("#FF8AB4F8"));
+                        int systemSecondary = systemColor(pack, "system_accent2_500", Color.parseColor("#FFB4C5E4"));
+                        int systemTertiary = systemColor(pack, "system_accent3_500", Color.parseColor("#FFD0BCFF"));
+                        String primaryHex = String.format(java.util.Locale.ROOT, "#%08X", systemPrimary);
+                        String secondaryHex = String.format(java.util.Locale.ROOT, "#%08X", systemSecondary);
+                        String tertiaryHex = String.format(java.util.Locale.ROOT, "#%08X", systemTertiary);
+                        colors.put(backgroundTarget, isTransparent ? "#00101418" : "#FF101418");
+                        colors.put(Theme.input_color, primaryHex);
+                        colors.put(Theme.output_color, "#FFF1F0F7");
+                        colors.put(Theme.device_color, secondaryHex);
+                        colors.put(Theme.time_color, primaryHex);
+                        colors.put(Theme.battery_color_high, systemColorHex(pack, "system_accent2_500", "#FFA8D5A2"));
+                        colors.put(Theme.battery_color_medium, systemColorHex(pack, "system_accent3_500", "#FFFFD180"));
+                        colors.put(Theme.battery_color_low, "#FFFFB4AB");
+                        colors.put(Theme.storage_color, tertiaryHex);
+                        colors.put(Theme.ram_color, secondaryHex);
+                        colors.put(Theme.network_info_color, primaryHex);
+                        colors.put(Theme.weather_color, tertiaryHex);
+                        colors.put(Theme.notes_color, primaryHex);
+                        colors.put(Theme.notes_locked_color, secondaryHex);
+                        colors.put(Theme.cursor_color, primaryHex);
+                        colors.put(Theme.enter_color, primaryHex);
+                        colors.put(Theme.toolbar_color, primaryHex);
+                        colors.put(Theme.alias_content_color, secondaryHex);
+                        colors.put(Theme.hint_color, "#FFBFC5D2");
+                        colors.put(Theme.statusbar_color, "#FF101418");
+                        colors.put(Theme.navigationbar_color, "#FF101418");
+                        suggestionColors.put(Suggestions.apps_bg_color, "#FF1B1F24");
+                        suggestionColors.put(Suggestions.alias_bg_color, secondaryHex);
+                        suggestionColors.put(Suggestions.cmd_bg_color, primaryHex);
+                        suggestionColors.put(Suggestions.file_bg_color, "#FF343A40");
+                        suggestionColors.put(Suggestions.song_bg_color, tertiaryHex);
+                        suggestionColors.put(Suggestions.apps_text_color, "#FFF1F0F7");
+                        suggestionColors.put(Suggestions.alias_text_color, "#FF111318");
+                        suggestionColors.put(Suggestions.cmd_text_color, "#FF111318");
+                        suggestionColors.put(Suggestions.file_text_color, "#FFF1F0F7");
+                        suggestionColors.put(Suggestions.song_text_color, "#FF111318");
+                        Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.MODERN_TERMINAL.name());
+                        break;
                     case "watchdogs_cyber":
                     case "watchdogs":
                         colors.put(backgroundTarget, isTransparent ? "#000B0E14" : "#E60B0E14");
@@ -446,7 +491,7 @@ public class theme extends ParamCommand {
                         Behavior.theme_preset.parent().write(Behavior.theme_preset, ThemeEngine.Preset.CATPPUCCIN_LATTE.name());
                         break;
                     default:
-                        return "Unknown preset. Available: catppuccin_mocha, tokyo_night, gruvbox_hard, catppuccin_latte, watchdogs, ghost_shell, blue, red, green, pink, bw, cyberpunk";
+                        return "Unknown preset. Available: material_you, catppuccin_mocha, tokyo_night, gruvbox_hard, catppuccin_latte, watchdogs, ghost_shell, blue, red, green, pink, bw, cyberpunk";
                 }
 
                 colors.put(Theme.toolbar_bg, "#00000000");
@@ -599,6 +644,19 @@ public class theme extends ParamCommand {
                 if (p.endsWith(p1.label()))
                     return p1;
             return null;
+        }
+
+        private static int systemColor(ExecutePack pack, String name, int fallback) {
+            try {
+                int id = pack.context.getResources().getIdentifier(name, "color", "android");
+                return id == 0 ? fallback : pack.context.getResources().getColor(id);
+            } catch (Exception ignored) {
+                return fallback;
+            }
+        }
+
+        private static String systemColorHex(ExecutePack pack, String name, String fallback) {
+            return String.format(java.util.Locale.ROOT, "#%08X", systemColor(pack, name, Color.parseColor(fallback)));
         }
 
         static String[] labels() {

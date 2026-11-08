@@ -7,6 +7,7 @@ import android.provider.Settings;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import ohi.andre.consolelauncher.MainManager;
+import ohi.andre.consolelauncher.LauncherActivity;
 import ohi.andre.consolelauncher.managers.AppsManager;
 import ohi.andre.consolelauncher.managers.WorkspaceManager;
 import ohi.andre.consolelauncher.tuils.PrivateIOReceiver;
@@ -26,6 +27,14 @@ public interface SearchAction {
         @Override
         public void execute(Context context) {
             if (launchInfo != null && context != null) {
+                if (context instanceof LauncherActivity) {
+                    LauncherActivity launcher = (LauncherActivity) context;
+                    MainManager manager = launcher.getMainManager();
+                    if (manager != null && manager.getMainPack() != null) {
+                        manager.performLaunch(manager.getMainPack(), launchInfo, launchInfo.publicLabel);
+                        return;
+                    }
+                }
                 Intent intent = context.getPackageManager().getLaunchIntentForPackage(launchInfo.componentName.getPackageName());
                 if (intent != null) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -138,24 +147,37 @@ public interface SearchAction {
     class LaunchShortcutAction implements SearchAction {
         private final String packageName;
         private final String shortcutId;
+        private final String appLabel;
 
         public LaunchShortcutAction(String packageName, String shortcutId) {
+            this(packageName, shortcutId, packageName);
+        }
+
+        public LaunchShortcutAction(String packageName, String shortcutId, String appLabel) {
             this.packageName = packageName;
             this.shortcutId = shortcutId;
+            this.appLabel = appLabel;
         }
 
         @Override
         public void execute(Context context) {
             if (context != null && packageName != null && shortcutId != null) {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N_MR1) {
-                    try {
-                        android.content.pm.LauncherApps launcherApps = (android.content.pm.LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
-                        if (launcherApps != null) {
-                            launcherApps.startShortcut(packageName, shortcutId, null, null, android.os.Process.myUserHandle());
+                    Runnable launchShortcut = () -> {
+                        try {
+                            android.content.pm.LauncherApps launcherApps = (android.content.pm.LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
+                            if (launcherApps != null) launcherApps.startShortcut(packageName, shortcutId, null, null, android.os.Process.myUserHandle());
+                        } catch (Exception e) { Tuils.log(e); }
+                    };
+                    if (context instanceof LauncherActivity) {
+                        LauncherActivity launcher = (LauncherActivity) context;
+                        MainManager manager = launcher.getMainManager();
+                        if (manager != null && manager.getMainPack() != null) {
+                            manager.requestMindfulAction(manager.getMainPack(), packageName, appLabel, launchShortcut);
+                            return;
                         }
-                    } catch (Exception e) {
-                        Tuils.log(e);
                     }
+                    launchShortcut.run();
                 }
             }
         }

@@ -71,6 +71,11 @@ public class MainPack extends ExecutePack {
 
     public int commandColor = TerminalManager.NO_COLOR;
 
+    /** App paused by mindful mode until the user confirms from the console. */
+    public AppsManager.LaunchInfo pendingMindfulLaunch;
+    public Runnable pendingMindfulAction;
+    public int mindfulRequestVersion;
+
     public MainPack(Context context, CommandGroup commandGroup, AliasManager alMgr, AppsManager appmgr, MusicManager2 p,
                     ContactManager c, Redirectator redirectator, RssManager rssManager, OkHttpClient client) {
         super(commandGroup);

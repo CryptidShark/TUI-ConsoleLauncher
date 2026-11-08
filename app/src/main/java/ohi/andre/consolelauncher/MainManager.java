@@ -29,6 +29,7 @@ import ohi.andre.consolelauncher.managers.ContactManager;
 import ohi.andre.consolelauncher.managers.HTMLExtractManager;
 import ohi.andre.consolelauncher.managers.RssManager;
 import ohi.andre.consolelauncher.managers.TerminalManager;
+import ohi.andre.consolelauncher.managers.MindfulManager;
 import ohi.andre.consolelauncher.managers.ThemeManager;
 import ohi.andre.consolelauncher.managers.TimeManager;
 import ohi.andre.consolelauncher.managers.TuiLocationManager;
@@ -430,6 +431,52 @@ public class MainManager {
     Pattern pl = Pattern.compile("%l", Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
 
     public boolean performLaunch(MainPack mainPack, AppsManager.LaunchInfo i, String input) {
+        if (MindfulManager.isMarked(mainPack.context, i.componentName.getPackageName())) {
+            mainPack.pendingMindfulLaunch = i;
+            mainPack.pendingMindfulAction = null;
+            mainPack.mindfulRequestVersion++;
+            MindfulManager.recordBlock(mainPack.context);
+            sendMindfulPrompt(mainPack, i.publicLabel);
+            return true;
+        }
+
+        return launchNow(mainPack, i, input);
+    }
+
+    /** Apply the same confirmation step to non-app launch targets such as shortcuts. */
+    public boolean requestMindfulAction(MainPack pack, String packageName, String label, Runnable action) {
+        if (pack == null || action == null) return false;
+        if (!MindfulManager.isMarked(pack.context, packageName)) {
+            action.run();
+            return true;
+        }
+        pack.pendingMindfulLaunch = null;
+        pack.pendingMindfulAction = action;
+        pack.mindfulRequestVersion++;
+        MindfulManager.recordBlock(pack.context);
+        sendMindfulPrompt(pack, label);
+        return false;
+    }
+
+    private void sendMindfulPrompt(MainPack pack, String label) {
+        Tuils.sendOutput(pack.context, "Mindful pause: " + label + " is marked. Type `mindful continue` to open it, `mindful breathe` for a 10-second pause, or `mindful cancel`.");
+    }
+
+    public boolean continueMindfulLaunch(MainPack pack) {
+        AppsManager.LaunchInfo pending = pack == null ? null : pack.pendingMindfulLaunch;
+        Runnable pendingAction = pack == null ? null : pack.pendingMindfulAction;
+        if (pending == null && pendingAction == null) return false;
+        pack.pendingMindfulLaunch = null;
+        pack.pendingMindfulAction = null;
+        pack.mindfulRequestVersion++;
+        if (pendingAction != null) {
+            pendingAction.run();
+            return true;
+        }
+        return launchNow(pack, pending, pending.publicLabel);
+    }
+
+    private boolean launchNow(MainPack mainPack, AppsManager.LaunchInfo i, String input) {
         Intent intent = appsManager.getIntent(i);
         if (intent == null) {
             return false;
@@ -509,6 +556,15 @@ public class MainManager {
                             Tuils.sendOutput(mContext, AppsManager.AppUtils.printApps(AppsManager.AppUtils.labelList((List<AppsManager.LaunchInfo>) g.members(), false)));
                             return true;
                         } else {
+                            for (Object member : g.members()) {
+                                if (member instanceof AppsManager.LaunchInfo) {
+                                    AppsManager.LaunchInfo app = (AppsManager.LaunchInfo) member;
+                                    if (app.publicLabel != null && Tuils.removeSpaces(app.publicLabel)
+                                            .equalsIgnoreCase(Tuils.removeSpaces(input.trim()))) {
+                                        return performLaunch(info, app, input);
+                                    }
+                                }
+                            }
                             return g.use(mainPack, input);
                         }
                     }

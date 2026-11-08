@@ -16,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
@@ -28,6 +29,7 @@ import android.view.ContextMenu;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -36,6 +38,7 @@ import android.widget.LinearLayout;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.PopupWindow;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
@@ -62,6 +65,7 @@ import ohi.andre.consolelauncher.commands.main.MainPack;
 import ohi.andre.consolelauncher.commands.main.raw.visual;
 import ohi.andre.consolelauncher.commands.tuixt.TuixtActivity;
 import ohi.andre.consolelauncher.managers.ContactManager;
+import ohi.andre.consolelauncher.managers.EdgeDockManager;
 import ohi.andre.consolelauncher.managers.RegexManager;
 import ohi.andre.consolelauncher.managers.TerminalManager;
 import ohi.andre.consolelauncher.managers.ThemeEngine;
@@ -103,6 +107,8 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     private UIManager ui;
     private MainManager main;
+    private PopupWindow edgeDockWindow;
+    private View edgeDockAnchor;
     private TuiWidgetManager widgetManager;
     private ViewGroup persistentContainer;
     private ChargingMatrixView chargingMatrixView;
@@ -430,6 +436,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         main = new MainManager(this);
 
         ViewGroup mainView = (ViewGroup) findViewById(R.id.mainview);
+        edgeDockAnchor = mainView;
         persistentContainer = (ViewGroup) findViewById(R.id.persistent_container);
 
         ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
@@ -451,6 +458,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
         main.setRedirectionListener(ui.buildRedirectionListener());
         ui.pack = main.getMainPack();
+        mainView.post(this::refreshEdgeDock);
 
         in.in(Tuils.EMPTYSTRING);
         ui.focusTerminal();
@@ -687,6 +695,10 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     protected void onDestroy() {
         unregisterChargingReceiver();
         hideChargingBinaryIndicator();
+        if (edgeDockWindow != null) {
+            edgeDockWindow.dismiss();
+            edgeDockWindow = null;
+        }
         super.onDestroy();
 
         dispose();
@@ -890,6 +902,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        if (edgeDockAnchor != null) edgeDockAnchor.post(this::refreshEdgeDock);
         if (persistentContainer != null && widgetManager != null) {
             // Re-send the actual available width after rotation or a window resize so
             // responsive providers can choose the correct layout without rebuilding cards.
@@ -903,6 +916,58 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     public UIManager getUIManager() {
         return ui;
+    }
+
+    public MainManager getMainManager() {
+        return main;
+    }
+
+    /** Rebuild the optional thumb-operated dock when its aliases or state change. */
+    public void refreshEdgeDock() {
+        if (edgeDockWindow != null) {
+            edgeDockWindow.dismiss();
+            edgeDockWindow = null;
+        }
+        if (isFinishing() || edgeDockAnchor == null || ui == null || !EdgeDockManager.isEnabled(this)) return;
+        List<String> aliases = EdgeDockManager.getItems(this);
+        if (aliases.isEmpty()) return;
+
+        LinearLayout rail = new LinearLayout(this);
+        rail.setOrientation(LinearLayout.VERTICAL);
+        rail.setGravity(Gravity.CENTER);
+        rail.setPadding(Tuils.dpToPx(this, 3), Tuils.dpToPx(this, 5), Tuils.dpToPx(this, 3), Tuils.dpToPx(this, 5));
+        rail.setBackground(new ColorDrawable(Color.argb(225, 28, 30, 40)));
+        int rowHeight = Tuils.dpToPx(this, 42);
+        for (String alias : aliases) {
+            TextView chip = new TextView(this);
+            chip.setText("[" + alias + "]");
+            chip.setSingleLine(true);
+            chip.setEllipsize(TextUtils.TruncateAt.END);
+            chip.setGravity(Gravity.CENTER);
+            chip.setTextSize(11);
+            chip.setTypeface(Tuils.getTypeface(this));
+            chip.setTextColor(XMLPrefsManager.getColor(Theme.input_color));
+            chip.setLayoutParams(new LinearLayout.LayoutParams(Tuils.dpToPx(this, 48), rowHeight));
+            rail.addView(chip);
+        }
+        rail.setClickable(true);
+        rail.setOnTouchListener((view, event) -> {
+            int index = Math.max(0, Math.min(aliases.size() - 1, (int) (event.getY() / rowHeight)));
+            if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
+                for (int i = 0; i < rail.getChildCount(); i++) rail.getChildAt(i).setAlpha(i == index ? 1f : 0.55f);
+                return true;
+            }
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                if (event.getY() >= 0 && event.getY() < rowHeight * aliases.size()) ui.executeEdgeDockAction(aliases.get(index));
+                return true;
+            }
+            return event.getAction() == MotionEvent.ACTION_CANCEL;
+        });
+        edgeDockWindow = new PopupWindow(rail, Tuils.dpToPx(this, 54), rowHeight * aliases.size(), false);
+        edgeDockWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        edgeDockWindow.setOutsideTouchable(false);
+        edgeDockWindow.setElevation(Tuils.dpToPx(this, 6));
+        edgeDockWindow.showAtLocation(edgeDockAnchor, Gravity.RIGHT | Gravity.CENTER_VERTICAL, Tuils.dpToPx(this, 22), 0);
     }
 
     public void refreshPersistentContainer() {

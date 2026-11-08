@@ -124,7 +124,7 @@ public class UniversalSearchEngine {
                                             "Shortcut (" + app.publicLabel + ")",
                                             SearchResult.Category.ACTION,
                                             scScore - 50,
-                                            new SearchAction.LaunchShortcutAction(pkg, shortcut.getId())
+                                            new SearchAction.LaunchShortcutAction(pkg, shortcut.getId(), app.publicLabel)
                                     ));
                                 }
                             }

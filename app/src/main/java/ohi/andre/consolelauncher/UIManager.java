@@ -1677,6 +1677,11 @@ public class UIManager implements OnTouchListener {
         mTerminalAdapter.setInput(input);
     }
 
+    /** Execute a short alias selected from the edge dock. */
+    public void executeEdgeDockAction(String alias) {
+        executeGestureCmd(alias);
+    }
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         boolean handled = false;

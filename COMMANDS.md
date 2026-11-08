@@ -118,6 +118,41 @@ To comply with Scoped Storage requirements on Android 10+ and modern API levels 
     ```
   - Simply type `F1`, `F2`, etc. in the terminal to execute the bound action.
 
+## 🌿 Mindful use and screen time
+
+Mark selected apps to pause before launching them. The pause stays in the console, so it works with normal app commands and aliases:
+
+```text
+mindful mark Instagram
+mindful list
+mindful continue
+mindful breathe
+mindful cancel
+mindful unmark Instagram
+```
+
+`mindful breathe` waits ten seconds before continuing; `mindful cancel` cancels the pending launch. Android screen time is available with `stats` or `usage`. On first use, Android opens Usage Access settings; enable Cythernoir Launcher there, return, and run the command again.
+
+## 👍 Optional edge dock
+
+Aliases appear in a narrow rail on the right edge. Drag along the rail to select one, then release to run it:
+
+```text
+alias add w WhatsApp
+dock add w
+dock enable
+dock list
+dock disable
+```
+
+The dock is disabled until enabled, and supports up to eight aliases. Existing four-direction gestures and workspace profiles are unchanged.
+
+## 🧭 Existing touch and CLI navigation
+
+The launcher already includes custom aliases (`alias add w WhatsApp`), scored app and command search (`search` / `palette`), profile-based widget layouts (`workspace set Developer`), Termux command execution (`termux run <script>`), and the `config` command for its GUI preferences. Gesture actions remain user-configurable with `config -set swipe_up_cmd <command>` and the corresponding `swipe_down_cmd`, `swipe_left_cmd`, and `swipe_right_cmd` preferences. For example, `config -set swipe_up_cmd apps` opens the textual app list; lateral gestures can switch workspaces containing different widget cards. Use `apps` for the alphabetized textual app list.
+
+On Android 12+, apply the wallpaper-derived system accents with `theme preset material_you`. Theme presets are applied immediately and continue to use the launcher's monospace typeface.
+
 ---
 
 ## ⚙️ User-Defined Custom Commands (`command`)

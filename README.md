@@ -27,6 +27,9 @@ El nombre de la aplicación, su pantalla “Acerca de” y la documentación usa
     ```
   - Teclas de función virtuales para accesos rápidos escribiendo `F1` hasta `F10` (configurables con `keybind F1 <cmd>`).
 - **Comandos Personalizados (`command`):** Crea comandos compuestos y secuencias personalizadas (ej. `command create G search google`, `command create ops clear; time; monitor`), con persistencia en JSON.
+- **Bienestar digital consciente:** `mindful mark <app>` pausa la apertura de una app elegida y pide confirmación desde la consola (`mindful continue`, `mindful breathe` o `mindful cancel`). Consulta el tiempo de pantalla de Android con `stats` o `usage`; Android solicita habilitar “Acceso a datos de uso” la primera vez.
+- **Edge Dock táctil opcional:** Añade hasta ocho aliases breves a una barra lateral y selecciónalos deslizando el pulgar. Ejemplo: `alias add w WhatsApp`, `dock add w`, `dock enable`. `dock disable` la oculta sin cambiar tus gestos ni comandos.
+- **Navegación rápida configurable:** Mantiene aliases, perfiles de workspace con tarjetas/widget, búsqueda con sugerencias y gestos configurables. Cambia de perfil con los gestos laterales (`workspace next` / `workspace prev`) y abre el índice de apps con `apps`.
 - **Monitor de Sistema Completo (`monitor` / `visual sys`):** Visualiza en tiempo real uso de CPU, RAM, temperatura de batería, red y señal, con modo CRT opcional (`-crt` / `-nocrt`).
 - **Text-to-Speech (TTS) y OCR (`tts`, `ocr`):** Lee texto en voz alta con el motor del sistema o extrae texto óptico de imágenes mediante SAF directo al portapapeles.
 - **Asistente Flotante / Overlay (`overlay`):** Mini-terminal flotante accesible desde cualquier aplicación superpuesta en pantalla (`overlay show`).
@@ -39,6 +42,7 @@ El nombre de la aplicación, su pantalla “Acerca de” y la documentación usa
 
 Cythernoir incluye paletas de color de primer nivel inspiradas en los estándares de la comunidad de desarrolladores y optimizadas para WCAG AA:
 - `catppuccin_mocha` (Pastel cálido oscuro)
+- `material_you` (acento dinámico del sistema en Android 12+)
 - `tokyo_night` (Azul-púrpura optimizado para OLED)
 - `gruvbox_hard` (Retro cálido de alto contraste)
 - `catppuccin_latte` (Modo claro limpio)
@@ -55,6 +59,7 @@ Cythernoir incluye paletas de color de primer nivel inspiradas en los estándare
 - **Controlar música:** reproducir canciones locales o controlar sesiones multimedia con `visual music -fixed`.
 - **Consultar información rápida:** fijar tarjetas como batería, sistema, notas, accesos directos, música y monitor de sistema.
 - **Ampliar los comandos disponibles:** instalar BusyBox opcionalmente con `bbman -install`. La descarga verifica el archivo con SHA-256.
+- **Integrar automatizaciones:** `termux run <script>` invoca comandos de Termux en segundo plano si está instalado y configurado para aceptar solicitudes externas.
 
 ---
 
