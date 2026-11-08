@@ -23,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.ContextMenu;
@@ -924,6 +925,12 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     /** Rebuild the optional thumb-operated dock when its aliases or state change. */
     public void refreshEdgeDock() {
+        // Commands can be executed on a worker thread; PopupWindow and all View
+        // operations must stay on Android's main thread.
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(this::refreshEdgeDock);
+            return;
+        }
         if (edgeDockWindow != null) {
             edgeDockWindow.dismiss();
             edgeDockWindow = null;
