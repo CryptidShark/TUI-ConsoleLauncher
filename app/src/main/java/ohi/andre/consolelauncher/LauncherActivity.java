@@ -83,6 +83,7 @@ import ohi.andre.consolelauncher.managers.xml.options.Behavior;
 import ohi.andre.consolelauncher.managers.xml.options.Notifications;
 import ohi.andre.consolelauncher.managers.xml.options.Theme;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
+import ohi.andre.consolelauncher.widgets.hud.HudCardView;
 import ohi.andre.consolelauncher.tuils.Assist;
 import ohi.andre.consolelauncher.tuils.BusyBoxInstaller;
 import ohi.andre.consolelauncher.tuils.ChargingMatrixView;
@@ -496,6 +497,10 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
         if (XMLPrefsManager.getBoolean(Behavior.persistent_termux_card)) {
             loadFixedVisual("termux");
+        }
+
+        if (XMLPrefsManager.getBoolean(Behavior.persistent_telemetry_card)) {
+            loadFixedVisual("telemetry");
         }
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -1075,6 +1080,9 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
                 if (XMLPrefsManager.getBoolean(Behavior.persistent_termux_card)) {
                     loadFixedVisual("termux");
                 }
+                if (XMLPrefsManager.getBoolean(Behavior.persistent_telemetry_card)) {
+                    loadFixedVisual("telemetry");
+                }
                 if (widgetManager != null) {
                     for (Integer id : widgetManager.getActiveWidgetIds()) {
                         widgetManager.createWidget(this, id);
@@ -1170,6 +1178,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     }
 
     private void applyThemeRecursively(View view) {
+        if (view instanceof HudCardView) return;
         if (ui == null || ui.pack == null) return;
         if (view.getId() == R.id.music_card_root) return;
         

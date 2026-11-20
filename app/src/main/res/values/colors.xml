@@ -7,4 +7,15 @@
 
     <color name="hint_color">#AAA</color>
 
+    <!-- Dracula OLED palette shared by the modular TUI/HUD cards. -->
+    <color name="hud_background">#000000</color>
+    <color name="hud_surface">#1E1F29</color>
+    <color name="hud_border">#44475A</color>
+    <color name="hud_text_primary">#F8F8F2</color>
+    <color name="hud_text_secondary">#6272A4</color>
+    <color name="hud_cyan">#8BE9FD</color>
+    <color name="hud_green">#50FA7B</color>
+    <color name="hud_pink">#FF79C6</color>
+    <color name="hud_purple">#BD93F9</color>
+
 </resources>

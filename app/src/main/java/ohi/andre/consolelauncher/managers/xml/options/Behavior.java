@@ -143,6 +143,22 @@ public enum Behavior implements XMLPrefsSave {
             return XMLPrefsSave.BOOLEAN;
         }
     },
+    persistent_telemetry_card {
+        @Override
+        public String defaultValue() {
+            return "false";
+        }
+
+        @Override
+        public String info() {
+            return "If true, the compact system telemetry HUD is pinned to the launcher";
+        }
+
+        @Override
+        public String type() {
+            return XMLPrefsSave.BOOLEAN;
+        }
+    },
     music_target_app {
         @Override
         public String defaultValue() {

@@ -18,6 +18,7 @@ public class manual implements CommandAbstraction {
                 + "  visual battery -fixed      Pin battery status\n"
                 + "  visual system -fixed       Pin system information\n"
                 + "  visual music -fixed        Pin external media controls\n"
+                + "  visual telemetry -fixed   Pin battery, RAM, storage and network HUD\n"
                 + "  visual clear               Remove pinned visual cards\n\n"
                 + "MUSIC\n"
                 + "  The integrated player uses music commands and local audio access.\n"

@@ -47,6 +47,7 @@ import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
 import ohi.andre.consolelauncher.managers.xml.options.Behavior;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
 import ohi.andre.consolelauncher.tuils.Tuils;
+import ohi.andre.consolelauncher.widgets.hud.SysTelemetryWidget;
 
 public class visual implements CommandAbstraction {
 
@@ -147,6 +148,9 @@ public class visual implements CommandAbstraction {
             } else if (arg.equalsIgnoreCase("sys") || arg.equalsIgnoreCase("monitor")) {
                 showSysCard(info, fixed);
                 return null;
+            } else if (arg.equalsIgnoreCase("telemetry") || arg.equalsIgnoreCase("sysmon")) {
+                showTelemetryCard(info, fixed);
+                return null;
             } else if (arg.equalsIgnoreCase("dashboard")) {
                 showDashboard(info);
                 return null;
@@ -158,6 +162,7 @@ public class visual implements CommandAbstraction {
                 Behavior.persistent_music_card.parent().write(Behavior.persistent_music_card, "false");
                 Behavior.persistent_weather_card.parent().write(Behavior.persistent_weather_card, "false");
                 Behavior.persistent_termux_card.parent().write(Behavior.persistent_termux_card, "false");
+                Behavior.persistent_telemetry_card.parent().write(Behavior.persistent_telemetry_card, "false");
 
                 if (info.context instanceof LauncherActivity) {
                     ((LauncherActivity) info.context).runOnUiThread(() -> {
@@ -172,7 +177,17 @@ public class visual implements CommandAbstraction {
             }
         }
 
-        return "Usage: visual [battery | system | notes | shortcuts | music | weather | termux | dashboard] [-fixed]; visual music -scale [50-120]; or visual clear";
+        return "Usage: visual [battery | system | telemetry | notes | shortcuts | music | weather | termux | dashboard] [-fixed]; visual music -scale [50-120]; or visual clear";
+    }
+
+    private void showTelemetryCard(MainPack info, boolean fixed) {
+        SysTelemetryWidget widget = new SysTelemetryWidget(info.context);
+        if (fixed && info.context instanceof LauncherActivity) {
+            Behavior.persistent_telemetry_card.parent().write(Behavior.persistent_telemetry_card, "true");
+            ((LauncherActivity) info.context).onPersistentOutput(widget);
+        } else {
+            Tuils.sendOutput(info.context, widget);
+        }
     }
 
 
