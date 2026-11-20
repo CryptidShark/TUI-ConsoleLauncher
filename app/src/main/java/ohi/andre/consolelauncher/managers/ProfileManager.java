@@ -221,4 +221,52 @@ public class ProfileManager {
             return "Error importing profile (malformed file): " + e.getMessage();
         }
     }
+
+    public static String previewProfile(Context context, String profileName) {
+        if (profileName == null || profileName.trim().isEmpty()) {
+            return "Usage: config -preview_profile [filename.json]";
+        }
+
+        File profileFolder = Tuils.getFolder();
+        File file = profileFolder == null
+                ? new File(context.getFilesDir(), profileName)
+                : new File(profileFolder, profileName);
+        if (!file.exists()) file = new File(profileName);
+        if (!file.exists()) return "Profile file not found: " + profileName;
+        if (!file.isFile() || file.length() <= 0 || file.length() > MAX_PROFILE_BYTES) {
+            return "Profile must be a non-empty JSON file smaller than 2 MB.";
+        }
+
+        try (FileInputStream input = new FileInputStream(file);
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int count;
+            while ((count = input.read(buffer)) != -1) {
+                output.write(buffer, 0, count);
+                if (output.size() > MAX_PROFILE_BYTES) return "Profile exceeds the 2 MB import limit.";
+            }
+
+            JSONObject root = new JSONObject(new String(output.toByteArray(), StandardCharsets.UTF_8));
+            int version = root.optInt("version", -1);
+            if (version != PROFILE_SCHEMA_VERSION) {
+                return "Invalid profile schema version: " + version + " (Expected: " + PROFILE_SCHEMA_VERSION + ")";
+            }
+
+            StringBuilder summary = new StringBuilder("PROFILE PREVIEW: ").append(file.getName());
+            String[] sections = {"behavior", "ui", "theme", "cmd", "notifications", "suggestions", "apps"};
+            for (String section : sections) {
+                JSONObject values = root.optJSONObject(section);
+                if (values != null) summary.append("\n• ").append(section).append(": ").append(values.length()).append(" settings");
+            }
+            JSONObject behavior = root.optJSONObject("behavior");
+            if (behavior != null && behavior.has("theme_preset")) {
+                summary.append("\nTheme preset: ").append(behavior.optString("theme_preset"));
+            }
+            if (root.has("workspace")) summary.append("\nWorkspace: ").append(root.optString("workspace"));
+            summary.append("\nRun `config -import_profile ").append(file.getName()).append("` to apply it.");
+            return summary.toString();
+        } catch (Exception e) {
+            return "Error previewing profile: " + e.getMessage();
+        }
+    }
 }

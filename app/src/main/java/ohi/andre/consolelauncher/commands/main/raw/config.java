@@ -352,6 +352,22 @@ public class config extends ParamCommand {
                 return "Usage: config -import_profile [filename.json]";
             }
         },
+        preview_profile {
+            @Override
+            public int[] args() {
+                return new int[] {CommandAbstraction.PLAIN_TEXT};
+            }
+
+            @Override
+            public String exec(ExecutePack pack) {
+                return ProfileManager.previewProfile(pack.context, pack.getString());
+            }
+
+            @Override
+            public String onNotArgEnough(ExecutePack pack, int n) {
+                return "Usage: config -preview_profile [filename.json]";
+            }
+        },
         termux {
             @Override
             public int[] args() {

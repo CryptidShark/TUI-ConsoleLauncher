@@ -624,6 +624,12 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (ui != null) ui.resume();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         if (widgetManager != null) widgetManager.stopListening();

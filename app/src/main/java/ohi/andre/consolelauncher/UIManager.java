@@ -131,6 +131,7 @@ public class UIManager implements OnTouchListener {
     protected Context mContext;
 
     private Handler handler;
+    private boolean periodicUpdatesPaused;
 
     private DevicePolicyManager policy;
     private ComponentName component;
@@ -167,6 +168,7 @@ public class UIManager implements OnTouchListener {
 
         @Override
         public void run() {
+            if (periodicUpdatesPaused || handler == null) return;
             if(notesManager != null) {
                 if(notesManager.hasChanged) {
                     UIManager.this.updateText(Label.notes, Tuils.span(mContext, labelSizes[Label.notes.ordinal()], notesManager.getNotes()));
@@ -194,6 +196,7 @@ public class UIManager implements OnTouchListener {
 
         @Override
         public void update(float p) {
+            if (periodicUpdatesPaused) return;
             if(batteryFormat == null) {
                 batteryFormat = XMLPrefsManager.get(Behavior.battery_format);
 
@@ -274,6 +277,7 @@ public class UIManager implements OnTouchListener {
 
         @Override
         public void run() {
+            if (periodicUpdatesPaused || handler == null) return;
             if(storageFormat == null) {
                 storageFormat = XMLPrefsManager.get(Behavior.storage_format);
                 color = XMLPrefsManager.getColor(Theme.storage_color);
@@ -369,6 +373,7 @@ public class UIManager implements OnTouchListener {
 
         @Override
         public void run() {
+            if (periodicUpdatesPaused || handler == null) return;
             if(!active) {
                 active = true;
             }
@@ -393,6 +398,7 @@ public class UIManager implements OnTouchListener {
 
         @Override
         public void run() {
+            if (periodicUpdatesPaused || handler == null) return;
             if(ramFormat == null) {
                 ramFormat = XMLPrefsManager.get(Behavior.ram_format);
 
@@ -503,6 +509,7 @@ public class UIManager implements OnTouchListener {
 
         @Override
         public void run() {
+            if (periodicUpdatesPaused || handler == null) return;
             if (format == null) {
                 format = XMLPrefsManager.get(Behavior.network_info_format);
                 color = XMLPrefsManager.getColor(Theme.network_info_color);
@@ -716,6 +723,7 @@ public class UIManager implements OnTouchListener {
 
         @Override
         public void run() {
+            if (periodicUpdatesPaused || handler == null) return;
             weatherPerformedStartupRun = true;
             if(!fixedLocation) setUrl(lastLatitude, lastLongitude);
 
@@ -1689,7 +1697,45 @@ public class UIManager implements OnTouchListener {
     }
 
     public void pause() {
+        periodicUpdatesPaused = true;
+        if (handler != null) {
+            if (storageRunnable != null) handler.removeCallbacks(storageRunnable);
+            if (timeRunnable != null) handler.removeCallbacks(timeRunnable);
+            if (ramRunnable != null) handler.removeCallbacks(ramRunnable);
+            if (networkRunnable != null) handler.removeCallbacks(networkRunnable);
+            if (notesRunnable != null) handler.removeCallbacks(notesRunnable);
+            if (weatherRunnable != null) handler.removeCallbacks(weatherRunnable);
+        }
         closeKeyboard();
+    }
+
+    public void resume() {
+        if (handler == null) return;
+        periodicUpdatesPaused = false;
+        postImmediate(storageRunnable);
+        postImmediate(timeRunnable);
+        postImmediate(ramRunnable);
+        postImmediate(networkRunnable);
+        postImmediate(notesRunnable);
+        postImmediate(weatherRunnable);
+        if (batteryUpdate != null) {
+            Intent batteryStatus = mContext.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (batteryStatus != null) {
+                int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                int plugged = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+                batteryUpdate.charging = plugged == BatteryManager.BATTERY_PLUGGED_AC
+                        || plugged == BatteryManager.BATTERY_PLUGGED_USB
+                        || plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS;
+                if (level >= 0 && scale > 0) batteryUpdate.update(level * 100f / scale);
+            }
+        }
+    }
+
+    private void postImmediate(Runnable runnable) {
+        if (runnable == null || handler == null) return;
+        handler.removeCallbacks(runnable);
+        handler.post(runnable);
     }
 
     private void executeGestureCmd(String cmd) {
