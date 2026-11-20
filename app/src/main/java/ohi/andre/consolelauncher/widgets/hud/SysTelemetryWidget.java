@@ -34,7 +34,7 @@ import ohi.andre.consolelauncher.R;
 
 /**
  * Low-cost system telemetry card. Polling happens only while attached to the
- * visible launcher; battery and network state also refresh from system events.
+ * resumed launcher; battery and network state also refresh from system events.
  */
 public class SysTelemetryWidget extends HudCardView {
     private static final long REFRESH_INTERVAL_MS = 5000L;
@@ -66,6 +66,8 @@ public class SysTelemetryWidget extends HudCardView {
     private long previousTrafficTime = System.currentTimeMillis();
     private boolean receiverRegistered;
     private boolean networkCallbackRegistered;
+    private boolean hostActive = true;
+    private boolean updatesStarted;
 
     private final BroadcastReceiver stateReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -134,6 +136,19 @@ public class SysTelemetryWidget extends HudCardView {
 
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        startUpdates();
+    }
+
+    /** Pauses polling and receivers while the owning launcher is not in front. */
+    public void setHostActive(boolean active) {
+        hostActive = active;
+        if (active) startUpdates();
+        else stopUpdates();
+    }
+
+    private void startUpdates() {
+        if (!hostActive || !isAttachedToWindow() || updatesStarted) return;
+        updatesStarted = true;
         if (!receiverRegistered) {
             IntentFilter filter = new IntentFilter();
             filter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -154,6 +169,12 @@ public class SysTelemetryWidget extends HudCardView {
     }
 
     @Override protected void onDetachedFromWindow() {
+        stopUpdates();
+        super.onDetachedFromWindow();
+    }
+
+    private void stopUpdates() {
+        updatesStarted = false;
         handler.removeCallbacksAndMessages(null);
         if (receiverRegistered) {
             try { getContext().unregisterReceiver(stateReceiver); } catch (IllegalArgumentException ignored) { }
@@ -163,7 +184,6 @@ public class SysTelemetryWidget extends HudCardView {
             try { connectivityManager.unregisterNetworkCallback(networkCallback); } catch (RuntimeException ignored) { }
             networkCallbackRegistered = false;
         }
-        super.onDetachedFromWindow();
     }
 
     private void refreshBatteryFromSystem() {
@@ -215,7 +235,7 @@ public class SysTelemetryWidget extends HudCardView {
         else transport = "NETWORK";
         String ip = getLocalIpv4();
         String state = connected ? "ONLINE" : "OFFLINE";
-        networkView.setText("NET  " + state + " · " + transport + "\nIP   " + ip + "  ·  " + trafficText);
+        networkView.setText(getContext().getString(R.string.hud_network_text, state, transport, ip, trafficText));
     }
 
     private String trafficText = "RX --  TX --";

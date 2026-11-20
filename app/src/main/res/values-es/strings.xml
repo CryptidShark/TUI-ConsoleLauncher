@@ -459,4 +459,5 @@
 
     <string name="help_username">Cambiar el nombre de usuario y el nombre del dispositivo: username [nuevo_usuario] [nuevo_dispositivo]</string>
     <string name="help_bbman">-install -> descargar y configurar BusyBox\n-remove -> desinstalar BusyBox</string>
+    <string name="hud_network_text">RED  %1$s · %2$s\nIP   %3$s  ·  %4$s</string>
 </resources>

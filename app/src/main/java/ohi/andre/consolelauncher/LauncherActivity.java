@@ -84,6 +84,7 @@ import ohi.andre.consolelauncher.managers.xml.options.Notifications;
 import ohi.andre.consolelauncher.managers.xml.options.Theme;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
 import ohi.andre.consolelauncher.widgets.hud.HudCardView;
+import ohi.andre.consolelauncher.widgets.hud.SysTelemetryWidget;
 import ohi.andre.consolelauncher.tuils.Assist;
 import ohi.andre.consolelauncher.tuils.BusyBoxInstaller;
 import ohi.andre.consolelauncher.tuils.ChargingMatrixView;
@@ -632,6 +633,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     protected void onResume() {
         super.onResume();
         if (ui != null) ui.resume();
+        setTelemetryHostActive(getWindow().getDecorView(), true);
     }
 
     @Override
@@ -659,10 +661,24 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     @Override
     protected void onPause() {
         super.onPause();
+        setTelemetryHostActive(getWindow().getDecorView(), false);
 
         if (ui != null && main != null) {
             ui.pause();
             main.dispose();
+        }
+    }
+
+    private void setTelemetryHostActive(View view, boolean active) {
+        if (view instanceof SysTelemetryWidget) {
+            ((SysTelemetryWidget) view).setHostActive(active);
+            return;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                setTelemetryHostActive(group.getChildAt(i), active);
+            }
         }
     }
 
