@@ -41,32 +41,11 @@
         android:textStyle="bold" />
 
     <LinearLayout
+        android:id="@+id/settings_theme_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:orientation="horizontal">
-        <Button android:id="@+id/btn_theme_classic" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Classic" android:textSize="10sp" />
-        <Button android:id="@+id/btn_theme_modern" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Modern" android:textSize="10sp" />
-        <Button android:id="@+id/btn_theme_cyber" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Cyber" android:textSize="10sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button android:id="@+id/btn_theme_neo" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Neo" android:textSize="10sp" />
-        <Button android:id="@+id/btn_theme_amber" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Amber" android:textSize="10sp" />
-        <Button android:id="@+id/btn_theme_nord" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Nord" android:textSize="10sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button android:id="@+id/btn_theme_dracula" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Dracula" android:textSize="10sp" />
-        <Button android:id="@+id/btn_theme_amoled" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="AMOLED" android:textSize="10sp" />
-        <Button android:id="@+id/btn_theme_watchdogs" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Watchdogs" android:textSize="9sp" />
-    </LinearLayout>
+        android:orientation="vertical" />
 
     <TextView
         android:id="@+id/settings_workspaces_label"
@@ -78,21 +57,9 @@
         android:textStyle="bold" />
 
     <LinearLayout
+        android:id="@+id/settings_workspace_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:orientation="horizontal">
-        <Button android:id="@+id/btn_workspace_minimal" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Minimal" android:textSize="10sp" />
-        <Button android:id="@+id/btn_workspace_developer" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Developer" android:textSize="10sp" />
-        <Button android:id="@+id/btn_workspace_privacy" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Privacy" android:textSize="10sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button android:id="@+id/btn_workspace_cyber" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Cyber" android:textSize="10sp" />
-        <Button android:id="@+id/btn_workspace_gaming" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Gaming" android:textSize="10sp" />
-        <Button android:id="@+id/btn_workspace_custom" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:text="Custom" android:textSize="10sp" />
-    </LinearLayout>
+        android:orientation="vertical" />
 </LinearLayout>

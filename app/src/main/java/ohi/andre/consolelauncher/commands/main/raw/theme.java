@@ -29,6 +29,7 @@ import ohi.andre.consolelauncher.managers.xml.options.Theme;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
 import ohi.andre.consolelauncher.tuils.Tuils;
 import ohi.andre.consolelauncher.tuils.interfaces.Reloadable;
+import ohi.andre.consolelauncher.widgets.hud.ThemePreviewCard;
 
 public class theme extends ParamCommand {
 
@@ -44,14 +45,12 @@ public class theme extends ParamCommand {
             public String exec(ExecutePack pack) {
                 String name = pack.getString();
                 if (name == null || name.trim().isEmpty()) {
-                    return "Usage: theme preview <name>\nAvailable: catppuccin_mocha, tokyo_night, gruvbox_hard, catppuccin_latte, watchdogs, ghost_shell, cyberpunk";
+                    return "Usage: theme preview <name>\nAvailable: " + java.util.Arrays.toString(ThemeEngine.Preset.values());
                 }
-                name = name.toLowerCase().trim();
-                return "=== THEME PREVIEW: " + name.toUpperCase() + " ===\n" +
-                       "• Primary Accent : Active / Prompt\n" +
-                       "• Background     : Terminal Canvas\n" +
-                       "• Status         : Preset ready to apply\n" +
-                       "Run `theme preset " + name + "` to apply this theme permanently.";
+                ThemeEngine.Preset preset = ThemeEngine.resolvePreset(name);
+                if (preset == null) return "Unknown theme: " + name + ". Use `theme preview` to see available presets.";
+                Tuils.sendOutput(pack.context, new ThemePreviewCard(pack.context, preset));
+                return null;
             }
         },
         apply {
@@ -109,6 +108,17 @@ public class theme extends ParamCommand {
             @Override
             public String exec(ExecutePack pack) {
                 String name = pack.getString().toLowerCase();
+
+                // Keep Material You's dynamic system palette path below; all fixed palettes
+                // use one shared implementation so command and Settings cannot drift apart.
+                if (!name.equals("material_you") && !name.equals("material-you")) {
+                    ThemeEngine.Preset selected = ThemeEngine.resolvePreset(name);
+                    if (selected != null) {
+                        ThemeEngine.applyPreset(selected);
+                        if (pack.context instanceof Reloadable) ((Reloadable) pack.context).reload();
+                        return "Applied " + selected.name().replace('_', ' ').toLowerCase(java.util.Locale.ROOT) + " preset.";
+                    }
+                }
                 
                 Map<Theme, String> colors = new HashMap<>();
                 Map<Suggestions, String> suggestionColors = new HashMap<>();

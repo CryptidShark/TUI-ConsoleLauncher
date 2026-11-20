@@ -3,6 +3,7 @@ package ohi.andre.consolelauncher.commands.main.raw;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import ohi.andre.consolelauncher.LauncherActivity;
@@ -57,37 +58,66 @@ public class settings implements CommandAbstraction {
             ((Reloadable) info.context).reload();
         });
 
-        int[] presetButtonIds = {R.id.btn_theme_classic, R.id.btn_theme_modern, R.id.btn_theme_cyber,
-                R.id.btn_theme_neo, R.id.btn_theme_amber, R.id.btn_theme_nord, R.id.btn_theme_dracula,
-                R.id.btn_theme_amoled, R.id.btn_theme_watchdogs};
+        LinearLayout themeGrid = card.findViewById(R.id.settings_theme_grid);
         ThemeEngine.Preset[] presets = ThemeEngine.Preset.values();
         String currentPreset = XMLPrefsManager.get(Behavior.theme_preset);
-        for (int i = 0; i < presetButtonIds.length && i < presets.length; i++) {
-            Button button = card.findViewById(presetButtonIds[i]);
-            ThemeEngine.Preset preset = presets[i];
-            String label = preset.name().replace("_TERMINAL", "").replace("_CYBER", "").replace('_', ' ');
-            button.setText(preset.name().equals(currentPreset) ? "✓ " + label : label);
-            button.setOnClickListener(v -> {
-                Behavior.theme_preset.parent().write(Behavior.theme_preset, preset.name());
-                ((Reloadable) info.context).reload();
-            });
+        for (int i = 0; i < presets.length; i += 3) {
+            LinearLayout row = new LinearLayout(info.context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            themeGrid.addView(row, new LinearLayout.LayoutParams(-1, -2));
+            for (int j = i; j < Math.min(i + 3, presets.length); j++) {
+                ThemeEngine.Preset preset = presets[j];
+                ThemeEngine.DesignTokens tokens = ThemeEngine.getBasePreset(preset);
+                String label = preset.name().replace("_TERMINAL", "").replace("_CYBER", "").replace('_', ' ');
+                Button button = new Button(info.context);
+                button.setAllCaps(false);
+                button.setText(preset.name().equals(currentPreset) ? "✓ " + label : label);
+                button.setTextSize(10);
+                button.setTextColor(tokens.text);
+                button.setTypeface(Tuils.getTypeface(info.context));
+                button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(tokens.surface));
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, Tuils.dpToPx(info.context, 42), 1f);
+                params.setMargins(Tuils.dpToPx(info.context, 2), Tuils.dpToPx(info.context, 2), Tuils.dpToPx(info.context, 2), Tuils.dpToPx(info.context, 2));
+                row.addView(button, params);
+                button.setOnClickListener(v -> {
+                    ThemeEngine.applyPreset(preset);
+                    ((Reloadable) info.context).reload();
+                });
+            }
         }
 
-        int[] workspaceButtonIds = {R.id.btn_workspace_minimal, R.id.btn_workspace_developer,
-                R.id.btn_workspace_privacy, R.id.btn_workspace_cyber, R.id.btn_workspace_gaming,
-                R.id.btn_workspace_custom};
+        LinearLayout workspaceGrid = card.findViewById(R.id.settings_workspace_grid);
         WorkspaceManager.Workspace[] workspaces = WorkspaceManager.Workspace.values();
         WorkspaceManager.Workspace activeWorkspace = WorkspaceManager.getActiveWorkspace(info.context);
-        String[] spanishWorkspaceNames = {"Minimal", "Desarrollo", "Privacidad", "Ciber", "Juegos", "Personalizado"};
-        for (int i = 0; i < workspaceButtonIds.length; i++) {
-            Button button = card.findViewById(workspaceButtonIds[i]);
-            WorkspaceManager.Workspace workspace = workspaces[i];
-            String workspaceName = spanish ? spanishWorkspaceNames[i] : workspace.getName();
-            button.setText(workspace == activeWorkspace ? "✓ " + workspaceName : workspaceName);
-            button.setOnClickListener(v -> {
-                WorkspaceManager.setWorkspace(info.context, workspace);
-                ((Reloadable) info.context).reload();
-            });
+        for (int i = 0; i < workspaces.length; i += 3) {
+            LinearLayout row = new LinearLayout(info.context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            workspaceGrid.addView(row, new LinearLayout.LayoutParams(-1, -2));
+            for (int j = i; j < Math.min(i + 3, workspaces.length); j++) {
+                WorkspaceManager.Workspace workspace = workspaces[j];
+                Button button = new Button(info.context);
+                button.setAllCaps(false);
+                String workspaceName = workspace.getName();
+                if (spanish) {
+                    if (workspace == WorkspaceManager.Workspace.DEVELOPER) workspaceName = "Desarrollo";
+                    else if (workspace == WorkspaceManager.Workspace.PRIVACY) workspaceName = "Privacidad";
+                    else if (workspace == WorkspaceManager.Workspace.CYBER) workspaceName = "Ciber";
+                    else if (workspace == WorkspaceManager.Workspace.GAMING) workspaceName = "Juegos";
+                    else if (workspace == WorkspaceManager.Workspace.WEB_DEV) workspaceName = "Web Dev";
+                    else if (workspace == WorkspaceManager.Workspace.AUTHORIZED_LAB) workspaceName = "Lab autorizado";
+                    else if (workspace == WorkspaceManager.Workspace.CUSTOM) workspaceName = "Personalizado";
+                }
+                button.setText(workspace == activeWorkspace ? "✓ " + workspaceName : workspaceName);
+                button.setTextSize(10);
+                button.setTypeface(Tuils.getTypeface(info.context));
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, Tuils.dpToPx(info.context, 42), 1f);
+                params.setMargins(Tuils.dpToPx(info.context, 2), Tuils.dpToPx(info.context, 2), Tuils.dpToPx(info.context, 2), Tuils.dpToPx(info.context, 2));
+                row.addView(button, params);
+                button.setOnClickListener(v -> {
+                    WorkspaceManager.setWorkspace(info.context, workspace);
+                    ((Reloadable) info.context).reload();
+                });
+            }
         }
 
         Tuils.sendOutput(info.context, card);

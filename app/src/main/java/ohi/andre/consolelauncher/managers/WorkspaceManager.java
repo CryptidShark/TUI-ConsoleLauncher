@@ -18,10 +18,12 @@ public class WorkspaceManager {
 
     public enum Workspace {
         MINIMAL("Minimal", new Behavior[0]),
-        DEVELOPER("Developer", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_battery_card, Behavior.persistent_shortcuts_card}),
+        DEVELOPER("Developer", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_battery_card, Behavior.persistent_shortcuts_card, Behavior.persistent_telemetry_card}),
         PRIVACY("Privacy", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_notes_card}),
         CYBER("Cyber", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_music_card, Behavior.persistent_shortcuts_card}),
         GAMING("Gaming", new Behavior[]{Behavior.persistent_battery_card, Behavior.persistent_music_card}),
+        WEB_DEV("Web Dev", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_shortcuts_card, Behavior.persistent_termux_card, Behavior.persistent_telemetry_card}),
+        AUTHORIZED_LAB("Authorized Lab", new Behavior[]{Behavior.persistent_system_card, Behavior.persistent_notes_card, Behavior.persistent_termux_card, Behavior.persistent_telemetry_card}),
         CUSTOM("Custom", null);
 
         private final String label;
@@ -82,6 +84,6 @@ public class WorkspaceManager {
         return Arrays.asList(Behavior.persistent_system_card, Behavior.persistent_battery_card,
                 Behavior.persistent_notes_card, Behavior.persistent_shortcuts_card,
                 Behavior.persistent_music_card, Behavior.persistent_weather_card,
-                Behavior.persistent_termux_card);
+                Behavior.persistent_termux_card, Behavior.persistent_telemetry_card);
     }
 }

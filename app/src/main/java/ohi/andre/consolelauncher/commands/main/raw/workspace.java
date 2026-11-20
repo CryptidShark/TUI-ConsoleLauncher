@@ -14,7 +14,7 @@ public class workspace implements CommandAbstraction {
         if (action.equalsIgnoreCase("list")) {
             return "Workspaces: " + Tuils.toPlanString(WorkspaceManager.getAvailableWorkspaces(), ", ")
                     + "\nActive: " + WorkspaceManager.getActiveWorkspace(pack.context).getName()
-                    + "\nUsage: workspace set [name]";
+                    + "\nUsage: workspace set [minimal|developer|privacy|cyber|gaming|web_dev|authorized_lab|custom]";
         }
         if (action.equalsIgnoreCase("set") && pack.args.length > 1) {
             WorkspaceManager.Workspace selected = WorkspaceManager.fromName(String.valueOf(pack.args[1]));
@@ -22,7 +22,7 @@ public class workspace implements CommandAbstraction {
             WorkspaceManager.setWorkspace(pack.context, selected);
             return "Workspace set to " + selected.getName() + ".";
         }
-        return "Usage: workspace [list | set [Minimal|Developer|Privacy|Cyber|Gaming|Custom]]";
+        return "Usage: workspace [list | set [minimal|developer|privacy|cyber|gaming|web_dev|authorized_lab|custom]]";
     }
 
     @Override public int[] argType() { return new int[]{PLAIN_TEXT, PLAIN_TEXT}; }

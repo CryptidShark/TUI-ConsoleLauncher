@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 public class ThemeEngineTest {
 
@@ -33,5 +34,20 @@ public class ThemeEngineTest {
 
         ThemeEngine.DesignTokens second = ThemeEngine.getPreset(ThemeEngine.Preset.WINDOWS_TERMINAL);
         assertEquals(Color.parseColor("#FF4FC1FF"), second.primary);
+    }
+
+    @Test
+    public void everyPresetHasAResolvableNameAndPalette() {
+        for (ThemeEngine.Preset preset : ThemeEngine.Preset.values()) {
+            assertSame(preset, ThemeEngine.resolvePreset(preset.name()));
+            assertNotNull(ThemeEngine.getBasePreset(preset));
+        }
+    }
+
+    @Test
+    public void commonThemeAliasesResolveCaseInsensitively() {
+        assertSame(ThemeEngine.Preset.WINDOWS_TERMINAL, ThemeEngine.resolvePreset("Windows"));
+        assertSame(ThemeEngine.Preset.CATPPUCCIN_MOCHA, ThemeEngine.resolvePreset("catppuccin-mocha"));
+        assertSame(ThemeEngine.Preset.WATCHDOGS_CYBER, ThemeEngine.resolvePreset("Watchdogs"));
     }
 }

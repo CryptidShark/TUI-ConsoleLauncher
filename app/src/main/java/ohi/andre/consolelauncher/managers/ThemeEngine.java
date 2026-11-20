@@ -2,6 +2,8 @@ package ohi.andre.consolelauncher.managers;
 
 import android.graphics.Color;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
+import ohi.andre.consolelauncher.managers.xml.options.Behavior;
+import ohi.andre.consolelauncher.managers.xml.options.Suggestions;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -369,9 +371,7 @@ public class ThemeEngine {
     }
 
     public static DesignTokens getPreset(Preset preset) {
-        DesignTokens source = presets.get(preset);
-        if (source == null) source = presets.get(Preset.CLASSIC_TERMINAL);
-        DesignTokens tokens = copy(source);
+        DesignTokens tokens = getBasePreset(preset);
         
         try {
             int xmlOutputColor = XMLPrefsManager.getColor(Theme.output_color);
@@ -393,6 +393,108 @@ public class ThemeEngine {
         } catch (Exception ignored) {}
 
         return tokens;
+    }
+
+    /** Returns the declared palette without user color overrides. */
+    public static DesignTokens getBasePreset(Preset preset) {
+        DesignTokens source = presets.get(preset);
+        if (source == null) source = presets.get(Preset.CLASSIC_TERMINAL);
+        return copy(source);
+    }
+
+    public static Preset resolvePreset(String name) {
+        if (name == null) return null;
+        String normalized = name.trim().toUpperCase(java.util.Locale.ROOT)
+                .replace('-', '_').replace(' ', '_');
+        if (normalized.equals("WINDOWS") || normalized.equals("WINDOWS_TERMINAL")) return Preset.WINDOWS_TERMINAL;
+        if (normalized.equals("CLASSIC") || normalized.equals("CLASSIC_TERMINAL")) return Preset.CLASSIC_TERMINAL;
+        if (normalized.equals("MODERN") || normalized.equals("MODERN_TERMINAL")) return Preset.MODERN_TERMINAL;
+        if (normalized.equals("CYBER") || normalized.equals("CYBERPUNK") || normalized.equals("CYBER_TERMINAL")) return Preset.CYBER_TERMINAL;
+        if (normalized.equals("NEO") || normalized.equals("NEO_TERMINAL")) return Preset.NEO_TERMINAL;
+        if (normalized.equals("AMBER") || normalized.equals("AMBER_TERMINAL")) return Preset.AMBER_TERMINAL;
+        if (normalized.equals("NORD") || normalized.equals("NORD_TERMINAL")) return Preset.NORD_TERMINAL;
+        if (normalized.equals("DRACULA") || normalized.equals("DRACULA_TERMINAL")) return Preset.DRACULA_TERMINAL;
+        if (normalized.equals("AMOLED") || normalized.equals("AMOLED_TERMINAL")) return Preset.AMOLED_TERMINAL;
+        if (normalized.equals("WATCHDOGS") || normalized.equals("WATCHDOGS_CYBER")) return Preset.WATCHDOGS_CYBER;
+        if (normalized.equals("GHOST") || normalized.equals("GHOST_SHELL")) return Preset.GHOST_SHELL;
+        if (normalized.equals("CATPPUCCIN") || normalized.equals("CATPPUCCIN_MOCHA")) return Preset.CATPPUCCIN_MOCHA;
+        if (normalized.equals("TOKYO") || normalized.equals("TOKYO_NIGHT")) return Preset.TOKYO_NIGHT;
+        if (normalized.equals("GRUVBOX") || normalized.equals("GRUVBOX_HARD")) return Preset.GRUVBOX_HARD;
+        if (normalized.equals("CATPPUCCIN_LATTE")) return Preset.CATPPUCCIN_LATTE;
+        return null;
+    }
+
+    /** Applies one complete palette to the legacy XML colors and modern design tokens. */
+    public static void applyPreset(Preset preset) {
+        if (preset == null) return;
+        DesignTokens tokens = getBasePreset(preset);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.bg_color, tokens.background);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.overlay_color, withAlpha(tokens.background, 0xB3));
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.input_color, tokens.primary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.output_color, tokens.text);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.device_color, tokens.secondary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.battery_color_high, tokens.success);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.battery_color_medium, tokens.warning);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.battery_color_low, tokens.error);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.time_color, tokens.info);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.charging_color, tokens.success);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.storage_color, tokens.secondary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.ram_color, tokens.warning);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.network_info_color, tokens.info);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.toolbar_bg, tokens.surface);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.toolbar_color, tokens.primary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.enter_color, tokens.primary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.cursor_color, tokens.cursor);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.alias_content_color, tokens.secondary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.statusbar_color, tokens.background);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.navigationbar_color, tokens.background);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.app_installed_color, tokens.success);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.app_uninstalled_color, tokens.error);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.hint_color, tokens.textMuted);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.mark_color, tokens.accent);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.notes_color, tokens.primary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.notes_locked_color, tokens.secondary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.link_color, tokens.info);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.restart_message_color, tokens.success);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.weather_color, tokens.info);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.unlock_counter_color, tokens.accent);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.session_info_color, tokens.secondary);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.status_lines_bgrectcolor, tokens.border);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.input_bgrectcolor, tokens.border);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.output_bgrectcolor, tokens.border);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.toolbar_bgrectcolor, tokens.border);
+        writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme.suggestions_bgrectcolor, tokens.border);
+        writeSuggestion(Suggestions.default_text_color, tokens.text);
+        writeSuggestion(Suggestions.default_bg_color, tokens.surface);
+        writeSuggestion(Suggestions.apps_text_color, tokens.text);
+        writeSuggestion(Suggestions.apps_bg_color, tokens.surface);
+        writeSuggestion(Suggestions.alias_text_color, tokens.text);
+        writeSuggestion(Suggestions.alias_bg_color, tokens.surface);
+        writeSuggestion(Suggestions.cmd_text_color, tokens.primary);
+        writeSuggestion(Suggestions.cmd_bg_color, tokens.surface);
+        writeSuggestion(Suggestions.song_text_color, tokens.accent);
+        writeSuggestion(Suggestions.song_bg_color, tokens.surface);
+        writeSuggestion(Suggestions.contact_text_color, tokens.secondary);
+        writeSuggestion(Suggestions.contact_bg_color, tokens.surface);
+        writeSuggestion(Suggestions.file_text_color, tokens.text);
+        writeSuggestion(Suggestions.file_bg_color, tokens.surface);
+        Behavior.theme_preset.parent().write(Behavior.theme_preset, preset.name());
+    }
+
+    private static void writeTheme(ohi.andre.consolelauncher.managers.xml.options.Theme option, int color) {
+        option.parent().write(option, toHex(color));
+    }
+
+    private static void writeSuggestion(Suggestions option, int color) {
+        option.parent().write(option, toHex(color));
+    }
+
+    private static String toHex(int color) {
+        return String.format(java.util.Locale.ROOT, "#%08X", color);
+    }
+
+    private static int withAlpha(int color, int alpha) {
+        return (color & 0x00FFFFFF) | (alpha << 24);
     }
 
     private static DesignTokens copy(DesignTokens source) {

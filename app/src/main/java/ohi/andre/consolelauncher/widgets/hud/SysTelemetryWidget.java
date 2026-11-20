@@ -31,6 +31,7 @@ import java.net.Inet4Address;
 import java.util.Locale;
 
 import ohi.andre.consolelauncher.R;
+import ohi.andre.consolelauncher.managers.ThemeEngine;
 
 /**
  * Low-cost system telemetry card. Polling happens only while attached to the
@@ -45,6 +46,7 @@ public class SysTelemetryWidget extends HudCardView {
     private final HudGaugeView memoryGauge;
     private final HudGaugeView storageGauge;
     private final TextView networkView;
+    private final ThemeEngine.DesignTokens themeColors;
     private final ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
     private final ActivityManager activityManager;
     private final ConnectivityManager connectivityManager;
@@ -98,19 +100,21 @@ public class SysTelemetryWidget extends HudCardView {
     public SysTelemetryWidget(Context context) {
         super(context);
         setTitle("SYS STATUS");
+        themeColors = getDesignTokens();
+        setFrameColors(themeColors.surface, themeColors.border, themeColors.secondary);
         activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         LinearLayout gauges = new LinearLayout(context);
         gauges.setOrientation(LinearLayout.HORIZONTAL);
         gauges.setGravity(Gravity.CENTER);
-        batteryGauge = addGauge(gauges, "BAT", ContextCompat.getColor(context, R.color.hud_green));
-        memoryGauge = addGauge(gauges, "RAM", ContextCompat.getColor(context, R.color.hud_pink));
-        storageGauge = addGauge(gauges, "DISK", ContextCompat.getColor(context, R.color.hud_purple));
+        batteryGauge = addGauge(gauges, "BAT", themeColors.success, themeColors);
+        memoryGauge = addGauge(gauges, "RAM", themeColors.warning, themeColors);
+        storageGauge = addGauge(gauges, "DISK", themeColors.secondary, themeColors);
         addView(gauges, new LayoutParams(LayoutParams.MATCH_PARENT, dp(82)));
 
         networkView = new TextView(context);
-        networkView.setTextColor(ContextCompat.getColor(context, R.color.hud_cyan));
+        networkView.setTextColor(themeColors.info);
         networkView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         networkView.setTypeface(android.graphics.Typeface.MONOSPACE);
         networkView.setMaxLines(2);
@@ -124,12 +128,10 @@ public class SysTelemetryWidget extends HudCardView {
         refreshNetwork();
     }
 
-    private HudGaugeView addGauge(LinearLayout row, String label, int accent) {
+    private HudGaugeView addGauge(LinearLayout row, String label, int accent, ThemeEngine.DesignTokens colors) {
         HudGaugeView gauge = new HudGaugeView(getContext());
         gauge.setValue(label, 0, accent);
-        gauge.setColors(ContextCompat.getColor(getContext(), R.color.hud_border),
-                ContextCompat.getColor(getContext(), R.color.hud_text_primary),
-                ContextCompat.getColor(getContext(), R.color.hud_text_secondary));
+        gauge.setColors(colors.border, colors.text, colors.textMuted);
         row.addView(gauge, new LinearLayout.LayoutParams(0, dp(78), 1f));
         return gauge;
     }
@@ -196,8 +198,7 @@ public class SysTelemetryWidget extends HudCardView {
 
     private void updateBattery(int percentage) {
         int color = percentage <= 20
-                ? ContextCompat.getColor(getContext(), R.color.hud_pink)
-                : ContextCompat.getColor(getContext(), R.color.hud_green);
+                ? themeColors.error : themeColors.success;
         batteryGauge.setValue("BAT", percentage, color);
     }
 
@@ -207,7 +208,7 @@ public class SysTelemetryWidget extends HudCardView {
         long total = memoryInfo.totalMem;
         long used = Math.max(0, total - memoryInfo.availMem);
         int percent = total > 0 ? (int) Math.min(100, used * 100L / total) : 0;
-        memoryGauge.setValue("RAM", percent, ContextCompat.getColor(getContext(), R.color.hud_pink));
+        memoryGauge.setValue("RAM", percent, themeColors.warning);
     }
 
     private void refreshStorage() {
@@ -216,7 +217,7 @@ public class SysTelemetryWidget extends HudCardView {
             long total = stats.getTotalBytes();
             long available = stats.getAvailableBytes();
             int percent = total > 0 ? (int) Math.max(0, Math.min(100, (total - available) * 100L / total)) : 0;
-            storageGauge.setValue("DISK", percent, ContextCompat.getColor(getContext(), R.color.hud_purple));
+            storageGauge.setValue("DISK", percent, themeColors.secondary);
             lastStorageRefresh = System.currentTimeMillis();
         } catch (RuntimeException ignored) { }
     }

@@ -46,8 +46,8 @@ Cythernoir incluye paletas de color de primer nivel inspiradas en los estándare
 - `tokyo_night` (Azul-púrpura optimizado para OLED)
 - `gruvbox_hard` (Retro cálido de alto contraste)
 - `catppuccin_latte` (Modo claro limpio)
-- `watchdogs_cyber`, `ghost_shell`, `dracula`, `nord`, `cyberpunk`, `amber`, `amoled`.
-- Previsualiza cualquier tema antes de aplicarlo con `theme preview <nombre>`.
+- `classic_terminal`, `windows_terminal`, `modern_terminal`, `cyber_terminal`, `neo_terminal`, `amber_terminal`, `nord_terminal`, `dracula_terminal`, `amoled_terminal`, `watchdogs_cyber`, `ghost_shell`, `catppuccin_mocha`, `tokyo_night`, `gruvbox_hard` y `catppuccin_latte`.
+- `theme preview <nombre>` muestra una tarjeta real con la paleta y un botón para aplicarla. También puedes elegir cualquiera de los 15 temas desde `settings`; los colores de la consola, sugerencias, estado y telemetría HUD se actualizan en conjunto. `material_you` toma los colores del sistema al aplicarlo con `theme -preset material_you` (Android 12+).
 
 ---
 
@@ -55,6 +55,7 @@ Cythernoir incluye paletas de color de primer nivel inspiradas en los estándare
 
 - **Usar Android desde una interfaz de terminal:** abrir aplicaciones, buscar contenido y ejecutar comandos con sugerencias y aliases.
 - **Personalizar la pantalla:** elegir entre los temas incluidos, ajustar preferencias de interfaz y fijar tarjetas de información.
+- **Cambiar de contexto de trabajo:** `workspace list` muestra los perfiles; `workspace set web_dev` activa el perfil Web Dev y `workspace set authorized_lab` activa el perfil de laboratorio autorizado. Cada perfil configura las tarjetas fijadas, incluida la telemetría y el acceso a Termux cuando corresponda.
 - **Añadir widgets Android:** usar `widget add`, `widget list`, `widget move`, `widget height`, `widget remove` y `widget clear`.
 - **Controlar música:** reproducir canciones locales o controlar sesiones multimedia con `visual music -fixed`.
 - **Consultar información rápida:** fijar tarjetas como batería, sistema, notas, accesos directos, música y monitor de sistema.

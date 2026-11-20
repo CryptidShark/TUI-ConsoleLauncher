@@ -54,7 +54,15 @@ visual music -fixed
 visual clear
 ```
 
-Los presets visuales incluyen `CLASSIC_TERMINAL`, `MODERN_TERMINAL`, `CYBER_TERMINAL`, `NEO_TERMINAL`, `AMBER_TERMINAL`, `NORD_TERMINAL`, `DRACULA_TERMINAL`, `AMOLED_TERMINAL` y `WATCHDOGS_CYBER`. También se puede cambiar una opción de color desde `theme` o `config`. Ejecuta `help theme` para ver las opciones disponibles.
+Los ajustes muestran los 15 temas disponibles. Al elegir uno se actualiza la paleta completa de la consola, sugerencias, indicadores y tarjetas. Para probarlo sin cambiar el tema actual:
+
+```text
+theme preview dracula
+theme preview windows
+theme preview catppuccin-latte
+```
+
+La tarjeta de vista previa incluye una acción para aplicar el tema. También se puede aplicar directamente con `theme -preset dracula` o cambiar un color individual con `theme -set <opción> <color>`.
 
 ### Workspaces
 
@@ -64,10 +72,12 @@ Un workspace aplica un conjunto de tarjetas fijadas:
 workspace list
 workspace set Developer
 workspace set Privacy
+workspace set web_dev
+workspace set authorized_lab
 workspace set Custom
 ```
 
-`Custom` conserva las tarjetas elegidas manualmente. Los otros perfiles sustituyen el conjunto de tarjetas ancladas.
+`Web Dev` fija accesos de desarrollo, telemetría y el estado de la integración Termux. `Authorized Lab` fija notas, telemetría y Termux para flujos de laboratorio autorizados. Los otros perfiles cubren uso general, privacidad, ciberestética y música. `Custom` conserva las tarjetas elegidas manualmente; los perfiles predefinidos sustituyen el conjunto de tarjetas ancladas.
 
 ## Música
 

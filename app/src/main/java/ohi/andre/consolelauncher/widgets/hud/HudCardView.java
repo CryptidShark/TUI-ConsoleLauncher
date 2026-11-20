@@ -8,9 +8,9 @@ import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
-import androidx.core.content.ContextCompat;
-
-import ohi.andre.consolelauncher.R;
+import ohi.andre.consolelauncher.managers.ThemeEngine;
+import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
+import ohi.andre.consolelauncher.managers.xml.options.Behavior;
 
 /** Lightweight terminal card with a caption cut into its top border. */
 public class HudCardView extends LinearLayout {
@@ -33,8 +33,9 @@ public class HudCardView extends LinearLayout {
     }
 
     private void init(Context context) {
-        surfaceColor = ContextCompat.getColor(context, R.color.hud_surface);
-        borderColor = ContextCompat.getColor(context, R.color.hud_border);
+        ThemeEngine.DesignTokens colors = getDesignTokens();
+        surfaceColor = colors.surface;
+        borderColor = colors.border;
         setOrientation(VERTICAL);
         setWillNotDraw(false);
         setPadding(dp(16), dp(20), dp(16), dp(14));
@@ -48,7 +49,15 @@ public class HudCardView extends LinearLayout {
         titlePaint.setTypeface(Typeface.MONOSPACE);
         titlePaint.setTextSize(sp(11));
         titlePaint.setFakeBoldText(true);
-        titlePaint.setColor(ContextCompat.getColor(context, R.color.hud_purple));
+        titlePaint.setColor(colors.secondary);
+    }
+
+    protected ThemeEngine.DesignTokens getDesignTokens() {
+        try {
+            ThemeEngine.Preset preset = ThemeEngine.resolvePreset(XMLPrefsManager.get(Behavior.theme_preset));
+            if (preset != null) return ThemeEngine.getPreset(preset);
+        } catch (Exception ignored) { }
+        return ThemeEngine.getBasePreset(ThemeEngine.Preset.CLASSIC_TERMINAL);
     }
 
     public void setTitle(String title) {
