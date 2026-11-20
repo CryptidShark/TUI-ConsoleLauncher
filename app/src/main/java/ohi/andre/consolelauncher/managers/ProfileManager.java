@@ -69,6 +69,24 @@ public class ProfileManager {
                 cmdObj.put(c.label(), XMLPrefsManager.get(c));
             }
             root.put("cmd", cmdObj);
+
+            JSONObject notificationsObj = new JSONObject();
+            for (Notifications notification : Notifications.values()) {
+                notificationsObj.put(notification.label(), XMLPrefsManager.get(notification));
+            }
+            root.put("notifications", notificationsObj);
+
+            JSONObject suggestionsObj = new JSONObject();
+            for (Suggestions suggestion : Suggestions.values()) {
+                suggestionsObj.put(suggestion.label(), XMLPrefsManager.get(suggestion));
+            }
+            root.put("suggestions", suggestionsObj);
+
+            JSONObject appsObj = new JSONObject();
+            for (Apps app : Apps.values()) {
+                appsObj.put(app.label(), XMLPrefsManager.get(app));
+            }
+            root.put("apps", appsObj);
             root.put("workspace", WorkspaceManager.getActiveWorkspace(context).name());
 
             File folder = Tuils.getFolder();
@@ -158,6 +176,33 @@ public class ProfileManager {
                 for (Cmd c : Cmd.values()) {
                     if (cmdObj.has(c.label())) {
                         c.parent().write(c, cmdObj.getString(c.label()));
+                    }
+                }
+            }
+
+            if (root.has("notifications")) {
+                JSONObject notificationsObj = root.getJSONObject("notifications");
+                for (Notifications notification : Notifications.values()) {
+                    if (notificationsObj.has(notification.label())) {
+                        notification.parent().write(notification, notificationsObj.getString(notification.label()));
+                    }
+                }
+            }
+
+            if (root.has("suggestions")) {
+                JSONObject suggestionsObj = root.getJSONObject("suggestions");
+                for (Suggestions suggestion : Suggestions.values()) {
+                    if (suggestionsObj.has(suggestion.label())) {
+                        suggestion.parent().write(suggestion, suggestionsObj.getString(suggestion.label()));
+                    }
+                }
+            }
+
+            if (root.has("apps")) {
+                JSONObject appsObj = root.getJSONObject("apps");
+                for (Apps app : Apps.values()) {
+                    if (appsObj.has(app.label())) {
+                        app.parent().write(app, appsObj.getString(app.label()));
                     }
                 }
             }

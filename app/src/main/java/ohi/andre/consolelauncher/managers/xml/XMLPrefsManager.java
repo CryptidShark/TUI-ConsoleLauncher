@@ -2,6 +2,7 @@ package ohi.andre.consolelauncher.managers.xml;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.AtomicFile;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -136,12 +137,16 @@ public class XMLPrefsManager {
         Tuils.init(context);
 
         if(commonsLoaded) return;
-        commonsLoaded = true;
 
         File folder = Tuils.getFolder();
         if(folder == null) {
             Tuils.sendOutput(Color.RED, context, R.string.tuinotfound_xmlprefs);
             return;
+        }
+
+        // Allow a clean retry after a partially failed first load.
+        for (XMLPrefsRoot element : XMLPrefsRoot.values()) {
+            element.values.list.clear();
         }
 
         for(XMLPrefsRoot element : XMLPrefsRoot.values()) {
@@ -155,15 +160,26 @@ public class XMLPrefsManager {
                 o = buildDocument(file, element.name());
                 if(o == null) {
                     Tuils.sendXMLParseError(context, element.path);
-                    return;
+                    // A previous interrupted write may have left this file incomplete.
+                    // Recreate only the damaged preference group and keep loading the rest.
+                    resetFile(file, element.name());
+                    o = buildDocument(file, element.name());
                 }
             } catch (SAXParseException e) {
                 Tuils.sendXMLParseError(context, element.path, e);
-                continue;
+                resetFile(file, element.name());
+                try {
+                    o = buildDocument(file, element.name());
+                } catch (Exception recoveryError) {
+                    Tuils.log(recoveryError);
+                    return;
+                }
             } catch (Exception e) {
                 Tuils.log(e);
                 return;
             }
+
+            if (o == null) return;
 
             Document d = (Document) o[0];
             Element root = (Element) o[1];
@@ -255,6 +271,8 @@ public class XMLPrefsManager {
 
             writeTo(d, file);
         }
+
+        commonsLoaded = true;
     }
 
     public static Object transform(String s, Class<?> c) throws Exception {
@@ -400,6 +418,8 @@ public class XMLPrefsManager {
     }
 
     public static void writeTo(Document d, File f) {
+        AtomicFile atomicFile = new AtomicFile(f);
+        FileOutputStream stream = null;
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
@@ -411,12 +431,12 @@ public class XMLPrefsManager {
 
             String s = fixNewlines(writer.toString());
 
-            FileOutputStream stream = new FileOutputStream(f);
-            stream.write(s.getBytes());
-
-            stream.flush();
-            stream.close();
+            stream = atomicFile.startWrite();
+            stream.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            atomicFile.finishWrite(stream);
+            stream = null;
         } catch (Exception e) {
+            if (stream != null) atomicFile.failWrite(stream);
             Tuils.log(e);
         }
     }
@@ -721,17 +741,17 @@ public class XMLPrefsManager {
     }
 
     public static boolean resetFile(File f, String name) {
+        AtomicFile atomicFile = new AtomicFile(f);
+        FileOutputStream stream = null;
         try {
-            if(f.exists()) f.delete();
-
-            FileOutputStream stream = new FileOutputStream(f);
-            stream.write(XML_DEFAULT.getBytes());
-            stream.write(("<" + name + ">\n").getBytes());
-            stream.write(("</" + name + ">\n").getBytes());
-            stream.flush();
-            stream.close();
+            stream = atomicFile.startWrite();
+            stream.write(XML_DEFAULT.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            stream.write(("<" + name + ">\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            stream.write(("</" + name + ">\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            atomicFile.finishWrite(stream);
             return true;
         } catch (Exception e) {
+            if (stream != null) atomicFile.failWrite(stream);
             return false;
         }
     }
