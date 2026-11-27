@@ -4,11 +4,12 @@ import ohi.andre.consolelauncher.LauncherActivity;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 import ohi.andre.consolelauncher.managers.EdgeDockManager;
 import ohi.andre.consolelauncher.tuils.Tuils;
 
 /** Configures the optional thumb-operated edge dock. */
-public class dock implements CommandAbstraction {
+public class dock implements PermanentSuggestionCommand {
     @Override public String exec(ExecutePack pack) {
         MainPack info = (MainPack) pack;
         String input = pack.args == null || pack.args.length == 0 ? "help" : String.valueOf(pack.args[0]).trim();
@@ -59,7 +60,15 @@ public class dock implements CommandAbstraction {
                 + "\nState: " + (EdgeDockManager.isEnabled(info.context) ? "enabled" : "disabled")
                 + "\nUsage: dock add <alias> | dock icon <alias> <emoji|reset> | dock enable | dock disable | dock remove <alias>";
         }
-        return "Usage: dock [list | add <alias> | icon <alias> <emoji|reset> | remove <alias> | enable | disable]";
+        return "Edge dock commands:\n"
+            + "  dock add <alias>       Add an existing alias to the dock\n"
+            + "  dock icon <alias> <emoji>  Set its icon, e.g. dock icon w 📱\n"
+            + "  dock icon <alias> reset   Restore the [alias] label\n"
+            + "  dock remove <alias>    Remove an alias\n"
+            + "  dock list              Show dock items and state\n"
+            + "  dock enable | disable  Turn the edge dock on or off\n"
+            + "First create an alias: alias add w WhatsApp. Then run: dock add w\n"
+            + "Type `dock ` (dock + space) to see command suggestions.";
     }
 
     private static void refresh(MainPack info) {
@@ -70,4 +79,8 @@ public class dock implements CommandAbstraction {
     @Override public int helpRes() { return 0; }
     @Override public String onNotArgEnough(ExecutePack pack, int nArgs) { return exec(pack); }
     @Override public String onArgNotFound(ExecutePack pack, int index) { return null; }
+
+    @Override public String[] permanentSuggestions() {
+        return new String[]{"list", "add ", "icon ", "remove ", "enable", "disable"};
+    }
 }
