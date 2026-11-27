@@ -105,8 +105,8 @@ public class MainManager {
 
     private CmdTrigger[] triggers = new CmdTrigger[] {
             new GroupTrigger(),
-            new AliasTrigger(),
             new TuiCommandTrigger(),
+            new AliasTrigger(),
             new AppTrigger(),
             new ShellCommandTrigger()
     };
@@ -302,7 +302,8 @@ public class MainManager {
 
         String firstWord = input.trim().split("\\s+")[0];
         String customAction = ohi.andre.consolelauncher.commands.main.raw.command.getInstance(mContext).get(firstWord);
-        if (customAction != null && alias == null && !firstWord.equalsIgnoreCase("command")) {
+        boolean builtInCommand = mainPack != null && mainPack.commandGroup.getCommandByName(firstWord) != null;
+        if (customAction != null && alias == null && !builtInCommand && !firstWord.equalsIgnoreCase("command")) {
             if (customAction.contains(";")) {
                 for (String sub : customAction.split(";")) {
                     onCommand(sub.trim(), (String) null, wasMusicService);

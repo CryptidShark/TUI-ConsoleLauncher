@@ -51,8 +51,9 @@ public class CommandGroup {
     }
 
     public CommandAbstraction getCommandByName(String name) {
+        if (name == null || commands == null) return null;
         for(CommandAbstraction c : commands) {
-            if(c.getClass().getSimpleName().equals(name)) {
+            if(c.getClass().getSimpleName().equalsIgnoreCase(name)) {
                 return c;
             }
         }

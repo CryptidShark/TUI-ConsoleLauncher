@@ -31,7 +31,7 @@ public class manual implements CommandAbstraction {
                 + "  Some devices require Cythernoir/T-UI as the default Home app.\n\n"
                 + "WORKSPACES\n"
                 + "  workspace list\n"
-                + "  workspace set [Minimal|Developer|Privacy|Cyber|Gaming|Custom]\n\n"
+                + "  workspace set [Minimal|Developer|Privacy|Cyber|Gaming|Web Dev|Authorized Lab|Custom]\n\n"
                 + "BACKUP\n"
                 + "  config -export_profile [name.json]\n"
                 + "  config -preview_profile [name.json]\n"

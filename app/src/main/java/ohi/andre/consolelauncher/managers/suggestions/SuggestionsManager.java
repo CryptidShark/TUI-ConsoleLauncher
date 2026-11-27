@@ -18,8 +18,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -686,7 +689,26 @@ public class SuggestionsManager {
         }
 
         Collections.sort(suggestionList, comparator);
+        removeAppSuggestionsDuplicatingCommands(suggestionList);
         return suggestionList;
+    }
+
+    /** Avoid suggesting apps or aliases that collide with a built-in CLI command. */
+    private void removeAppSuggestionsDuplicatingCommands(List<Suggestion> suggestions) {
+        Set<String> commandNames = new HashSet<>();
+        String[] names = pack.commandGroup.getCommandNames();
+        if (names != null) {
+            for (String name : names) commandNames.add(name.toLowerCase(Locale.ROOT));
+        }
+        Iterator<Suggestion> iterator = suggestions.iterator();
+        while (iterator.hasNext()) {
+            Suggestion suggestion = iterator.next();
+            if ((suggestion.type == Suggestion.TYPE_APP || suggestion.type == Suggestion.TYPE_ALIAS)
+                    && suggestion.text != null
+                    && commandNames.contains(suggestion.text.trim().toLowerCase(Locale.ROOT))) {
+                iterator.remove();
+            }
+        }
     }
 
     private boolean needsFileSuggestion(String cmd) {
