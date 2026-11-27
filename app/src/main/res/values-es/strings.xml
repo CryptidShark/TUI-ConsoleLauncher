@@ -202,6 +202,7 @@
     <string name="output_bluetooth_turning_on">Bluetooth ya se está activando.</string>
     <string name="output_bluetooth_turning_off">Bluetooth se está desactivando.</string>
     <string name="output_bluetooth_failed">No se pudo cambiar el estado de Bluetooth. Revísalo en los ajustes de Android.</string>
+    <string name="edge_dock_action">Ejecutar alias %1$s</string>
     <string name="output_airplane">Modo avión activo:</string>
     <string name="output_airplane_open_settings">Usa los controles del modo avión de Android para cambiarlo.</string>
     <string name="output_airplane_settings_failed">No se pudieron abrir los controles del modo avión de Android.</string>

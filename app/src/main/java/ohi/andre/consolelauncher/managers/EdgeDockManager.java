@@ -4,12 +4,15 @@ import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.json.JSONObject;
+import org.json.JSONException;
 
 /** User-configured short aliases shown in the optional in-app edge dock. */
 public final class EdgeDockManager {
     private static final String PREFS = "edge_dock";
     private static final String ITEMS = "items";
     private static final String ENABLED = "enabled";
+    private static final String ICONS = "icons";
 
     private EdgeDockManager() {}
 
@@ -30,6 +33,32 @@ public final class EdgeDockManager {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(ENABLED, enabled).apply();
     }
 
+    /** Optional Unicode glyph/emoji shown instead of the alias initials. */
+    public static String getIcon(Context context, String alias) {
+        try {
+            String json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(ICONS, "{}");
+            return new JSONObject(json == null ? "{}" : json).optString(alias, "");
+        } catch (JSONException ignored) {
+            return "";
+        }
+    }
+
+    public static boolean setIcon(Context context, String alias, String icon) {
+        if (alias == null || alias.trim().isEmpty()) return false;
+        String glyph = icon == null ? "" : icon.trim();
+        if (glyph.contains("\n") || glyph.contains("\r") || glyph.codePointCount(0, glyph.length()) > 8) return false;
+        try {
+            String json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(ICONS, "{}");
+            JSONObject icons = new JSONObject(json == null ? "{}" : json);
+            if (glyph.isEmpty()) icons.remove(alias);
+            else icons.put(alias, glyph);
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(ICONS, icons.toString()).apply();
+            return true;
+        } catch (JSONException ignored) {
+            return false;
+        }
+    }
+
     public static boolean add(Context context, String alias) {
         if (alias == null || alias.trim().isEmpty() || alias.contains("\n")) return false;
         List<String> items = getItems(context);
@@ -43,7 +72,10 @@ public final class EdgeDockManager {
     public static boolean remove(Context context, String alias) {
         List<String> items = getItems(context);
         boolean removed = items.remove(alias);
-        if (removed) save(context, items);
+        if (removed) {
+            save(context, items);
+            setIcon(context, alias, "");
+        }
         return removed;
     }
 

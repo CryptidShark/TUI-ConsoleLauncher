@@ -203,6 +203,7 @@
     <string name="output_bluetooth_turning_on">Bluetooth is already turning on.</string>
     <string name="output_bluetooth_turning_off">Bluetooth is turning off.</string>
     <string name="output_bluetooth_failed">Bluetooth state could not be changed. Check it in Android settings.</string>
+    <string name="edge_dock_action">Run alias %1$s</string>
     <string name="output_airplane">Airplane mode active:</string>
     <string name="output_airplane_open_settings">Use the Android airplane mode controls to change this setting.</string>
     <string name="output_airplane_settings_failed">Could not open the Android airplane mode controls.</string>

@@ -140,12 +140,14 @@ Aliases appear in a narrow rail on the right edge. Drag along the rail to select
 ```text
 alias add w WhatsApp
 dock add w
+dock icon w 📱
 dock enable
 dock list
+dock icon w reset
 dock disable
 ```
 
-The dock is disabled until enabled, and supports up to eight aliases. Existing four-direction gestures and workspace profiles are unchanged.
+The dock is disabled until enabled, and supports up to eight aliases. `dock icon <alias> <emoji>` shows a Unicode symbol instead of the alias letter; `dock icon <alias> reset` restores the text label. Existing four-direction gestures and workspace profiles are unchanged.
 
 ## 🧭 Existing touch and CLI navigation
 

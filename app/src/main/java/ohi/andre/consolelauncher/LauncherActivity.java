@@ -1005,11 +1005,13 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         final int dockRowHeight = rowHeight;
         for (String alias : aliases) {
             TextView chip = new TextView(this);
-            chip.setText("[" + alias + "]");
+            String icon = EdgeDockManager.getIcon(this, alias);
+            chip.setText(icon.isEmpty() ? "[" + alias + "]" : icon);
+            chip.setContentDescription(getString(R.string.edge_dock_action, alias));
             chip.setSingleLine(true);
             chip.setEllipsize(TextUtils.TruncateAt.END);
             chip.setGravity(Gravity.CENTER);
-            chip.setTextSize(11);
+            chip.setTextSize(icon.isEmpty() ? 11 : 20);
             chip.setTypeface(Tuils.getTypeface(this));
             chip.setTextColor(dockTheme.primary);
             chip.setLayoutParams(new LinearLayout.LayoutParams(Tuils.dpToPx(this, 48), rowHeight));
