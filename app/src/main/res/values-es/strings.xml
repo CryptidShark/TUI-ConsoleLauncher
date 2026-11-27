@@ -196,6 +196,12 @@
     <string name="output_data_settings_failed">No se pudieron abrir los controles de conectividad de Android.</string>
     <string name="output_bluetooth">Bluetooth activo:</string>
     <string name="output_bluetooth_unavailable">Bluetooth no está disponible en este dispositivo</string>
+    <string name="output_bluetooth_confirmation">Confirma la solicitud para activar Bluetooth en el diálogo de Android.</string>
+    <string name="output_bluetooth_needs_activity">Abre el launcher para solicitar la activación de Bluetooth.</string>
+    <string name="output_bluetooth_open_settings">Android no permite que esta app desactive Bluetooth directamente. Desactívalo en los ajustes de Bluetooth.</string>
+    <string name="output_bluetooth_turning_on">Bluetooth ya se está activando.</string>
+    <string name="output_bluetooth_turning_off">Bluetooth se está desactivando.</string>
+    <string name="output_bluetooth_failed">No se pudo cambiar el estado de Bluetooth. Revísalo en los ajustes de Android.</string>
     <string name="output_airplane">Modo avión activo:</string>
     <string name="output_airplane_open_settings">Usa los controles del modo avión de Android para cambiarlo.</string>
     <string name="output_airplane_settings_failed">No se pudieron abrir los controles del modo avión de Android.</string>
@@ -260,7 +266,7 @@
         \n-rmfromgp [nombreGrupo] [nombreApp] -> eliminar la aplicación dada del grupo dado
         \n-lsgp [OPCIONAL: nombreGrupo] -> listar tus grupos, o listar el contenido del grupo dado
     </string>
-    <string name="help_bluetooth">Alternar bluetooth</string>
+    <string name="help_bluetooth">Alterna Bluetooth o abre los controles de Android si el sistema restringe el cambio directo</string>
     <string name="help_brightness">Establecer el brillo de tu dispositivo
         \n$ brightness [0-100]</string>
     <string name="help_clear">Limpiar la pantalla</string>

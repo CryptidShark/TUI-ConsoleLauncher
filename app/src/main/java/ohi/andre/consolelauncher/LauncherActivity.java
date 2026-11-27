@@ -2,6 +2,7 @@ package ohi.andre.consolelauncher;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
 import android.app.Activity;
 import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
@@ -107,6 +108,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
 
     public static final int TUIXT_REQUEST = 10;
     public static final int STORAGE_MANAGER_REQUEST = 1000;
+    public static final int BLUETOOTH_ENABLE_REQUEST = 1001;
 
     private UIManager ui;
     private MainManager main;
@@ -825,6 +827,14 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == BLUETOOTH_ENABLE_REQUEST) {
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            boolean active = false;
+            try { active = adapter != null && adapter.isEnabled(); } catch (SecurityException ignored) { }
+            Tuils.sendOutput(this, getString(R.string.output_bluetooth) + " " + active);
+            return;
+        }
 
         if (requestCode == TuiWidgetManager.REQUEST_PICK_APPWIDGET) {
             if (resultCode == RESULT_OK) {

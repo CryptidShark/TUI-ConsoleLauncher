@@ -197,6 +197,12 @@
     <string name="output_data_settings_failed">Could not open the Android connectivity controls.</string>
     <string name="output_bluetooth">Bluetooth active:</string>
     <string name="output_bluetooth_unavailable">Bluetooth is not available on this device</string>
+    <string name="output_bluetooth_confirmation">Confirm the Bluetooth enable request in the Android dialog.</string>
+    <string name="output_bluetooth_needs_activity">Open the launcher to request Bluetooth activation.</string>
+    <string name="output_bluetooth_open_settings">Android does not allow this app to turn Bluetooth off directly. Turn it off in Bluetooth settings.</string>
+    <string name="output_bluetooth_turning_on">Bluetooth is already turning on.</string>
+    <string name="output_bluetooth_turning_off">Bluetooth is turning off.</string>
+    <string name="output_bluetooth_failed">Bluetooth state could not be changed. Check it in Android settings.</string>
     <string name="output_airplane">Airplane mode active:</string>
     <string name="output_airplane_open_settings">Use the Android airplane mode controls to change this setting.</string>
     <string name="output_airplane_settings_failed">Could not open the Android airplane mode controls.</string>
@@ -261,7 +267,7 @@
         \n-rmfromgp [groupName] [appName] -> remove the given app from the given group
         \n-lsgp [OPTIONAL: groupName] -> list your groups, or list the content of the given group
     </string>
-    <string name="help_bluetooth">Toggle bluetooth</string>
+    <string name="help_bluetooth">Toggle Bluetooth or open Android controls when direct changes are restricted</string>
     <string name="help_brightness">Set the brightness of your device
         \n$ brightness [0-100]</string>
     <string name="help_clear">Clear the screen</string>
