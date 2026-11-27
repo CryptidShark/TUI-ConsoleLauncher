@@ -135,23 +135,50 @@ mindful unmark Instagram
 
 ## 👍 Optional edge dock
 
-Aliases appear in a narrow rail on the right edge. Drag along the rail to select one, then release to run it:
+Aliases appear in a narrow rail on either edge. Drag along the rail to select one, then release to run it. Configure its side and density from `settings` or the CLI:
 
 ```text
 alias add w WhatsApp
 dock add w
 dock icon w 📱
+dock side left
+dock size compact
 dock enable
 dock list
 dock icon w reset
 dock disable
 ```
 
-The dock is disabled until enabled, and supports up to eight aliases. `dock icon <alias> <emoji>` shows a Unicode symbol instead of the alias letter; `dock icon <alias> reset` restores the text label. Existing four-direction gestures and workspace profiles are unchanged.
+The dock is disabled until enabled, and supports up to eight aliases. `dock icon <alias> <emoji>` shows a Unicode symbol instead of the alias label; `dock icon <alias> reset` restores it. Sizes are `compact`, `normal` and `large`. Writing `dock ` in the prompt shows the available actions.
+
+## 🧩 Android widgets
+
+```text
+widget add
+widget list
+widget move <ID> <up|down>
+widget height <ID> <dp>
+widget remove <ID>
+widget clear
+widget perm
+```
+
+Type `widget ` to see the actions in the suggestion row. `widget list` shows the IDs needed by `move`, `height` and `remove`. Android may require the launcher to be the default Home app before binding a provider widget.
+
+## 🕘 Command history
+
+```text
+history list
+history find <text>
+history run <number>
+history clear
+```
+
+History is bounded to 100 recent commands. `history run` places the selected command into the prompt so you can review it before pressing Enter. Incognito mode does not save or display persistent command history. The prompt's up/down controls still navigate the current session history.
 
 ## 🧭 Existing touch and CLI navigation
 
-The launcher already includes custom aliases (`alias add w WhatsApp`), scored app and command search (`search` / `palette`), profile-based widget layouts (`workspace set Developer`), Termux command execution (`termux run <script>`), and the `config` command for its GUI preferences. Gesture actions remain user-configurable with `config -set swipe_up_cmd <command>` and the corresponding `swipe_down_cmd`, `swipe_left_cmd`, and `swipe_right_cmd` preferences. For example, `config -set swipe_up_cmd apps` opens the textual app list; lateral gestures can switch workspaces containing different widget cards. Use `apps` for the alphabetized textual app list.
+The launcher already includes custom aliases (`alias add w WhatsApp`), scored app and command search (`search` / `palette`), profile-based widget layouts (`workspace set Developer`), Termux command execution (`termux run <script>`), and the `config` command for its GUI preferences. Type a command followed by a space (for example, `widget `, `workspace ` or `visual `) to show available subcommands. Gesture actions remain user-configurable with `config -set swipe_up_cmd <command>` and the corresponding `swipe_down_cmd`, `swipe_left_cmd`, and `swipe_right_cmd` preferences. For example, `config -set swipe_up_cmd apps` opens the textual app list; lateral gestures can switch workspaces containing different widget cards. Use `apps` for the alphabetized textual app list.
 
 On Android 12+, apply the wallpaper-derived system accents with `theme preset material_you`. Theme presets are applied immediately and continue to use the launcher's monospace typeface.
 

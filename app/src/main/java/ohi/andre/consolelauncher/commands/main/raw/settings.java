@@ -11,6 +11,7 @@ import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
 import ohi.andre.consolelauncher.managers.xml.classes.XMLPrefsSave;
 import ohi.andre.consolelauncher.managers.xml.options.Behavior;
@@ -18,20 +19,21 @@ import ohi.andre.consolelauncher.managers.xml.options.Theme;
 import ohi.andre.consolelauncher.managers.xml.options.Ui;
 import ohi.andre.consolelauncher.managers.ThemeEngine;
 import ohi.andre.consolelauncher.managers.WorkspaceManager;
+import ohi.andre.consolelauncher.managers.EdgeDockManager;
 import ohi.andre.consolelauncher.tuils.Tuils;
 import ohi.andre.consolelauncher.tuils.interfaces.Reloadable;
 
-public class settings implements CommandAbstraction {
+public class settings implements PermanentSuggestionCommand {
 
     @Override
     public String exec(ExecutePack pack) {
         MainPack info = (MainPack) pack;
         
-        if (pack.args.length > 0 && pack.args[0].toString().equalsIgnoreCase("live")) {
+        if (pack.args != null && pack.args.length > 0 && pack.args[0] != null && pack.args[0].toString().equalsIgnoreCase("live")) {
             return showLiveCustomizer(info);
         }
 
-        if (pack.args.length > 0 && pack.args[0].toString().equalsIgnoreCase("gestures")) {
+        if (pack.args != null && pack.args.length > 0 && pack.args[0] != null && pack.args[0].toString().equalsIgnoreCase("gestures")) {
             return showGesturesCard(info);
         }
 
@@ -120,8 +122,65 @@ public class settings implements CommandAbstraction {
             }
         }
 
+        addDockSettings(card, info, spanish);
+
         Tuils.sendOutput(info.context, card);
         return null;
+    }
+
+    private void addDockSettings(View card, MainPack info, boolean spanish) {
+        LinearLayout root = (LinearLayout) card;
+        ThemeEngine.DesignTokens tokens;
+        try {
+            tokens = ThemeEngine.getPreset(ThemeEngine.Preset.valueOf(XMLPrefsManager.get(Behavior.theme_preset)));
+        } catch (Exception ignored) {
+            tokens = ThemeEngine.getPreset(ThemeEngine.Preset.CLASSIC_TERMINAL);
+        }
+        TextView title = new TextView(info.context);
+        title.setText(spanish ? "EDGE DOCK / BARRA LATERAL" : "EDGE DOCK / SIDE BAR");
+        title.setTextSize(11);
+        title.setTypeface(Tuils.getTypeface(info.context), android.graphics.Typeface.BOLD);
+        title.setTextColor(tokens.primary);
+        title.setTypeface(Tuils.getTypeface(info.context));
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-2, -2);
+        titleParams.topMargin = Tuils.dpToPx(info.context, 14);
+        root.addView(title, titleParams);
+
+        LinearLayout controls = new LinearLayout(info.context);
+        controls.setOrientation(LinearLayout.HORIZONTAL);
+        Button side = new Button(info.context);
+        Button size = new Button(info.context);
+        side.setAllCaps(false);
+        size.setAllCaps(false);
+        side.setTextColor(tokens.text);
+        size.setTextColor(tokens.text);
+        side.setTypeface(Tuils.getTypeface(info.context));
+        size.setTypeface(Tuils.getTypeface(info.context));
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(0, Tuils.dpToPx(info.context, 44), 1f);
+        buttonParams.setMargins(Tuils.dpToPx(info.context, 2), Tuils.dpToPx(info.context, 4), Tuils.dpToPx(info.context, 2), 0);
+        controls.addView(side, new LinearLayout.LayoutParams(buttonParams));
+        controls.addView(size, new LinearLayout.LayoutParams(buttonParams));
+        root.addView(controls);
+
+        Runnable updateLabels = () -> {
+            String edge = EdgeDockManager.getSide(info.context);
+            String density = EdgeDockManager.getSize(info.context);
+            side.setText((spanish ? "Borde: " : "Edge: ") + edge);
+            size.setText((spanish ? "Tamaño: " : "Size: ") + density);
+        };
+        side.setOnClickListener(v -> {
+            EdgeDockManager.setSide(info.context, "left".equals(EdgeDockManager.getSide(info.context)) ? "right" : "left");
+            updateLabels.run();
+            if (info.context instanceof LauncherActivity) ((LauncherActivity) info.context).refreshEdgeDock();
+        });
+        size.setOnClickListener(v -> {
+            String current = EdgeDockManager.getSize(info.context);
+            String next = "compact".equals(current) ? "normal" : "normal".equals(current) ? "large" : "compact";
+            EdgeDockManager.setSize(info.context, next);
+            updateLabels.run();
+            if (info.context instanceof LauncherActivity) ((LauncherActivity) info.context).refreshEdgeDock();
+        });
+        updateLabels.run();
     }
 
     private String showLiveCustomizer(MainPack info) {
@@ -239,7 +298,7 @@ public class settings implements CommandAbstraction {
 
     @Override
     public int[] argType() {
-        return new int[0];
+        return new int[]{CommandAbstraction.PLAIN_TEXT};
     }
 
     @Override
@@ -259,6 +318,11 @@ public class settings implements CommandAbstraction {
 
     @Override
     public String onNotArgEnough(ExecutePack info, int nArgs) {
-        return null;
+        return exec(info);
+    }
+
+    @Override
+    public String[] permanentSuggestions() {
+        return new String[]{"live", "gestures"};
     }
 }

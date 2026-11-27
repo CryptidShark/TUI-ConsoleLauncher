@@ -116,6 +116,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
     private View edgeDockAnchor;
     private View edgeDockReservedOutput;
     private View edgeDockObservedOutput;
+    private int edgeDockBaseLeftMargin;
     private int edgeDockBaseRightMargin;
     private int edgeDockObservedHeight = -1;
     private TuiWidgetManager widgetManager;
@@ -997,7 +998,9 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         railBackground.setCornerRadius(Tuils.dpToPx(this, 9));
         railBackground.setStroke(Tuils.dpToPx(this, 1), dockTheme.border);
         rail.setBackground(railBackground);
-        int rowHeight = Tuils.dpToPx(this, 42);
+        String dockSize = EdgeDockManager.getSize(this);
+        int rowHeight = Tuils.dpToPx(this, "compact".equals(dockSize) ? 34 : "large".equals(dockSize) ? 50 : 42);
+        int chipWidth = Tuils.dpToPx(this, "compact".equals(dockSize) ? 40 : "large".equals(dockSize) ? 56 : 48);
         int availableHeight = terminalOutput.getHeight();
         if (availableHeight > 0 && availableHeight < rowHeight * aliases.size()) {
             rowHeight = Math.max(Tuils.dpToPx(this, 28), availableHeight / aliases.size());
@@ -1011,10 +1014,10 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             chip.setSingleLine(true);
             chip.setEllipsize(TextUtils.TruncateAt.END);
             chip.setGravity(Gravity.CENTER);
-            chip.setTextSize(icon.isEmpty() ? 11 : 20);
+            chip.setTextSize(icon.isEmpty() ? ("compact".equals(dockSize) ? 10 : 11) : ("compact".equals(dockSize) ? 17 : "large".equals(dockSize) ? 23 : 20));
             chip.setTypeface(Tuils.getTypeface(this));
             chip.setTextColor(dockTheme.primary);
-            chip.setLayoutParams(new LinearLayout.LayoutParams(Tuils.dpToPx(this, 48), rowHeight));
+            chip.setLayoutParams(new LinearLayout.LayoutParams(chipWidth, rowHeight));
             rail.addView(chip);
         }
         rail.setClickable(true);
@@ -1031,7 +1034,7 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
             return event.getAction() == MotionEvent.ACTION_CANCEL;
         });
         int dockHeight = rowHeight * aliases.size();
-        edgeDockWindow = new PopupWindow(rail, Tuils.dpToPx(this, 54), dockHeight, false);
+        edgeDockWindow = new PopupWindow(rail, chipWidth + Tuils.dpToPx(this, 6), dockHeight, false);
         edgeDockWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         edgeDockWindow.setOutsideTouchable(false);
         edgeDockWindow.setElevation(Tuils.dpToPx(this, 6));
@@ -1042,7 +1045,8 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         int headerBottom = headerLocation[1] + terminalHeader.getHeight();
         int outputBottom = outputLocation[1] + terminalOutput.getHeight();
         int yOffset = Math.max(0, outputBottom - dockHeight - headerBottom);
-        edgeDockWindow.showAsDropDown(terminalHeader, 0, yOffset, Gravity.RIGHT);
+        edgeDockWindow.showAsDropDown(terminalHeader, 0, yOffset,
+                "left".equals(EdgeDockManager.getSide(this)) ? Gravity.LEFT : Gravity.RIGHT);
     }
 
     private void reserveEdgeDockLane(View output, boolean reserve) {
@@ -1050,11 +1054,17 @@ public class LauncherActivity extends AppCompatActivity implements Reloadable {
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) output.getLayoutParams();
         if (output != edgeDockReservedOutput) {
             edgeDockReservedOutput = output;
+            edgeDockBaseLeftMargin = params.leftMargin;
             edgeDockBaseRightMargin = params.rightMargin;
         }
-        int dockLane = reserve ? Tuils.dpToPx(this, 62) : 0;
-        int rightMargin = edgeDockBaseRightMargin + dockLane;
-        if (params.rightMargin != rightMargin) {
+        boolean left = reserve && "left".equals(EdgeDockManager.getSide(this));
+        String size = EdgeDockManager.getSize(this);
+        int laneDp = "compact".equals(size) ? 54 : "large".equals(size) ? 70 : 62;
+        int dockLane = reserve ? Tuils.dpToPx(this, laneDp) : 0;
+        int leftMargin = edgeDockBaseLeftMargin + (left ? dockLane : 0);
+        int rightMargin = edgeDockBaseRightMargin + (reserve && !left ? dockLane : 0);
+        if (params.leftMargin != leftMargin || params.rightMargin != rightMargin) {
+            params.leftMargin = leftMargin;
             params.rightMargin = rightMargin;
             output.setLayoutParams(params);
         }

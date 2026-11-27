@@ -26,6 +26,16 @@ public class dock implements PermanentSuggestionCommand {
             refresh(info);
             return "Edge dock disabled.";
         }
+        if (action.equals("side")) {
+            if (!EdgeDockManager.setSide(info.context, alias)) return "Usage: dock side <left|right>";
+            refresh(info);
+            return "Edge dock moved to the " + EdgeDockManager.getSide(info.context) + " edge.";
+        }
+        if (action.equals("size")) {
+            if (!EdgeDockManager.setSize(info.context, alias)) return "Usage: dock size <compact|normal|large>";
+            refresh(info);
+            return "Edge dock size set to " + EdgeDockManager.getSize(info.context) + ".";
+        }
         if (action.equals("add")) {
             if (alias.isEmpty()) return "Usage: dock add <alias> (create it first with `alias add`).";
             if (info.aliasManager.getAlias(alias, false)[0] == null) return "Alias not found. Create it first with: alias add " + alias + " <command>";
@@ -58,7 +68,8 @@ public class dock implements PermanentSuggestionCommand {
             }
             return "Edge dock: " + Tuils.toPlanString(shown, ", ")
                 + "\nState: " + (EdgeDockManager.isEnabled(info.context) ? "enabled" : "disabled")
-                + "\nUsage: dock add <alias> | dock icon <alias> <emoji|reset> | dock enable | dock disable | dock remove <alias>";
+                + "\nSide: " + EdgeDockManager.getSide(info.context) + " | Size: " + EdgeDockManager.getSize(info.context)
+                + "\nUsage: dock add <alias> | dock icon <alias> <emoji|reset> | dock side <left|right> | dock size <compact|normal|large>";
         }
         return "Edge dock commands:\n"
             + "  dock add <alias>       Add an existing alias to the dock\n"
@@ -66,6 +77,8 @@ public class dock implements PermanentSuggestionCommand {
             + "  dock icon <alias> reset   Restore the [alias] label\n"
             + "  dock remove <alias>    Remove an alias\n"
             + "  dock list              Show dock items and state\n"
+            + "  dock side <left|right> Move the dock to either screen edge\n"
+            + "  dock size <compact|normal|large> Change chip density\n"
             + "  dock enable | disable  Turn the edge dock on or off\n"
             + "First create an alias: alias add w WhatsApp. Then run: dock add w\n"
             + "Type `dock ` (dock + space) to see command suggestions.";
@@ -81,6 +94,6 @@ public class dock implements PermanentSuggestionCommand {
     @Override public String onArgNotFound(ExecutePack pack, int index) { return null; }
 
     @Override public String[] permanentSuggestions() {
-        return new String[]{"list", "add ", "icon ", "remove ", "enable", "disable"};
+        return new String[]{"list", "add ", "icon ", "remove ", "side ", "size ", "enable", "disable"};
     }
 }

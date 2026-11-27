@@ -9,12 +9,13 @@ import ohi.andre.consolelauncher.MainManager;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 import ohi.andre.consolelauncher.managers.AppsManager;
 import ohi.andre.consolelauncher.managers.MindfulManager;
 import ohi.andre.consolelauncher.tuils.Tuils;
 
 /** Opt-in intention pause for selected apps. */
-public class mindful implements CommandAbstraction {
+public class mindful implements PermanentSuggestionCommand {
     @Override
     public String exec(ExecutePack pack) {
         MainPack info = (MainPack) pack;
@@ -74,4 +75,7 @@ public class mindful implements CommandAbstraction {
     @Override public int helpRes() { return 0; }
     @Override public String onNotArgEnough(ExecutePack pack, int nArgs) { return exec(pack); }
     @Override public String onArgNotFound(ExecutePack pack, int index) { return null; }
+    @Override public String[] permanentSuggestions() {
+        return new String[]{"list", "mark ", "unmark ", "continue", "breathe", "cancel"};
+    }
 }

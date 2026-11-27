@@ -2,12 +2,13 @@ package ohi.andre.consolelauncher.commands.main.raw;
 
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 import ohi.andre.consolelauncher.managers.WorkspaceManager;
 import ohi.andre.consolelauncher.tuils.Tuils;
 import ohi.andre.consolelauncher.R;
 
 /** Switches the pinned cards to a named work layout. */
-public class workspace implements CommandAbstraction {
+public class workspace implements PermanentSuggestionCommand {
     @Override
     public String exec(ExecutePack pack) {
         String input = pack.args != null && pack.args.length > 0 ? String.valueOf(pack.args[0]).trim() : "";
@@ -32,4 +33,7 @@ public class workspace implements CommandAbstraction {
     @Override public int helpRes() { return R.string.help_workspace; }
     @Override public String onArgNotFound(ExecutePack pack, int index) { return "Unknown workspace. Try: workspace list"; }
     @Override public String onNotArgEnough(ExecutePack pack, int nArgs) { return exec(pack); }
+    @Override public String[] permanentSuggestions() {
+        return new String[]{"list", "set minimal", "set developer", "set privacy", "set cyber", "set gaming", "set web_dev", "set authorized_lab", "set custom"};
+    }
 }

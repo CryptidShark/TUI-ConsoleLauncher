@@ -8,9 +8,10 @@ import android.os.Build;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 import ohi.andre.consolelauncher.tuils.TermuxBridge;
 
-public class termux implements CommandAbstraction {
+public class termux implements PermanentSuggestionCommand {
 
     @Override
     public String exec(ExecutePack pack) throws Exception {
@@ -132,5 +133,10 @@ public class termux implements CommandAbstraction {
     @Override
     public String onNotArgEnough(ExecutePack pack, int nArgs) {
         return "Usage: termux [run <script> | tmux | status]";
+    }
+
+    @Override
+    public String[] permanentSuggestions() {
+        return new String[]{"status", "run ", "tmux", "help"};
     }
 }

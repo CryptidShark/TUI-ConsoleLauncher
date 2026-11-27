@@ -7,9 +7,10 @@ import android.os.Build;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 import ohi.andre.consolelauncher.services.TuiOverlayService;
 
-public class overlay implements CommandAbstraction {
+public class overlay implements PermanentSuggestionCommand {
 
     @Override
     public String exec(ExecutePack pack) throws Exception {
@@ -67,5 +68,10 @@ public class overlay implements CommandAbstraction {
     @Override
     public String onNotArgEnough(ExecutePack pack, int nArgs) {
         return "Usage: overlay [show | hide]";
+    }
+
+    @Override
+    public String[] permanentSuggestions() {
+        return new String[]{"show", "hide"};
     }
 }

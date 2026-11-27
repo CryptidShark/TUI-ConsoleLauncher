@@ -228,6 +228,7 @@ public class TerminalManager {
             if(clearCmdsCount != 0 && clearAfterCmds > 0 && clearCmdsCount % clearAfterCmds == 0) clear();
 
             writeToView(input, CATEGORY_INPUT);
+            CommandHistory.record(mContext, cmd);
 
             if(cmdList.size() == CMD_LIST_SIZE) {
                 cmdList.remove(0);

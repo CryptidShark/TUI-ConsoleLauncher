@@ -8,8 +8,9 @@ import android.content.IntentFilter;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 
-public class monitor implements CommandAbstraction {
+public class monitor implements PermanentSuggestionCommand {
 
     private static boolean crtMode = false;
 
@@ -80,5 +81,10 @@ public class monitor implements CommandAbstraction {
     @Override
     public String onNotArgEnough(ExecutePack pack, int nArgs) {
         return null;
+    }
+
+    @Override
+    public String[] permanentSuggestions() {
+        return new String[]{"-crt", "-nocrt"};
     }
 }

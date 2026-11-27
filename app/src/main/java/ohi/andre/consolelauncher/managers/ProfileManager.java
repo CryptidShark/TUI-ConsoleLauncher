@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import ohi.andre.consolelauncher.managers.xml.XMLPrefsManager;
+import ohi.andre.consolelauncher.managers.EdgeDockManager;
 import ohi.andre.consolelauncher.managers.xml.classes.XMLPrefsSave;
 import ohi.andre.consolelauncher.managers.xml.options.Apps;
 import ohi.andre.consolelauncher.managers.xml.options.Behavior;
@@ -88,6 +89,7 @@ public class ProfileManager {
             }
             root.put("apps", appsObj);
             root.put("workspace", WorkspaceManager.getActiveWorkspace(context).name());
+            root.put("dock", EdgeDockManager.exportSettings(context));
 
             File folder = Tuils.getFolder();
             if (folder == null && context != null) folder = context.getFilesDir();
@@ -142,6 +144,27 @@ public class ProfileManager {
             int version = root.optInt("version", -1);
             if (version != PROFILE_SCHEMA_VERSION) {
                 return "Invalid profile schema version: " + version + " (Expected: " + PROFILE_SCHEMA_VERSION + ")";
+            }
+
+            String validationError = validateSettings(root, "behavior", Behavior.values())
+                    + validateSettings(root, "ui", Ui.values())
+                    + validateSettings(root, "theme", Theme.values())
+                    + validateSettings(root, "cmd", Cmd.values())
+                    + validateSettings(root, "notifications", Notifications.values())
+                    + validateSettings(root, "suggestions", Suggestions.values())
+                    + validateSettings(root, "apps", Apps.values());
+            if (!validationError.isEmpty()) return validationError;
+            if (root.has("workspace") && WorkspaceManager.fromName(root.optString("workspace")) == null) {
+                return "Unknown workspace in profile: " + root.optString("workspace");
+            }
+            String dockError = validateDockSettings(root.optJSONObject("dock"));
+            if (root.has("dock") && root.optJSONObject("dock") == null) return "Invalid dock settings section in profile.";
+            if (!dockError.isEmpty()) return dockError;
+
+            String backupName = "profile_before_import_" + System.currentTimeMillis() + ".json";
+            String backupResult = exportProfile(context, backupName);
+            if (!backupResult.startsWith("Profile exported successfully")) {
+                return "Import cancelled because the safety backup could not be created. " + backupResult;
             }
 
             if (root.has("behavior")) {
@@ -211,15 +234,77 @@ public class ProfileManager {
                 WorkspaceManager.Workspace workspace = WorkspaceManager.fromName(root.optString("workspace"));
                 if (workspace != null) WorkspaceManager.setWorkspace(context, workspace, false);
             }
+            if (root.has("dock") && !EdgeDockManager.restoreSettings(context, root.getJSONObject("dock"))) {
+                return "Dock settings could not be restored from the profile.";
+            }
 
             if (context instanceof Reloadable) {
                 ((Reloadable) context).reload();
             }
 
-            return "Profile successfully imported from: " + file.getName();
+            return "Profile successfully imported from: " + file.getName()
+                    + "\nPrevious settings backed up as " + backupName + ".";
         } catch (Exception e) {
             return "Error importing profile (malformed file): " + e.getMessage();
         }
+    }
+
+    private static String validateSettings(JSONObject root, String sectionName, XMLPrefsSave[] settings) {
+        if (!root.has(sectionName)) return "";
+        JSONObject section = root.optJSONObject(sectionName);
+        if (section == null) return "Invalid profile: '" + sectionName + "' must be an object.";
+        for (XMLPrefsSave setting : settings) {
+            if (!section.has(setting.label())) continue;
+            Object raw = section.opt(setting.label());
+            if (!(raw instanceof String)) return "Invalid value for setting '" + setting.label() + "'.";
+            String value = (String) raw;
+            String type = setting.type();
+            try {
+                if (XMLPrefsSave.INTEGER.equals(type)) Integer.parseInt(value);
+                else if (XMLPrefsSave.BOOLEAN.equals(type)
+                        && !("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value))) {
+                    return "Invalid boolean value for setting '" + setting.label() + "'.";
+                } else if (XMLPrefsSave.COLOR.equals(type)) android.graphics.Color.parseColor(value);
+            } catch (Exception invalidType) {
+                return "Invalid " + type + " value for setting '" + setting.label() + "'.";
+            }
+            String[] invalid = setting.invalidValues();
+            if (invalid != null) {
+                for (String blocked : invalid) {
+                    if (blocked != null && blocked.equals(value)) {
+                        return "Unsupported value for setting '" + setting.label() + "'.";
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
+    private static String validateDockSettings(JSONObject dock) {
+        if (dock == null) return "";
+        String side = dock.optString("side", "right");
+        String size = dock.optString("size", "normal");
+        org.json.JSONArray items = dock.optJSONArray("items");
+        JSONObject icons = dock.optJSONObject("icons");
+        if (!(side.equals("left") || side.equals("right"))) return "Invalid edge dock side in profile.";
+        if (!(size.equals("compact") || size.equals("normal") || size.equals("large"))) return "Invalid edge dock size in profile.";
+        if (items == null || items.length() > 8 || icons == null) return "Invalid edge dock aliases or icons in profile.";
+        java.util.Set<String> aliases = new java.util.HashSet<>();
+        for (int i = 0; i < items.length(); i++) {
+            if (!(items.opt(i) instanceof String)) return "Invalid edge dock alias in profile.";
+            String alias = items.optString(i, "").trim();
+            if (alias.isEmpty() || alias.contains("\n") || alias.contains("\r") || !aliases.add(alias)) return "Invalid or duplicate edge dock alias in profile.";
+        }
+        java.util.Iterator<String> keys = icons.keys();
+        while (keys.hasNext()) {
+            String alias = keys.next();
+            if (!(icons.opt(alias) instanceof String)) return "Invalid edge dock icon in profile.";
+            String icon = icons.optString(alias, "");
+            if (!aliases.contains(alias) || icon.contains("\n") || icon.contains("\r")
+                    || icon.codePointCount(0, icon.length()) > 8) return "Invalid edge dock icon in profile.";
+        }
+        if (dock.has("enabled") && !(dock.opt("enabled") instanceof Boolean)) return "Invalid edge dock enabled state in profile.";
+        return "";
     }
 
     public static String previewProfile(Context context, String profileName) {
@@ -252,8 +337,23 @@ public class ProfileManager {
                 return "Invalid profile schema version: " + version + " (Expected: " + PROFILE_SCHEMA_VERSION + ")";
             }
 
+            String validationError = validateSettings(root, "behavior", Behavior.values())
+                    + validateSettings(root, "ui", Ui.values())
+                    + validateSettings(root, "theme", Theme.values())
+                    + validateSettings(root, "cmd", Cmd.values())
+                    + validateSettings(root, "notifications", Notifications.values())
+                    + validateSettings(root, "suggestions", Suggestions.values())
+                    + validateSettings(root, "apps", Apps.values());
+            if (!validationError.isEmpty()) return "Profile validation failed: " + validationError;
+            if (root.has("workspace") && WorkspaceManager.fromName(root.optString("workspace")) == null) {
+                return "Profile validation failed: unknown workspace '" + root.optString("workspace") + "'.";
+            }
+            if (root.has("dock") && root.optJSONObject("dock") == null) return "Profile validation failed: invalid dock section.";
+            String dockError = validateDockSettings(root.optJSONObject("dock"));
+            if (!dockError.isEmpty()) return "Profile validation failed: " + dockError;
+
             StringBuilder summary = new StringBuilder("PROFILE PREVIEW: ").append(file.getName());
-            String[] sections = {"behavior", "ui", "theme", "cmd", "notifications", "suggestions", "apps"};
+            String[] sections = {"behavior", "ui", "theme", "cmd", "notifications", "suggestions", "apps", "dock"};
             for (String section : sections) {
                 JSONObject values = root.optJSONObject(section);
                 if (values != null) summary.append("\n• ").append(section).append(": ").append(values.length()).append(" settings");

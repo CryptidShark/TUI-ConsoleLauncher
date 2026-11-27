@@ -38,6 +38,7 @@ import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 import ohi.andre.consolelauncher.managers.AppsManager;
 import ohi.andre.consolelauncher.managers.NotesManager;
 import ohi.andre.consolelauncher.managers.PrivacyCenter;
@@ -49,7 +50,7 @@ import ohi.andre.consolelauncher.managers.xml.options.Ui;
 import ohi.andre.consolelauncher.tuils.Tuils;
 import ohi.andre.consolelauncher.widgets.hud.SysTelemetryWidget;
 
-public class visual implements CommandAbstraction {
+public class visual implements PermanentSuggestionCommand {
 
     @Override
     public String exec(ExecutePack pack) {
@@ -1026,5 +1027,10 @@ public class visual implements CommandAbstraction {
     @Override
     public String onNotArgEnough(ExecutePack info, int nArgs) {
         return null;
+    }
+
+    @Override
+    public String[] permanentSuggestions() {
+        return new String[]{"battery", "system", "music", "music -fixed", "music -scale 65", "notes", "shortcuts", "weather", "termux", "script", "telemetry", "dashboard", "clear"};
     }
 }

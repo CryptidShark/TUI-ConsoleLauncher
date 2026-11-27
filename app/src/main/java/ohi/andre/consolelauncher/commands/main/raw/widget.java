@@ -11,9 +11,10 @@ import ohi.andre.consolelauncher.R;
 import ohi.andre.consolelauncher.commands.CommandAbstraction;
 import ohi.andre.consolelauncher.commands.ExecutePack;
 import ohi.andre.consolelauncher.commands.main.MainPack;
+import ohi.andre.consolelauncher.commands.main.specific.PermanentSuggestionCommand;
 import ohi.andre.consolelauncher.tuils.Tuils;
 
-public class widget implements CommandAbstraction {
+public class widget implements PermanentSuggestionCommand {
 
     @Override
     public String exec(ExecutePack pack) throws Exception {
@@ -21,7 +22,7 @@ public class widget implements CommandAbstraction {
 
         if (pack.args != null && pack.args.length > 0) {
             String argumentText = pack.args[0] == null ? "" : pack.args[0].toString().trim();
-            if (argumentText.isEmpty()) return "Usage: widget [add | list | move | height | remove | clear | perm]";
+            if (argumentText.isEmpty()) return help();
             String[] arguments = argumentText.split("\\s+");
             String arg = arguments[0];
             if (arg.equalsIgnoreCase("add")) {
@@ -38,6 +39,7 @@ public class widget implements CommandAbstraction {
             } else if (arg.equalsIgnoreCase("perm")) {
                 return "Android controls widget binding. Set Cythernoir/T-UI as your Home app, then use `widget add` and approve Android's picker or binding prompt.";
             } else if (arg.equalsIgnoreCase("list")) {
+                if (info.widgetManager == null) return "Widget support is not ready. Restart T-UI and try again.";
                 List<Integer> ids = info.widgetManager.getActiveWidgetIds();
                 if (ids.isEmpty()) return "No active widgets.";
                 StringBuilder sb = new StringBuilder("Active Widgets:\n");
@@ -46,6 +48,7 @@ public class widget implements CommandAbstraction {
                 }
                 return sb.toString();
             } else if (arg.equalsIgnoreCase("move")) {
+                if (info.widgetManager == null) return "Widget support is not ready. Restart T-UI and try again.";
                 if (arguments.length > 2 && info.context instanceof LauncherActivity) {
                     try {
                         int id = Integer.parseInt(arguments[1]);
@@ -59,6 +62,7 @@ public class widget implements CommandAbstraction {
                 }
                 return "Usage: widget move [ID] [up|down]";
             } else if (arg.equalsIgnoreCase("height") || arg.equalsIgnoreCase("resize")) {
+                if (info.widgetManager == null) return "Widget support is not ready. Restart T-UI and try again.";
                 if (arguments.length > 2 && info.context instanceof LauncherActivity) {
                     try {
                         int id = Integer.parseInt(arguments[1]);
@@ -71,6 +75,7 @@ public class widget implements CommandAbstraction {
                 }
                 return "Usage: widget height [ID] [dp]";
             } else if (arg.equalsIgnoreCase("remove")) {
+                if (info.widgetManager == null) return "Widget support is not ready. Restart T-UI and try again.";
                 if (arguments.length > 1) {
                     try {
                         int id = Integer.parseInt(arguments[1]);
@@ -85,6 +90,7 @@ public class widget implements CommandAbstraction {
                 }
                 return "Usage: widget remove [ID]";
             } else if (arg.equalsIgnoreCase("clear")) {
+                if (info.widgetManager == null) return "Widget support is not ready. Restart T-UI and try again.";
                 info.widgetManager.clearAllWidgets();
                 if (info.context instanceof LauncherActivity) {
                     ((LauncherActivity) info.context).runOnUiThread(() -> {
@@ -104,7 +110,19 @@ public class widget implements CommandAbstraction {
             }
         }
 
-        return "Usage: widget [add | list | move | height | remove | clear | perm]";
+        return help();
+    }
+
+    private String help() {
+        return "Android widget commands:\n"
+                + "  widget add                 Choose and add a home-screen widget\n"
+                + "  widget list                Show widget IDs\n"
+                + "  widget move <ID> <up|down> Reorder a widget\n"
+                + "  widget height <ID> <dp>    Set its height\n"
+                + "  widget remove <ID>         Remove one widget\n"
+                + "  widget clear               Remove all widgets\n"
+                + "  widget perm                Show Android setup instructions\n"
+                + "Type `widget ` (widget + space) to see command suggestions.";
     }
 
     @Override
@@ -130,6 +148,11 @@ public class widget implements CommandAbstraction {
 
     @Override
     public String onNotArgEnough(ExecutePack pack, int nArgs) {
-        return null;
+        return help();
+    }
+
+    @Override
+    public String[] permanentSuggestions() {
+        return new String[]{"add", "list", "move ", "height ", "remove ", "clear", "perm"};
     }
 }

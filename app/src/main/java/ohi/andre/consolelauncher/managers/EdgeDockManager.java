@@ -13,6 +13,8 @@ public final class EdgeDockManager {
     private static final String ITEMS = "items";
     private static final String ENABLED = "enabled";
     private static final String ICONS = "icons";
+    private static final String SIDE = "side";
+    private static final String SIZE = "size";
 
     private EdgeDockManager() {}
 
@@ -31,6 +33,29 @@ public final class EdgeDockManager {
 
     public static void setEnabled(Context context, boolean enabled) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(ENABLED, enabled).apply();
+    }
+
+    public static String getSide(Context context) {
+        String side = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(SIDE, "right");
+        return "left".equalsIgnoreCase(side) ? "left" : "right";
+    }
+
+    public static boolean setSide(Context context, String side) {
+        if (side == null || !(side.equalsIgnoreCase("left") || side.equalsIgnoreCase("right"))) return false;
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(SIDE, side.toLowerCase(java.util.Locale.ROOT)).apply();
+        return true;
+    }
+
+    public static String getSize(Context context) {
+        String size = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(SIZE, "normal");
+        if ("compact".equalsIgnoreCase(size) || "large".equalsIgnoreCase(size)) return size.toLowerCase(java.util.Locale.ROOT);
+        return "normal";
+    }
+
+    public static boolean setSize(Context context, String size) {
+        if (size == null || !(size.equalsIgnoreCase("compact") || size.equalsIgnoreCase("normal") || size.equalsIgnoreCase("large"))) return false;
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(SIZE, size.toLowerCase(java.util.Locale.ROOT)).apply();
+        return true;
     }
 
     /** Optional Unicode glyph/emoji shown instead of the alias initials. */
@@ -77,6 +102,62 @@ public final class EdgeDockManager {
             setIcon(context, alias, "");
         }
         return removed;
+    }
+
+    public static JSONObject exportSettings(Context context) {
+        JSONObject result = new JSONObject();
+        JSONObject icons;
+        try {
+            icons = new JSONObject(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(ICONS, "{}"));
+        } catch (JSONException ignored) {
+            icons = new JSONObject();
+        }
+        try {
+            result.put("enabled", isEnabled(context));
+            result.put("side", getSide(context));
+            result.put("size", getSize(context));
+            result.put("items", new org.json.JSONArray(getItems(context)));
+            result.put("icons", icons);
+        } catch (JSONException ignored) { }
+        return result;
+    }
+
+    public static boolean restoreSettings(Context context, JSONObject settings) {
+        if (context == null || settings == null) return false;
+        try {
+            String side = settings.optString("side", "right");
+            String size = settings.optString("size", "normal");
+            org.json.JSONArray itemJson = settings.optJSONArray("items");
+            JSONObject icons = settings.optJSONObject("icons");
+            if (!(side.equals("left") || side.equals("right"))
+                    || !(size.equals("compact") || size.equals("normal") || size.equals("large"))
+                    || itemJson == null || itemJson.length() > 8 || icons == null) return false;
+            List<String> items = new ArrayList<>();
+            for (int i = 0; i < itemJson.length(); i++) {
+                if (!(itemJson.opt(i) instanceof String)) return false;
+                String alias = itemJson.getString(i).trim();
+                if (alias.isEmpty() || alias.contains("\n") || alias.contains("\r") || items.contains(alias)) return false;
+                items.add(alias);
+            }
+            java.util.Iterator<String> keys = icons.keys();
+            while (keys.hasNext()) {
+                String alias = keys.next();
+                if (!(icons.opt(alias) instanceof String)) return false;
+                String glyph = icons.optString(alias, "");
+                if (!items.contains(alias) || glyph.contains("\n") || glyph.contains("\r")
+                        || glyph.codePointCount(0, glyph.length()) > 8) return false;
+            }
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                    .putBoolean(ENABLED, settings.optBoolean("enabled", false))
+                    .putString(SIDE, side)
+                    .putString(SIZE, size)
+                    .putString(ITEMS, android.text.TextUtils.join("\n", items))
+                    .putString(ICONS, icons.toString())
+                    .apply();
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private static void save(Context context, List<String> items) {

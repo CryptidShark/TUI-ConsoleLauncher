@@ -23,6 +23,7 @@ Los permisos dependen de las funciones utilizadas. Puedes negar los permisos que
 | `settings` | Abre los ajustes del launcher |
 | `doctor` | Revisa la configuración del launcher |
 | `privacy` | Muestra permisos y accesos opcionales |
+| `history list` / `history find <texto>` | Muestra o busca comandos recientes |
 
 La sintaxis completa depende de cada comando; consulta `help [comando]`.
 
@@ -64,6 +65,8 @@ theme preview catppuccin-latte
 
 La tarjeta de vista previa incluye una acción para aplicar el tema. También se puede aplicar directamente con `theme -preset dracula` o cambiar un color individual con `theme -set <opción> <color>`.
 
+Escribe un comando y deja un espacio para ver las acciones disponibles en la fila de sugerencias. Esto incluye `widget `, `dock `, `visual `, `workspace `, `overlay ` y `history `; los comandos con parámetros como `config`, `theme` y `notes` sugieren sus opciones.
+
 ### Workspaces
 
 Un workspace aplica un conjunto de tarjetas fijadas:
@@ -96,6 +99,8 @@ widget remove [ID]
 widget clear
 ```
 
+`widget ` muestra estas opciones en las sugerencias. Primero ejecuta `widget list` para obtener el ID que se usa en `move`, `height` y `remove`. Si la fila de sugerencias está oculta, habilítala con `config -set show_suggestions true`.
+
 El selector y las pantallas de configuración pertenecen a Android y a cada aplicación proveedora. La compatibilidad, el enlace y las dimensiones pueden variar según el fabricante y la versión del sistema. Si agregar falla, establece el launcher como aplicación de inicio predeterminada y revisa `doctor`.
 
 ## Perfiles y restauración
@@ -107,7 +112,24 @@ config -export_profile cythernoir.json
 config -import_profile cythernoir.json
 ```
 
-El perfil incluye ajustes de comportamiento, interfaz, colores, sugerencias y comandos. No incluye los datos privados de otras aplicaciones ni garantiza el respaldo de widgets externos. Importar un perfil reemplaza las opciones incluidas; haz una exportación antes de importar.
+El perfil incluye ajustes de comportamiento, interfaz, colores, sugerencias, comandos, workspace y Dock. La vista previa valida los tipos y valores antes de aplicar cambios. Cada importación guarda una copia previa con nombre `profile_before_import_<marca_de_tiempo>.json`; los datos privados de otras aplicaciones y los widgets Android externos no se respaldan.
+
+## Dock lateral
+
+```text
+alias add w WhatsApp
+dock add w
+dock icon w 📱
+dock side left
+dock size compact
+dock enable
+```
+
+También puedes cambiar el borde y el tamaño desde `settings`. El tamaño admite `compact`, `normal` o `large`; el borde, `left` o `right`. Ejecuta `dock list` para revisar el estado y `dock icon w reset` para volver al alias de texto.
+
+## Historial de comandos
+
+`history list` muestra los comandos guardados, `history find <texto>` filtra coincidencias y `history run <número>` coloca uno en la línea de entrada para que puedas revisarlo antes de ejecutarlo. Las teclas/flechas de anterior y siguiente siguen recorriendo los comandos de la sesión. El modo incógnito no guarda ni muestra historial persistente.
 
 ## Herramientas opcionales
 
